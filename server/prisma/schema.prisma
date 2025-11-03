@@ -1,0 +1,23 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  amount      Decimal
+  category    String
+  description String
+  date        DateTime @default(now())
+  source      String   @default("voice")
+  parsed_by   String?
+  is_unclear  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
