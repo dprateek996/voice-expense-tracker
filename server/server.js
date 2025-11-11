@@ -2,14 +2,25 @@
 
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config();
+
+const authRoutes = require('./src/api/routes/auth.routes');
 const expenseRoutes = require('./src/api/routes/expense.routes');
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// CORS configuration for credentials
+app.use(cors({
+  origin: 'http://localhost:5173', // Frontend URL
+  credentials: true, // Allow cookies
+}));
 
+app.use(express.json());
+app.use(cookieParser());
+
+// Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/expenses', expenseRoutes);
 
 app.get('/', (req, res) => {
