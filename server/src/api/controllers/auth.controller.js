@@ -70,8 +70,9 @@ const register = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // Return user info (without password)
+    // Return user info (without password) and token
     res.status(201).json({
+      token: accessToken, // Added for frontend
       user: {
         id: user.id,
         email: user.email,
@@ -132,8 +133,9 @@ const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    // Return user info
+    // Return user info and token
     res.status(200).json({
+      token: accessToken, // Added for frontend
       user: {
         id: user.id,
         email: user.email,

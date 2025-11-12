@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 
-function Login() {
+function Register() {
   const navigate = useNavigate();
-  const { login, loading, error: authError, clearError } = useAuthStore();
+  const { register, loading, error: authError, clearError } = useAuthStore();
   
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
@@ -15,10 +17,21 @@ function Login() {
     setError('');
     clearError();
 
-    const result = await login({ email, password });
+    // Validation
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    const result = await register({ name, email, password });
     
     if (result.success) {
-      console.log('✅ Login successful!');
+      console.log('✅ Registration successful!');
       navigate('/dashboard');
     } else {
       setError(result.error || authError);
@@ -77,14 +90,14 @@ function Login() {
             marginBottom: '0.5rem',
             letterSpacing: '-0.5px'
           }}>
-            Welcome Back
+            Create Account
           </h1>
           <p style={{ 
             color: 'rgba(255, 255, 255, 0.6)', 
             fontSize: 'clamp(0.9rem, 2vw, 1rem)',
             fontWeight: '300'
           }}>
-            Sign in to track your expenses with AI
+            Start tracking expenses with your voice
           </p>
         </div>
 
@@ -103,7 +116,46 @@ function Login() {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'rgba(255, 255, 255, 0.9)',
+              marginBottom: '0.5rem'
+            }}>
+              Full Name
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '0.875rem',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '10px',
+                fontSize: '16px',
+                color: 'white',
+                outline: 'none',
+                transition: 'all 0.2s',
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#4dd4c1';
+                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+              }}
+              placeholder="John Doe"
+            />
+          </div>
+
+          <div style={{ marginBottom: '1.25rem' }}>
             <label style={{
               display: 'block',
               fontSize: '14px',
@@ -142,7 +194,7 @@ function Login() {
             />
           </div>
 
-          <div style={{ marginBottom: '2rem' }}>
+          <div style={{ marginBottom: '1.25rem' }}>
             <label style={{
               display: 'block',
               fontSize: '14px',
@@ -156,6 +208,45 @@ function Login() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '0.875rem',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '10px',
+                fontSize: '16px',
+                color: 'white',
+                outline: 'none',
+                transition: 'all 0.2s',
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#4dd4c1';
+                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+              }}
+              placeholder="••••••••"
+            />
+          </div>
+
+          <div style={{ marginBottom: '2rem' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'rgba(255, 255, 255, 0.9)',
+              marginBottom: '0.5rem'
+            }}>
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               required
               style={{
                 width: '100%',
@@ -213,7 +304,7 @@ function Login() {
               }
             }}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Creating account...' : 'Create Account'}
           </button>
 
           <div style={{ textAlign: 'center' }}>
@@ -222,9 +313,9 @@ function Login() {
               fontSize: '14px',
               marginBottom: '0.75rem'
             }}>
-              Don't have an account?{' '}
+              Already have an account?{' '}
               <Link 
-                to="/register" 
+                to="/login" 
                 style={{ 
                   color: '#4dd4c1', 
                   textDecoration: 'none',
@@ -234,7 +325,7 @@ function Login() {
                 onMouseEnter={(e) => e.target.style.color = '#5ee5d2'}
                 onMouseLeave={(e) => e.target.style.color = '#4dd4c1'}
               >
-                Sign up
+                Sign in
               </Link>
             </p>
             <Link 
@@ -258,4 +349,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default Register;
