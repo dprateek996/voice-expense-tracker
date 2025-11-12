@@ -11,14 +11,21 @@ const parseExpenseWithGemini = async (text) => {
     const prompt = `
       Parse the following expense entry and return ONLY a valid JSON object with these fields:
       - "amount" (number): The expense amount in rupees (₹). If not found, use 0.
-      - "category" (string): Must be one of: "Food", "Transport", "Shopping", "Bills", "Entertainment", "Others"
+      - "category" (string): Must be one of: "Food", "Transport", "Shopping", "Bills", "Entertainment", "Fuel", "Healthcare", "Education", "Others"
       - "description" (string): A brief description of the expense
       - "location" (string or null): The place/store name if mentioned (e.g., "Burger King", "Starbucks"), otherwise null
       - "is_unclear" (boolean): true if the category or amount is ambiguous, false otherwise
-      
+
+      The input may be in Hindi or English. If Hindi, translate and extract the same fields. Examples:
+      - "कल मैंने 200 रुपये खाने पर खर्च किए" → amount: 200, category: Food, description: "खाने पर खर्च किए", location: null
+      - "Paid 500 for shopping at Zara" → amount: 500, category: Shopping, description: "shopping at Zara", location: "Zara"
+      - "आज 100 रुपये ट्रांसपोर्ट में दिए" → amount: 100, category: Transport, description: "ट्रांसपोर्ट में दिए", location: null
+      - "200 ka petrol" → amount: 200, category: Fuel, description: "petrol", location: null
+      - "Diesel ke liye 500 diye" → amount: 500, category: Fuel, description: "Diesel ke liye", location: null
+
       Text: "${text}"
-      
-      Return ONLY the JSON object, no markdown formatting, no explanations.
+
+      Return ONLY the JSON object, no markdown formatting, no explanations. If Hindi, keep description in Hindi but translate category to English.
     `;
 
     const result = await model.generateContent(prompt);
