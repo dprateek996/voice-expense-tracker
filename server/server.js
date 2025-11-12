@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const authRoutes = require('./src/api/routes/auth.routes');
 const expenseRoutes = require('./src/api/routes/expense.routes');
+const conversationRoutes = require('./src/api/routes/conversation.routes');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/expenses', expenseRoutes);
+app.use('/api/conversation', conversationRoutes);
 
 app.get('/', (req, res) => {
   res.send('Voice Expense Tracker API is running!');
