@@ -7,8 +7,13 @@ const { verifyAccessToken } = require('../utils/jwt.util');
  */
 const authenticate = (req, res, next) => {
   try {
-    // Get token from httpOnly cookie
-    const token = req.cookies?.accessToken;
+    // Try to get token from Authorization header (Bearer) or cookie
+    let token = null;
+    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies?.accessToken) {
+      token = req.cookies.accessToken;
+    }
 
     if (!token) {
       return res.status(401).json({ error: 'Authentication required' });

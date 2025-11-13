@@ -1,29 +1,26 @@
-import { RippleButton } from '@/components/ui/shadcn-io/ripple-button';
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import useAuthStore from '@/store/authStore';
+import api from '@/api/axios.config';
 
-function Login() {
-  const navigate = useNavigate();
-  const { login, loading, error: authError, clearError } = useAuthStore();
-  
+function ForgotPassword() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
     setError('');
-    clearError();
-
-    const result = await login({ email, password });
-
-    if (result.success) {
-      console.log('✅ Login successful!');
-      navigate('/dashboard');
-    } else {
-      // Show error message for wrong password or any error
-      setError(result.error || authError || 'Invalid email or password. Please try again.');
+    setLoading(true);
+    try {
+      const response = await api.post('/auth/forgot-password', { email });
+      setMessage(response.data.message || 'Password reset link sent to your email.');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Failed to send reset link.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,7 +36,6 @@ function Login() {
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {/* Background gradient effect */}
       <div style={{
         position: 'absolute',
         top: 0,
@@ -49,15 +45,12 @@ function Login() {
         background: 'radial-gradient(circle at 50% 50%, rgba(42, 157, 143, 0.1) 0%, transparent 60%)',
         pointerEvents: 'none'
       }}></div>
-
-      {/* Animations */}
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-
       <div style={{
         background: 'rgba(255, 255, 255, 0.05)',
         backdropFilter: 'blur(10px)',
@@ -79,17 +72,31 @@ function Login() {
             marginBottom: '0.5rem',
             letterSpacing: '-0.5px'
           }}>
-            Welcome Back
+            Forgot Password
           </h1>
           <p style={{ 
             color: 'rgba(255, 255, 255, 0.6)', 
             fontSize: 'clamp(0.9rem, 2vw, 1rem)',
             fontWeight: '300'
           }}>
-            Sign in to track your expenses with AI
+            Enter your email to receive a password reset link
           </p>
         </div>
-
+        {message && (
+          <div style={{
+            background: 'rgba(34,197,94,0.1)',
+            border: '1px solid rgba(34,197,94,0.3)',
+            color: '#4ade80',
+            padding: '0.75rem',
+            borderRadius: '10px',
+            marginBottom: '1.5rem',
+            fontSize: '14px',
+            textAlign: 'center',
+            fontWeight: '500'
+          }}>
+            {message}
+          </div>
+        )}
         {error && (
           <div style={{
             background: 'rgba(239, 68, 68, 0.1)',
@@ -105,9 +112,8 @@ function Login() {
             {error}
           </div>
         )}
-
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: '2rem' }}>
             <label style={{
               display: 'block',
               fontSize: '14px',
@@ -145,118 +151,53 @@ function Login() {
               placeholder="you@example.com"
             />
           </div>
-
-          <div style={{ marginBottom: '2rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'rgba(255, 255, 255, 0.9)',
-              marginBottom: '0.5rem'
-            }}>
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '0.875rem',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '10px',
-                fontSize: '16px',
-                color: 'white',
-                outline: 'none',
-                transition: 'all 0.2s',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#4dd4c1';
-                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
-              }}
-              placeholder="••••••••"
-            />
-          </div>
-
-          <RippleButton
+          <button
             type="submit"
             disabled={loading}
             style={{
               width: '100%',
               padding: '0.875rem',
-              background: loading ? '#f3f3f3' : '#fff',
-              color: '#111',
-              border: '1px solid #e5e7eb',
+              background: loading ? 'rgba(255, 255, 255, 0.1)' : '#2a9d8f',
+              color: 'white',
+              border: 'none',
               borderRadius: '10px',
               fontSize: '16px',
               fontWeight: '600',
               cursor: loading ? 'not-allowed' : 'pointer',
               marginBottom: '1.5rem',
               transition: 'all 0.2s',
-              boxShadow: loading ? 'none' : '0 2px 8px rgba(0,0,0,0.04)'
+              boxShadow: loading ? 'none' : '0 4px 15px rgba(42, 157, 143, 0.3)'
+            }}
+            onMouseEnter={(e) => {
+              if (!loading) {
+                e.target.style.background = '#239080';
+                e.target.style.transform = 'translateY(-1px)';
+                e.target.style.boxShadow = '0 6px 20px rgba(42, 157, 143, 0.4)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading) {
+                e.target.style.background = '#2a9d8f';
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = '0 4px 15px rgba(42, 157, 143, 0.3)';
+              }
             }}
           >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </RippleButton>
-
+            {loading ? 'Sending...' : 'Send Reset Link'}
+          </button>
           <div style={{ textAlign: 'center' }}>
-            <p style={{ 
-              color: 'rgba(255, 255, 255, 0.6)', 
-              fontSize: '14px',
-              marginBottom: '0.75rem'
-            }}>
-              Don't have an account?{' '}
-              <Link 
-                to="/register" 
-                style={{ 
-                  color: '#4dd4c1', 
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  transition: 'color 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.color = '#5ee5d2'}
-                onMouseLeave={(e) => e.target.style.color = '#4dd4c1'}
-              >
-                Sign up
-              </Link>
-            </p>
             <Link 
-              to="/forgot-password" 
+              to="/login" 
               style={{ 
-                color: '#fca5a5', 
+                color: '#4dd4c1', 
                 textDecoration: 'none',
                 fontWeight: '600',
-                fontSize: '14px',
-                display: 'inline-block',
-                marginBottom: '0.75rem',
                 transition: 'color 0.2s'
               }}
-              onMouseEnter={(e) => e.target.style.color = '#ef4444'}
-              onMouseLeave={(e) => e.target.style.color = '#fca5a5'}
+              onMouseEnter={(e) => e.target.style.color = '#5ee5d2'}
+              onMouseLeave={(e) => e.target.style.color = '#4dd4c1'}
             >
-              Forgot Password?
-            </Link>
-            <br />
-            <Link 
-              to="/" 
-              style={{ 
-                color: 'rgba(255, 255, 255, 0.5)', 
-                textDecoration: 'none',
-                fontSize: '14px',
-                display: 'inline-block',
-                transition: 'color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.8)'}
-              onMouseLeave={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.5)'}
-            >
-              ← Back to home
+              ← Back to Login
             </Link>
           </div>
         </form>
@@ -265,4 +206,4 @@ function Login() {
   );
 }
 
-export default Login;
+export default ForgotPassword;

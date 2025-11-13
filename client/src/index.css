@@ -4,50 +4,56 @@
 
 @layer base {
   :root {
-    --radius: 0.5rem;
+    --background: 224 71% 4%;
+    --foreground: 210 20% 98%;
+    --card: 224 71% 6%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 38 92% 50%;
+    --primary-foreground: 224 71% 4%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 75%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 38 92% 50%;
+    --radius: 0.75rem;
   }
-  
-  * {
-    @apply border-border;
-  }
-  
-    body {
-      @apply bg-gradient-primary font-sans text-primary-100;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 210 20% 98%;
+    --card: 224 71% 6%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71% 4%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 38 92% 50%;
+    --primary-foreground: 224 71% 4%;
+    --secondary: 215 28% 17%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 28% 17%;
+    --muted-foreground: 215 20% 75%;
+    --accent: 215 28% 17%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 38 92% 50%;
   }
 }
 
-@layer utilities {
-  /* Glassmorphism effect */
-  .glass {
-    background: rgba(30, 41, 59, 0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(77, 212, 193, 0.1);
+@layer base {
+  * {
+    @apply border-border;
   }
-  
-  /* Glow effects */
-  .glow-teal {
-    box-shadow: 0 0 20px rgba(77, 212, 193, 0.3),
-                0 0 40px rgba(77, 212, 193, 0.2),
-                0 0 60px rgba(77, 212, 193, 0.1);
-  }
-  
-  .glow-teal-strong {
-    box-shadow: 0 0 30px rgba(77, 212, 193, 0.5),
-                0 0 60px rgba(77, 212, 193, 0.3),
-                0 0 90px rgba(77, 212, 193, 0.2);
-  }
-  
-  /* Text gradient */
-  .text-gradient {
-    background: linear-gradient(135deg, #4dd4c1 0%, #2a9d8f 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+  body {
+    @apply bg-background text-foreground;
   }
 }

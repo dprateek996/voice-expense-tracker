@@ -1,53 +1,17 @@
-import { Outlet } from 'react-router-dom';
-import { useState } from 'react';
-import TopNav from '@/components/layout/TopNav';
-import LeftSidebar from '@/components/layout/LeftSidebar';
-import ChatSidebar from '@/components/layout/ChatSidebar';
-import ExpenseList from '@/components/dashboard/ExpenseList.jsx';
-import VoiceOrb from '@/components/dashboard/VoiceOrb.jsx';
-import useAuthStore from '@/store/authStore';
+import { Outlet } from "react-router-dom";
+import Sidebar from "@/components/layout/Sidebar";
+import TopNav from "@/components/layout/TopNav";
 
-const Dashboard = () => {
-  const token = useAuthStore(state => state.token);
-  const [refreshExpenses, setRefreshExpenses] = useState(false);
-
-  // Handler for new expense via voice
-  const handleVoiceExpense = async (transcript) => {
-    if (!transcript || !token) return;
-    try {
-      const { addExpense } = await import('@/api/expense.api');
-      await addExpense(transcript, token);
-      setRefreshExpenses(r => !r);
-      return true;
-    } catch (err) {
-      return false;
-    }
-  };
-
+export default function Dashboard() {
   return (
-    <div className="h-screen flex flex-col bg-gradient-primary text-primary-900">
-      {/* Top Navigation */}
-      <TopNav />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar */}
-        <LeftSidebar />
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
-          {/* Voice Assistant Orb for expense input (ONLY) */}
-          {token ? <VoiceOrb onVoiceExpense={handleVoiceExpense} /> : <div className="text-red-600">No token found. Please login.</div>}
-          {/* Expense List, refresh on new expense */}
-          {token ? <ExpenseList token={token} refresh={refreshExpenses} /> : null}
+    <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr]">
+      <Sidebar />
+      <div className="flex flex-col">
+        <TopNav />
+        <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 overflow-auto">
           <Outlet />
         </main>
-
-        {/* Chat Sidebar (Toggleable) */}
-        <ChatSidebar />
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}

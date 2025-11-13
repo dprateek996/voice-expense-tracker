@@ -1,99 +1,236 @@
-import { TrendingUp, TrendingDown, Wallet, Calendar } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import GlassCard from '@/components/ui/card';
-import ExpenseList from '@/components/dashboard/ExpenseList.jsx';
-import useAuthStore from '@/store/authStore';
-import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DollarSign,
+  ShoppingCart,
+  CreditCard,
+  Activity,
+  ArrowUpRight,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { PieChart, Pie, Cell } from "recharts";
 
-const DashboardHome = () => {
-  // TODO: Fetch real data from API
-  const stats = [
-    {
-      title: "Today's Spending",
-      value: '₹0',
-      change: '+0%',
-      trend: 'up',
-      icon: Wallet,
-    },
-    {
-      title: 'This Week',
-      value: '₹0',
-      change: '+0%',
-      trend: 'up',
-      icon: Calendar,
-    },
-    {
-      title: 'This Month',
-      value: '₹0',
-      change: '+0%',
-      trend: 'down',
-      icon: TrendingUp,
-    },
-    {
-      title: 'Budget Left',
-      value: '₹0',
-      change: '100%',
-      trend: 'down',
-      icon: TrendingDown,
-    },
-  ];
+const chartData = [
+  { category: "Food", expenses: 450, fill: "var(--color-food)" },
+  { category: "Transport", expenses: 200, fill: "var(--color-transport)" },
+  { category: "Shopping", expenses: 300, fill: "var(--color-shopping)" },
+  { category: "Utilities", expenses: 150, fill: "var(--color-utilities)" },
+];
 
-  const token = useAuthStore(state => state.token);
-  const [refreshExpenses, setRefreshExpenses] = useState(false);
+const chartConfig = {
+  expenses: {
+    label: "Expenses",
+  },
+  food: {
+    label: "Food",
+    color: "hsl(var(--chart-1))",
+  },
+  transport: {
+    label: "Transport",
+    color: "hsl(var(--chart-2))",
+  },
+  shopping: {
+    label: "Shopping",
+    color: "hsl(var(--chart-3))",
+  },
+  utilities: {
+    label: "Utilities",
+    color: "hsl(var(--chart-4))",
+  },
+};
+
+export default function DashboardHome() {
   return (
-    <div className="container mx-auto px-6 py-8">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        {stats.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <GlassCard
-              key={index}
-              className="relative overflow-hidden group p-0 h-40 flex flex-col justify-between shadow-2xl border-0 bg-gradient-primary"
-            >
-              {/* Large Icon with Glow */}
-              <div className="absolute top-4 right-4 z-10">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-tr from-primary-100 to-primary-500 flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-200">
-                  <Icon className="w-8 h-8 text-[#294C60] drop-shadow-lg" />
-                </div>
-              </div>
-              {/* Stat Value */}
-              <div className="pl-6 pt-6">
-                <p className="text-lg font-semibold text-[#294C60] mb-1 tracking-tight">{stat.title}</p>
-                <p className="text-3xl font-extrabold text-[#294C60] mb-2 drop-shadow-xl">{stat.value}</p>
-              </div>
-              {/* Trend and Change */}
-              <div className="flex items-center gap-2 pl-6 pb-5">
-                {stat.trend === 'up' ? (
-                  <TrendingUp className="w-5 h-5 text-[#294C60] animate-pulse" />
-                ) : (
-                  <TrendingDown className="w-5 h-5 text-[#294C60] animate-pulse" />
-                )}
-                <span className={cn('text-base font-bold', 'text-[#294C60]')}>{stat.change}</span>
-                <span className="text-xs text-muted-foreground ml-1">vs last period</span>
-              </div>
-              {/* Animated Glow Background */}
-              <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className="absolute -top-10 -left-10 w-32 h-32 bg-primary-100/20 rounded-full blur-2xl animate-pulse-glow" />
-                <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary-500/20 rounded-full blur-2xl animate-pulse-glow" />
-              </div>
-            </GlassCard>
-          );
-        })}
+    <div className="flex flex-col gap-6">
+      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Total Expenses
+            </CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">₹12,450.50</div>
+            <p className="text-xs text-muted-foreground">
+              +5.2% from last month
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Most Spent On
+            </CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">Food</div>
+            <p className="text-xs text-muted-foreground">
+              ₹4,890 this month
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-bold">Transactions</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">+34</div>
+            <p className="text-xs text-muted-foreground">
+              in the last 7 days
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Most Active Day</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">Friday</div>
+            <p className="text-xs text-muted-foreground">
+              Average of ₹850
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Recent Expenses - Real Data */}
-      <div className="mt-12">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gradient">Recent Expenses</h2>
-          <button className="text-sm text-primary-400 hover:text-primary-300 transition-colors">
-            View All →
-          </button>
-        </div>
-  <ExpenseList token={token} refresh={refreshExpenses} />
+      <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+        <Card className="xl:col-span-2">
+          <CardHeader className="flex flex-row items-center">
+            <div className="grid gap-2">
+              <CardTitle>Recent Expenses</CardTitle>
+              <CardDescription>
+                Your latest 5 transactions.
+              </CardDescription>
+            </div>
+            <Button asChild size="sm" className="ml-auto gap-1">
+              <Link to="/dashboard/history">
+                View All
+                <ArrowUpRight className="h-4 w-4" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="hidden xl:table-column">Category</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell>
+                    <div className="font-medium">Zomato</div>
+                    <div className="hidden text-sm text-muted-foreground md:inline">
+                      Dinner
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden xl:table-column">Food</TableCell>
+                  <TableCell className="text-right">₹250.00</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>
+                    <div className="font-medium">Uber</div>
+                     <div className="hidden text-sm text-muted-foreground md:inline">
+                      Commute
+                    </div>
+                  </TableCell>
+                   <TableCell className="hidden xl:table-column">Transport</TableCell>
+                  <TableCell className="text-right">₹150.00</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>
+                    <div className="font-medium">H&M</div>
+                     <div className="hidden text-sm text-muted-foreground md:inline">
+                      T-shirt
+                    </div>
+                  </TableCell>
+                   <TableCell className="hidden xl:table-column">Shopping</TableCell>
+                  <TableCell className="text-right">₹800.00</TableCell>
+                </TableRow>
+                 <TableRow>
+                  <TableCell>
+                    <div className="font-medium">Fuel</div>
+                     <div className="hidden text-sm text-muted-foreground md:inline">
+                      Petrol
+                    </div>
+                  </TableCell>
+                   <TableCell className="hidden xl:table-column">Transport</TableCell>
+                  <TableCell className="text-right">₹500.00</TableCell>
+                </TableRow>
+                 <TableRow>
+                  <TableCell>
+                    <div className="font-medium">Groceries</div>
+                     <div className="hidden text-sm text-muted-foreground md:inline">
+                      Weekly shopping
+                    </div>
+                  </TableCell>
+                   <TableCell className="hidden xl:table-column">Food</TableCell>
+                  <TableCell className="text-right">₹1,200.00</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Spending Breakdown</CardTitle>
+            <CardDescription>Your spending by category this month.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-1 pb-0">
+             <ChartContainer
+                config={chartConfig}
+                className="mx-auto aspect-square h-[250px]"
+              >
+                <PieChart>
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent hideLabel />}
+                  />
+                  <Pie data={chartData} dataKey="expenses" nameKey="category" innerRadius={60}>
+                     {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ChartContainer>
+          </CardContent>
+          <CardFooter className="flex-col gap-2 text-sm">
+            <div className="flex items-center gap-2 font-medium leading-none">
+              Top category: Food
+            </div>
+            <div className="leading-none text-muted-foreground">
+              Showing total expenses for the current month
+            </div>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
-};
-
-export default DashboardHome;
+}

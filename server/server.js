@@ -1,28 +1,24 @@
-// server.js
+require('dotenv').config(); // Loads environment variables from .env file
 
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-require('dotenv').config();
-
 const authRoutes = require('./src/api/routes/auth.routes');
 const expenseRoutes = require('./src/api/routes/expense.routes');
 const conversationRoutes = require('./src/api/routes/conversation.routes');
 
 const app = express();
 
-// CORS configuration for credentials
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'], // Frontend URLs
-  credentials: true, // Allow cookies
+  origin: 'http://localhost:5173', // Your frontend URL
+  credentials: true,
 }));
-
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/expenses', expenseRoutes);
+app.use('/api/expense', expenseRoutes);
 app.use('/api/conversation', conversationRoutes);
 
 app.get('/', (req, res) => {
@@ -30,7 +26,6 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5001;
-
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
