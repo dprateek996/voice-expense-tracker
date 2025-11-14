@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import Landing from './pages/Landing';
 import ForgotPassword from './pages/ForgotPassword';
 import Login from './pages/Login';
@@ -33,6 +34,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      <Toaster richColors theme="dark" />
     </div>
   );
 }

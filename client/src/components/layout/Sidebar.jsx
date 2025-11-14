@@ -2,7 +2,6 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import useAuthStore from "@/store/authStore";
 import {
   LayoutDashboard,
@@ -16,172 +15,151 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 
-const navItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { name: "Analytics", icon: BarChart3, path: "/dashboard/analytics" },
-  { name: "History", icon: History, path: "/dashboard/history" },
-  { name: "Categories", icon: Tags, path: "/dashboard/categories" },
+const navLinks = [
+  { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
+  { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" /> },
+  { label: "History", href: "/dashboard/history", icon: <History className="w-5 h-5" /> },
+  { label: "Categories", href: "/dashboard/categories", icon: <Tags className="w-5 h-5" /> },
+];
+
+const bottomLinks = [
+  { label: "Settings", href: "/dashboard/settings", icon: <Settings className="w-5 h-5" /> },
+  { label: "Logout", onClick: "handleLogout", icon: <LogOut className="w-5 h-5" /> },
 ];
 
 export default function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(true);
-  const { logout, user } = useAuthStore();
+  const [open, setOpen] = useState(false);
+  const [hoveredLink, setHoveredLink] = useState(null);
   const navigate = useNavigate();
+  const { logout } = useAuthStore();
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
+  const getClickHandler = (onClick) => {
+    if (typeof onClick === "string" && onClick === "handleLogout") {
+      return handleLogout;
+    }
+    return onClick;
+  };
+
   return (
-    <TooltipProvider delayDuration={0}>
-      <motion.aside
-        initial={false}
-        animate={{ width: isCollapsed ? "5rem" : "18rem" }}
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-        className="relative flex flex-col h-screen bg-card border-r border-border z-50 p-2"
+    <motion.aside
+      initial={false}
+      animate={{ width: open ? "16rem" : "5.5rem" }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="relative flex flex-col h-screen bg-background border-r border-border z-50 p-3"
+    >
+      <div className="flex items-center justify-between p-2 h-16 border-b border-border">
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center"
+            >
+              <Gem className="w-8 h-8 text-primary flex-shrink-0" />
+              <span className="ml-3 text-xl font-bold whitespace-nowrap">VoiceExpense</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <Button
+          onClick={() => setOpen(!open)}
+          variant="ghost"
+          size="icon"
+          className="flex-shrink-0"
+        >
+          {open ? <PanelLeftClose /> : <PanelLeftOpen />}
+        </Button>
+      </div>
+      
+      <nav 
+        className="flex-1 flex flex-col justify-between py-2"
+        onMouseLeave={() => setHoveredLink(null)}
       >
-        <div className="flex items-center justify-between p-2 h-16 border-b border-border">
-          <div className="flex items-center">
-            <Gem className="w-8 h-8 text-primary flex-shrink-0 ml-1" />
-            <AnimatePresence>
-              {!isCollapsed && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="ml-3 text-xl font-bold whitespace-nowrap"
-                >
-                  VoiceExpense
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </div>
-          <Button
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            variant="ghost"
-            size="icon"
-            className="flex-shrink-0"
-          >
-            {isCollapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
-          </Button>
-        </div>
-
-        <div className="p-2 my-2 bg-muted rounded-lg">
-          <UserCard user={user} isCollapsed={isCollapsed} />
-        </div>
-
-        <nav className="flex-1 space-y-1 p-2">
-          {navItems.map((item) => (
-            <NavItem key={item.name} item={item} isCollapsed={isCollapsed} />
+        <div className="space-y-1">
+          {navLinks.map((link) => (
+            <SidebarLink 
+              key={link.label} 
+              link={link} 
+              open={open} 
+              hoveredLink={hoveredLink}
+              setHoveredLink={setHoveredLink}
+            />
           ))}
-        </nav>
-
-        <div className="p-2 border-t border-border">
-          <NavItem
-            isCollapsed={isCollapsed}
-            item={{ name: "Settings", icon: Settings, path: "/dashboard/settings" }}
-          />
-          <NavItem
-            isCollapsed={isCollapsed}
-            item={{ name: "Logout", icon: LogOut, path: "/login" }}
-            onClick={handleLogout}
-          />
         </div>
-      </motion.aside>
-    </TooltipProvider>
+
+        <div className="space-y-1">
+          {bottomLinks.map((link) => (
+            <SidebarLink
+              key={link.label}
+              link={link}
+              open={open}
+              onClick={getClickHandler(link.onClick)}
+              hoveredLink={hoveredLink}
+              setHoveredLink={setHoveredLink}
+            />
+          ))}
+        </div>
+      </nav>
+    </motion.aside>
   );
 }
 
-const NavItem = ({ item, isCollapsed, onClick }) => {
-  const content = (
+const SidebarLink = ({ link, open, onClick, hoveredLink, setHoveredLink }) => {
+  const isHovered = hoveredLink === link.label;
+
+  const linkContent = (isActive) => (
     <>
-      <item.icon className="w-5 h-5 flex-shrink-0" />
+      {(isActive || isHovered) && (
+        <motion.div
+          layoutId="active-sidebar-pill"
+          className="absolute right-0 top-2 bottom-2 w-1 rounded-full bg-primary"
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        />
+      )}
+      {link.icon}
       <AnimatePresence>
-        {!isCollapsed && (
+        {open && (
           <motion.span
-            initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: "auto", marginLeft: "0.75rem" }}
-            exit={{ opacity: 0, width: 0, marginLeft: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30, duration: 0.2 }}
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0, marginLeft: "1rem" }}
+            exit={{ opacity: 0, x: -10, marginLeft: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 40 }}
             className="whitespace-nowrap font-medium"
           >
-            {item.name}
+            {link.label}
           </motion.span>
         )}
       </AnimatePresence>
     </>
   );
 
-  const navLinkClass = ({ isActive }) =>
-    `relative flex items-center p-3 rounded-lg transition-colors ${
-      isActive
-        ? "text-foreground bg-muted"
-        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+  const linkClasses = ({ isActive }) =>
+    `relative flex items-center p-3 rounded-lg transition-colors duration-200 cursor-pointer ${
+      isActive || isHovered
+        ? "text-foreground bg-primary/20"
+        : "text-muted-foreground hover:bg-primary/20 hover:text-foreground"
     }`;
-
-  const renderLink = (isActive) => (
-    <>
-      {isActive && (
-        <motion.div
-          layoutId="active-indicator"
-          className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full"
-        />
-      )}
-      {content}
-    </>
-  );
+  
+  const commonProps = {
+     onMouseEnter: () => setHoveredLink(link.label),
+  };
 
   if (onClick) {
     return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <button onClick={onClick} className="w-full text-left">
-            <div className={navLinkClass({ isActive: false })}>{renderLink(false)}</div>
-          </button>
-        </TooltipTrigger>
-        {isCollapsed && <TooltipContent side="right">{item.name}</TooltipContent>}
-      </Tooltip>
+      <div {...commonProps} onClick={onClick} className={linkClasses({ isActive: false })}>
+        {linkContent(false)}
+      </div>
     );
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <NavLink to={item.path} end={item.path === "/dashboard"} className={navLinkClass}>
-          {({ isActive }) => renderLink(isActive)}
-        </NavLink>
-      </TooltipTrigger>
-      {isCollapsed && <TooltipContent side="right">{item.name}</TooltipContent>}
-    </Tooltip>
-  );
-};
-
-const UserCard = ({ user, isCollapsed }) => {
-  const initial = user?.name ? user.name.charAt(0).toUpperCase() : "U";
-
-  return (
-    <div className="flex items-center p-2 rounded-lg">
-      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold flex-shrink-0">
-        {initial}
-      </div>
-      <AnimatePresence>
-        {!isCollapsed && (
-          <motion.div
-            initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: "auto", marginLeft: "0.75rem" }}
-            exit={{ opacity: 0, width: 0, marginLeft: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30, duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <p className="font-semibold whitespace-nowrap">{user?.name || "User"}</p>
-            <p className="text-xs text-muted-foreground whitespace-nowrap truncate">
-              {user?.email || "user@example.com"}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+    <NavLink to={link.href} end={link.href === "/dashboard"} className={linkClasses} {...commonProps}>
+      {({ isActive }) => linkContent(isActive)}
+    </NavLink>
   );
 };
