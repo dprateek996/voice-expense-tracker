@@ -1,117 +1,133 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, X } from 'lucide-react';
+import { Check, Mic, X } from 'lucide-react';
 
-const VoiceVisualizer = ({ state, onClick }) => {
+const Orb = ({ state, onClick }) => {
+  const size = 150;
+  const strokeWidth = 5;
+  const center = size / 2;
+  const radius = size / 2 - strokeWidth / 2;
+
   return (
-    <motion.div
+    <motion.button
       onClick={onClick}
-      className="relative w-full h-40 flex items-center justify-center cursor-pointer"
-      style={{ perspective: '800px' }}
+      className="relative flex items-center justify-center rounded-full"
+      style={{ width: size, height: size }}
+      animate={state === 'listening' ? { scale: 1.05 } : { scale: 1 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
     >
-      <AnimatePresence mode="wait">
-        {state === 'idle' && <LineWaveIndicator key="idle" state="idle" />}
-        {state === 'listening' && <LineWaveIndicator key="listening" state="listening" />}
-        {state === 'processing' && <ProcessingIndicator key="processing" />}
-        {state === 'success' && <FeedbackIndicator key="success" type="success" />}
-        {state === 'error' && <FeedbackIndicator key="error" type="error" />}
-      </AnimatePresence>
-    </motion.div>
-  );
-};
-
-const LineWaveIndicator = ({ state }) => {
-  const isListening = state === 'listening';
-  const width = 200;
-  const height = 80;
-
-  const wavePath = "M 0 40 Q 50 0, 100 40 T 200 40";
-  const flatPath = "M 0 40 L 200 40";
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <motion.div
+        className="absolute inset-0 rounded-full"
+        animate={{
+          boxShadow: state === 'idle' 
+            ? '0 0 20px 5px hsl(var(--primary) / 0.3), 0 0 40px 10px hsl(var(--primary) / 0.2)'
+            : '0 0 30px 8px hsl(var(--primary) / 0.5), 0 0 60px 20px hsl(var(--primary) / 0.3)',
+        }}
+        transition={{
+          duration: 1.5,
+          repeat: Infinity,
+          repeatType: 'reverse',
+          ease: 'easeInOut',
+        }}
+      />
+      
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <defs>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
+          <linearGradient id="orb-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="hsl(var(--primary-glow))" />
+            <stop offset="100%" stopColor="hsl(var(--primary))" />
+          </linearGradient>
         </defs>
-        <motion.path
-          d={flatPath}
-          stroke="hsl(var(--primary))"
-          strokeWidth="4"
-          strokeLinecap="round"
-          fill="none"
-          filter="url(#glow)"
-          animate={{ d: isListening ? wavePath : flatPath }}
-          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-        >
-          {isListening && (
-             <motion.path
-              d={wavePath}
-              stroke="hsl(var(--primary-glow))"
-              strokeWidth="4"
-              strokeLinecap="round"
-              fill="none"
-              animate={{
-                d: [
-                  "M 0 40 Q 50 0, 100 40 T 200 40",
-                  "M 0 40 Q 50 80, 100 40 T 200 40",
-                  "M 0 40 Q 50 0, 100 40 T 200 40",
-                ]
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                repeatType: "loop",
-                ease: "easeInOut",
-              }}
-            />
-          )}
-        </motion.path>
+        <circle
+          cx={center}
+          cy={center}
+          r={radius}
+          fill="url(#orb-gradient)"
+          stroke="hsl(var(--primary) / 0.5)"
+          strokeWidth={strokeWidth}
+        />
       </svg>
-    </motion.div>
+      
+      <div className="absolute inset-0 flex items-center justify-center">
+        <AnimatePresence mode="wait">
+          {state === 'idle' && <Icon key="mic" icon={<Mic size={48} />} />}
+          {state === 'listening' && <ListeningWave key="wave" />}
+          {state === 'processing' && <ProcessingSpinner key="spinner" />}
+          {state === 'success' && <Icon key="check" icon={<Check size={60} />} success />}
+          {state === 'error' && <Icon key="error" icon={<X size={60} />} error />}
+        </AnimatePresence>
+      </div>
+    </motion.button>
   );
 };
 
-const ProcessingIndicator = () => (
+const Icon = ({ icon, success = false, error = false }) => (
   <motion.div
-    initial={{ opacity: 0, scale: 0.5 }}
-    animate={{ opacity: 1, scale: 1 }}
-    exit={{ opacity: 0, scale: 0.5 }}
-    className="w-4 h-4 bg-primary rounded-full"
-    transition={{ type: 'spring' }}
+    initial={{ scale: 0.5, opacity: 0 }}
+    animate={{ scale: 1, opacity: 1 }}
+    exit={{ scale: 0.5, opacity: 0 }}
+    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+    className={`
+      ${success ? 'text-green-400' : ''}
+      ${error ? 'text-red-400' : ''}
+    `}
   >
-    <motion.div
-      className="w-full h-full bg-primary rounded-full"
-      animate={{ scale: [1, 1.5, 1] }}
-      transition={{ duration: 1, repeat: Infinity, ease: 'easeInOut' }}
-    />
+    {icon}
   </motion.div>
 );
 
-const FeedbackIndicator = ({ type }) => {
-  const isSuccess = type === 'success';
-  return (
+const ListeningWave = () => (
     <motion.div
-      initial={{ scale: 0.5, opacity: 0 }}
-      animate={{ scale: [0.8, 1.1, 1], opacity: 1 }}
-      exit={{ scale: 0.5, opacity: 0 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className={isSuccess ? 'text-green-400' : 'text-red-400'}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="w-full h-full"
     >
-      {isSuccess ? <Check size={40} /> : <X size={40} />}
+        <svg width="100%" height="100%" viewBox="0 0 150 150">
+            {[...Array(3)].map((_, i) => (
+                <motion.path
+                    key={i}
+                    d="M 25 75 Q 75 25, 125 75 T 225 75"
+                    fill="none"
+                    stroke="hsla(var(--foreground), 0.3)"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    animate={{
+                        d: [
+                            "M 25 75 Q 75 50, 125 75 T 225 75",
+                            "M 25 75 Q 75 100, 125 75 T 225 75",
+                            "M 25 75 Q 75 50, 125 75 T 225 75",
+                        ],
+                    }}
+                    transition={{
+                        duration: 2 + i,
+                        repeat: Infinity,
+                        repeatType: 'loop',
+                        ease: 'easeInOut',
+                    }}
+                />
+            ))}
+        </svg>
     </motion.div>
-  );
-};
+);
 
-export default VoiceVisualizer;
+const ProcessingSpinner = () => (
+  <motion.div
+    initial={{ scale: 0, opacity: 0 }}
+    animate={{ scale: 1, opacity: 1, rotate: 360 }}
+    exit={{ scale: 0, opacity: 0 }}
+    transition={{
+      rotate: { duration: 1, repeat: Infinity, ease: 'linear' },
+      default: { type: 'spring' },
+    }}
+    style={{
+      width: '80%',
+      height: '80%',
+      border: '6px solid transparent',
+      borderTopColor: 'hsl(var(--foreground))',
+      borderRadius: '50%',
+    }}
+  />
+);
+
+export default Orb;

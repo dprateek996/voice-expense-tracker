@@ -1,74 +1,27 @@
 import { create } from 'zustand';
-import { authAPI } from '@/api/auth.api';
+import { persist } from 'zustand/middleware';
 
-const useAuthStore = create((set) => ({
-  user: authAPI.getCurrentUser(),
-  token: authAPI.getToken(),
-  isAuthenticated: authAPI.isAuthenticated(),
-  loading: false,
-  error: null,
-
-  login: async (credentials) => {
-    set({ loading: true, error: null });
-    try {
-      const data = await authAPI.login(credentials);
-      
-      // Store token and user
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      set({ 
-        user: data.user, 
-        token: data.token, 
-        isAuthenticated: true,
-        loading: false 
-      });
-      
-      return { success: true };
-    } catch (error) {
-  const errorMessage = error.response?.data?.error || 'Login failed';
-      set({ error: errorMessage, loading: false });
-      return { success: false, error: errorMessage };
-    }
-  },
-
-  register: async (userData) => {
-    set({ loading: true, error: null });
-    try {
-      const data = await authAPI.register(userData);
-      
-      // Store token and user
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      
-      set({ 
-        user: data.user, 
-        token: data.token, 
-        isAuthenticated: true,
-        loading: false 
-      });
-      
-      return { success: true };
-    } catch (error) {
-  const errorMessage = error.response?.data?.error || 'Registration failed';
-      set({ error: errorMessage, loading: false });
-      return { success: false, error: errorMessage };
-    }
-  },
-
-  logout: () => {
-    authAPI.logout();
-    set({ 
-      user: null, 
-      token: null, 
+const useAuthStore = create(
+  persist(
+    (set) => ({
       isAuthenticated: false,
-      error: null 
-    });
-  },
-
-  clearError: () => {
-    set({ error: null });
-  }
-}));
+      user: null,
+      login: (userData) => {
+        set({ isAuthenticated: true, user: userData });
+      },
+      logout: () => {
+        set({ isAuthenticated: false, user: null });
+      },
+    }),
+    {
+      name: 'auth-session-storage', // unique name for localStorage key
+      // We only want to store the user object and auth status
+      partialize: (state) => ({ 
+        user: state.user, 
+        isAuthenticated: state.isAuthenticated 
+      }),
+    }
+  )
+);
 
 export default useAuthStore;

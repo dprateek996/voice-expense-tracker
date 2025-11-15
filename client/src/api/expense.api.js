@@ -1,26 +1,19 @@
-import axios from 'axios';
+import apiClient from './axios.config';
 
-const API_BASE = '/api/expenses';
-
-export const getExpenses = async (token) => {
-  const res = await axios.get(API_BASE, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return res.data;
+export const addExpenseFromVoice = async (transcript) => {
+  try {
+    const { data } = await apiClient.post('/expense/voice', { transcript });
+    return data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || 'Failed to add expense from voice');
+  }
 };
 
-export const addExpense = async (text, token) => {
-  const res = await axios.post(API_BASE, { text }, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return res.data;
+export const getAllExpenses = async () => {
+  try {
+    const { data } = await apiClient.get('/expense');
+    return data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || 'Failed to fetch expenses');
+  }
 };
-
-export const deleteExpense = async (id, token) => {
-  const res = await axios.delete(`${API_BASE}/${id}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return res.data;
-};
-
-// TODO: Add editExpense and filterExpenses if needed

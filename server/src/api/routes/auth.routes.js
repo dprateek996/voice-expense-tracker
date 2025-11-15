@@ -1,24 +1,18 @@
-// src/api/routes/auth.routes.js
-
 const express = require('express');
+const router = express.Router();
 const {
   register,
   login,
-  refreshAccessToken,
-  getMe,
   logout,
+  getMe,
+  refreshAccessToken,
 } = require('../controllers/auth.controller');
-const { authenticate } = require('../../middleware/auth.middleware');
+const { protect } = require('../../middleware/auth.middleware');
 
-const router = express.Router();
-
-// Public routes
 router.post('/register', register);
 router.post('/login', login);
-router.post('/refresh', refreshAccessToken);
-
-// Protected routes
-router.get('/me', authenticate, getMe);
-router.post('/logout', authenticate, logout);
+router.post('/logout', logout);
+router.post('/refresh-token', refreshAccessToken);
+router.get('/me', protect, getMe);
 
 module.exports = router;

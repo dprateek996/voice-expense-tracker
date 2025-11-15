@@ -1,268 +1,106 @@
-import { RippleButton } from '@/components/ui/shadcn-io/ripple-button';
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import useAuthStore from '@/store/authStore';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { loginUser } from '../api/auth.api';
 
-function Login() {
+const Login = () => {
+  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login, loading, error: authError, clearError } = useAuthStore();
-  
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    setError('');
-    clearError();
+    setIsLoading(true);
 
-    const result = await login({ email, password });
+    if (!formData.email || !formData.password) {
+      toast.error('Email and password are required.');
+      setIsLoading(false);
+      return;
+    }
 
-    if (result.success) {
-      console.log('✅ Login successful!');
+    try {
+      await loginUser(formData);
+      toast.success('Login successful! Redirecting...');
       navigate('/dashboard');
-    } else {
-      // Show error message for wrong password or any error
-      setError(result.error || authError || 'Invalid email or password. Please try again.');
+    } catch (error) {
+      toast.error(error.message || 'Login failed. Please check your credentials.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      padding: '1rem',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      {/* Background gradient effect */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'radial-gradient(circle at 50% 50%, rgba(42, 157, 143, 0.1) 0%, transparent 60%)',
-        pointerEvents: 'none'
-      }}></div>
-
-      {/* Animations */}
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '20px',
-        padding: 'clamp(2rem, 5vw, 3rem)',
-        maxWidth: '450px',
-        width: '100%',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-        animation: 'fadeIn 0.6s ease-out',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{
-            fontSize: 'clamp(1.75rem, 5vw, 2rem)',
-            fontWeight: '700',
-            color: 'white',
-            marginBottom: '0.5rem',
-            letterSpacing: '-0.5px'
-          }}>
-            Welcome Back
-          </h1>
-          <p style={{ 
-            color: 'rgba(255, 255, 255, 0.6)', 
-            fontSize: 'clamp(0.9rem, 2vw, 1rem)',
-            fontWeight: '300'
-          }}>
-            Sign in to track your expenses with AI
-          </p>
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="w-full max-w-md p-8 space-y-8 bg-card rounded-lg shadow-lg border border-border">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
+          <p className="text-muted-foreground">Sign in to access your dashboard</p>
         </div>
-
-        {error && (
-          <div style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: '#fca5a5',
-            padding: '0.75rem',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            fontSize: '14px',
-            textAlign: 'center',
-            fontWeight: '500'
-          }}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'rgba(255, 255, 255, 0.9)',
-              marginBottom: '0.5rem'
-            }}>
-              Email
+        <form className="space-y-6" onSubmit={handleLogin}>
+          <div>
+            <label htmlFor="email" className="block mb-2 text-sm font-medium text-muted-foreground">
+              Email Address
             </label>
             <input
+              id="email"
+              name="email"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
-              style={{
-                width: '100%',
-                padding: '0.875rem',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '10px',
-                fontSize: '16px',
-                color: 'white',
-                outline: 'none',
-                transition: 'all 0.2s',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#4dd4c1';
-                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
-              }}
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-3 py-2 text-foreground bg-input border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="you@example.com"
             />
           </div>
-
-          <div style={{ marginBottom: '2rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'rgba(255, 255, 255, 0.9)',
-              marginBottom: '0.5rem'
-            }}>
+          <div>
+            <label htmlFor="password" className="block mb-2 text-sm font-medium text-muted-foreground">
               Password
             </label>
             <input
+              id="password"
+              name="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
               required
-              style={{
-                width: '100%',
-                padding: '0.875rem',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '10px',
-                fontSize: '16px',
-                color: 'white',
-                outline: 'none',
-                transition: 'all 0.2s',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#4dd4c1';
-                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
-              }}
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-3 py-2 text-foreground bg-input border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="••••••••"
             />
           </div>
-
-          <RippleButton
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '0.875rem',
-              background: loading ? '#f3f3f3' : '#fff',
-              color: '#111',
-              border: '1px solid #e5e7eb',
-              borderRadius: '10px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              marginBottom: '1.5rem',
-              transition: 'all 0.2s',
-              boxShadow: loading ? 'none' : '0 2px 8px rgba(0,0,0,0.04)'
-            }}
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </RippleButton>
-
-          <div style={{ textAlign: 'center' }}>
-            <p style={{ 
-              color: 'rgba(255, 255, 255, 0.6)', 
-              fontSize: '14px',
-              marginBottom: '0.75rem'
-            }}>
-              Don't have an account?{' '}
-              <Link 
-                to="/register" 
-                style={{ 
-                  color: '#4dd4c1', 
-                  textDecoration: 'none',
-                  fontWeight: '600',
-                  transition: 'color 0.2s'
-                }}
-                onMouseEnter={(e) => e.target.style.color = '#5ee5d2'}
-                onMouseLeave={(e) => e.target.style.color = '#4dd4c1'}
-              >
-                Sign up
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <Link to="/forgot-password" className="font-medium text-primary hover:underline">
+                Forgot your password?
               </Link>
-            </p>
-            <Link 
-              to="/forgot-password" 
-              style={{ 
-                color: '#fca5a5', 
-                textDecoration: 'none',
-                fontWeight: '600',
-                fontSize: '14px',
-                display: 'inline-block',
-                marginBottom: '0.75rem',
-                transition: 'color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.color = '#ef4444'}
-              onMouseLeave={(e) => e.target.style.color = '#fca5a5'}
+            </div>
+          </div>
+          <div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full px-4 py-2 font-semibold text-primary-foreground bg-primary rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Forgot Password?
-            </Link>
-            <br />
-            <Link 
-              to="/" 
-              style={{ 
-                color: 'rgba(255, 255, 255, 0.5)', 
-                textDecoration: 'none',
-                fontSize: '14px',
-                display: 'inline-block',
-                transition: 'color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.8)'}
-              onMouseLeave={(e) => e.target.style.color = 'rgba(255, 255, 255, 0.5)'}
-            >
-              ← Back to home
-            </Link>
+              {isLoading ? 'Signing In...' : 'Sign In'}
+            </button>
           </div>
         </form>
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            Don't have an account?{' '}
+            <Link to="/register" className="font-medium text-primary hover:underline">
+              Sign Up
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
-}
+};
 
 export default Login;

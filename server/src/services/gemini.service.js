@@ -1,63 +1,77 @@
-// src/services/gemini.service.js
+const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const API_KEY = process.env.GEMINI_API_KEY;
+if (!API_KEY) {
+  throw new Error("GEMINI_API_KEY is not set in the environment variables.");
+}
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(API_KEY);
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  generationConfig: {
+    responseMimeType: "application/json",
+    temperature: 0.2,
+    maxOutputTokens: 256,
+  },
+  safetySettings: [
+    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+  ],
+});
 
-const parseExpenseWithGemini = async (text) => {
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function validateResult(obj) {
+  if (!obj || typeof obj !== "object") return false;
+  const requiredKeys = ["amount", "category", "description", "location", "date", "is_unclear"];
+  for (const key of requiredKeys) { if (!(key in obj)) return false; }
+  return typeof obj.is_unclear === "boolean";
+}
+
+async function parseExpenseWithGemini(transcript) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-
+    if (!transcript || typeof transcript !== "string") {
+      return { is_unclear: true };
+    }
+    const cleanTranscript = transcript.replace(/[{}$`]/g, "");
     const prompt = `
-      Parse the following expense entry and return ONLY a valid JSON object with these fields:
-      - "amount" (number): The expense amount in rupees (₹). If not found, use 0.
-      - "category" (string): Must be one of: "Food", "Transport", "Shopping", "Bills", "Entertainment", "Fuel", "Healthcare", "Education", "Others"
-      - "description" (string): A brief description of the expense
-      - "location" (string or null): The place/store name if mentioned (e.g., "Burger King", "Starbucks"), otherwise null
-      - "is_unclear" (boolean): true if the category or amount is ambiguous, false otherwise
-
-      The input may be in Hindi or English. If Hindi, translate and extract the same fields. Examples:
-      - "कल मैंने 200 रुपये खाने पर खर्च किए" → amount: 200, category: Food, description: "खाने पर खर्च किए", location: null
-      - "Paid 500 for shopping at Zara" → amount: 500, category: Shopping, description: "shopping at Zara", location: "Zara"
-      - "आज 100 रुपये ट्रांसपोर्ट में दिए" → amount: 100, category: Transport, description: "ट्रांसपोर्ट में दिए", location: null
-      - "200 ka petrol" → amount: 200, category: Fuel, description: "petrol", location: null
-      - "Diesel ke liye 500 diye" → amount: 500, category: Fuel, description: "Diesel ke liye", location: null
-
-      Text: "${text}"
-
-      Return ONLY the JSON object, no markdown formatting, no explanations. If Hindi, keep description in Hindi but translate category to English.
+      You are a robust, production-grade expense extraction engine. Your task is to extract correct expense details from natural, and sometimes error-prone, voice transcripts.
+      - **Primary Goal**: Understand the user's intent. Correct obvious speech-to-text errors (e.g., "2004 burger" means "200 for burger").
+      - **Currency**: INR (₹).
+      - **Categories**: ["Groceries","Dining","Transport","Shopping","Utilities","Health","Entertainment","Travel","Education","Work","Personal Care","Fuel","Other"].
+      - **Output**: Strict JSON only. If no amount can be logically found, you MUST set "is_unclear" to true.
+      - **Parse this transcript**: "${cleanTranscript}"
     `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const responseText = response.text();
-
-    // Clean response - remove markdown code blocks and whitespace
-    const cleanedJsonString = responseText
-      .replace(/```json/g, '')
-      .replace(/```/g, '')
-      .trim();
-
-    const parsedData = JSON.parse(cleanedJsonString);
-    
-    // Validate required fields
-    if (typeof parsedData.amount === 'undefined') {
-      parsedData.amount = 0;
+    const maxRetries = 3;
+    let attempt = 0;
+    while (attempt < maxRetries) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        const result = await model.generateContent(
+          { contents: [{ role: "user", parts: [{ text: prompt }] }] },
+          { signal: controller.signal }
+        );
+        clearTimeout(timeout);
+        const text = result?.response?.text?.() || "{}";
+        const parsed = JSON.parse(text);
+        if (validateResult(parsed)) {
+          return parsed;
+        }
+        throw new Error("Invalid schema from AI");
+      } catch (err) {
+        attempt++;
+        if (attempt >= maxRetries) throw err;
+        await wait(200 * attempt);
+      }
     }
-    if (!parsedData.category) {
-      parsedData.category = 'Others';
-      parsedData.is_unclear = true;
-    }
-    if (!parsedData.description) {
-      parsedData.description = text;
-    }
-    
-    return parsedData;
   } catch (error) {
-    console.error('Error parsing with Gemini:', error);
-    console.error('Raw response text:', error.message);
-    throw new Error('Failed to parse expense with AI: ' + error.message);
+    console.error("Gemini parsing failed after retries:", error);
+    return { is_unclear: true };
   }
-};
+}
 
 module.exports = { parseExpenseWithGemini };

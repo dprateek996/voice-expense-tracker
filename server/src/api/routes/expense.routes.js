@@ -1,15 +1,18 @@
+// /server/src/api/routes/expense.routes.js
+
 const express = require('express');
-const { authenticate } = require('../../middleware/auth.middleware');
-const {
-  getExpenses,
-  addExpense,
-  deleteExpense,
-} = require('../controllers/expense.controller');
-
 const router = express.Router();
+const { addExpenseFromVoice, getAllExpenses } = require('../controllers/expense.controller');
+const { protect } = require('../../middleware/auth.middleware');
 
-router.get('/', authenticate, getExpenses);
-router.post('/', authenticate, addExpense);
-router.delete('/:id', authenticate, deleteExpense);
+// @route   POST /api/expense/voice
+// @desc    Add a new expense from a voice transcript
+// @access  Private
+router.post('/voice', protect, addExpenseFromVoice);
+
+// @route   GET /api/expense
+// @desc    Get all expenses for the logged-in user
+// @access  Private
+router.get('/', protect, getAllExpenses);
 
 module.exports = router;

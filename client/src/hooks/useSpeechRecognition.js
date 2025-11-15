@@ -1,94 +1,80 @@
-import { useEffect, useRef, useCallback } from 'react';
-import useConversationStore from '@/store/conversationStore';
+import { useState, useEffect, useRef } from 'react';
 
 const useSpeechRecognition = () => {
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef(null);
-  const { 
-    setIsListening, 
-    setCurrentTranscript,
-    addUserMessage 
-  } = useConversationStore();
 
   useEffect(() => {
-    // Check if browser supports Speech Recognition
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (!SpeechRecognition) {
-      console.error('Speech Recognition not supported in this browser');
+    if (typeof window === 'undefined' || !('webkitSpeechRecognition' in window)) {
+      console.error("Speech recognition not supported in this browser.");
       return;
     }
 
-    // Initialize Speech Recognition
+    const SpeechRecognition = window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
+    
     recognition.continuous = false;
     recognition.interimResults = true;
-    recognition.lang = 'en-IN'; // English (India) for better rupee recognition
-    recognition.maxAlternatives = 3;
+    recognition.lang = 'en-IN'; // The crucial accuracy fix
 
-    // Event handlers
     recognition.onstart = () => {
-      console.log('Voice recognition started');
       setIsListening(true);
-      setCurrentTranscript('');
-    };
-
-    recognition.onresult = (event) => {
-      const current = event.resultIndex;
-      const transcript = event.results[current][0].transcript;
-      
-      setCurrentTranscript(transcript);
-
-      // If this is a final result
-      if (event.results[current].isFinal) {
-        console.log('Final transcript:', transcript);
-      }
+      setTranscript('');
     };
 
     recognition.onend = () => {
-      console.log('Voice recognition ended');
       setIsListening(false);
     };
 
     recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
       setIsListening(false);
-      setCurrentTranscript('');
+    };
+
+    recognition.onresult = (event) => {
+      let finalTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+      if (finalTranscript) {
+        setTranscript(finalTranscript.trim());
+      }
     };
 
     recognitionRef.current = recognition;
 
     return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.abort();
-      }
+      recognitionRef.current?.stop();
     };
-  }, [setIsListening, setCurrentTranscript]);
+  }, []);
 
-  const startListening = useCallback(() => {
-    if (recognitionRef.current && !useConversationStore.getState().isListening) {
+  const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      setTranscript('');
       recognitionRef.current.start();
     }
-  }, []);
+  };
 
-  const stopListening = useCallback(() => {
-    if (recognitionRef.current && useConversationStore.getState().isListening) {
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
-      // Do not route transcript to chat here; handled by VoiceOrb for expense
     }
-  }, []);
+  };
 
-  const cancelListening = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.abort();
-      setCurrentTranscript('');
-    }
-  }, [setCurrentTranscript]);
+  const resetTranscript = () => {
+    setTranscript('');
+  };
 
   return {
-    isSupported: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
+    isListening,
+    transcript,
     startListening,
     stopListening,
-    cancelListening,
+    resetTranscript,
+    hasRecognitionSupport: !!recognitionRef.current,
   };
 };
 

@@ -1,31 +1,42 @@
-import api from './axios.config';
+import apiClient from './axios.config';
+import useAuthStore from '../store/authStore';
 
-export const authAPI = {
-  register: async (userData) => {
-    const response = await api.post('/auth/register', userData);
-    return response.data;
-  },
+export const registerUser = async (userData) => {
+  try {
+    const { data } = await apiClient.post('/auth/register', userData);
+    useAuthStore.getState().login(data.user);
+    return data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || 'Registration failed');
+  }
+};
 
-  login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
-    return response.data;
-  },
+export const loginUser = async (credentials) => {
+  try {
+    const { data } = await apiClient.post('/auth/login', credentials);
+    useAuthStore.getState().login(data.user);
+    return data;
+  } catch (error) {
+    throw new Error(error.response?.data?.error || 'Login failed');
+  }
+};
 
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  },
+export const logoutUser = async () => {
+  try {
+    await apiClient.post('/auth/logout');
+    useAuthStore.getState().logout();
+  } catch (error) {
+    throw new Error(error.response?.data?.error || 'Logout failed');
+  }
+};
 
-  getCurrentUser: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
-  },
-
-  getToken: () => {
-    return localStorage.getItem('token');
-  },
-
-  isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+export const fetchMe = async () => {
+  try {
+    const { data } = await apiClient.get('/auth/me');
+    useAuthStore.getState().login(data);
+    return data;
+  } catch (error) {
+    useAuthStore.getState().logout();
+    throw new Error(error.response?.data?.error || 'Failed to fetch user');
   }
 };
