@@ -213,15 +213,16 @@ const DashboardHome = () => {
           variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
         >
           {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              variants={{
-                hidden: { opacity: 0, y: 20 },
-                visible: { opacity: 1, y: 0 }
-              }}
-              whileHover={{ scale: 1.03 }}
-              className="bg-[#141518] p-5 rounded-xl border border-[#1F2023] shadow-lg"
-            >
+            // REPLACE IT WITH THIS LINE:
+          <motion.div
+           key={index}
+            variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0 }
+            }}
+           whileHover={{ scale: 1.03 }}
+           className="bg-[#141518] p-5 rounded-xl border border-[#1F2023] shadow-lg transition-colors hover:border-primary"
+           >
               <div className="flex justify-between items-center">
                 <p className="text-sm text-gray-400">{stat.name}</p>
                 {stat.icon}
