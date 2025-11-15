@@ -12,12 +12,11 @@ const addExpenseFromVoice = async (req, res) => {
   try {
     const parsedData = await parseExpenseWithGemini(transcript);
 
-    // **THE PRODUCTION-GRADE FIX**
-    // If the AI flags the transcript as unclear or fails to find an amount,
-    // REJECT the request. Do NOT save garbage to the database.
-    if (parsedData.is_unclear || !parsedData.amount) {
+    // **THE DEFINITIVE FIX**: This rule is now much stricter.
+    // It rejects the request if the AI marks it as unclear, if the amount is missing, OR if the amount is zero.
+    if (parsedData.is_unclear || !parsedData.amount || parsedData.amount <= 0) {
       return res.status(400).json({ 
-        error: "Could not understand the expense from the transcript.",
+        error: "Could not understand a valid expense from the transcript.",
         is_unclear: true,
       });
     }
@@ -43,7 +42,7 @@ const addExpenseFromVoice = async (req, res) => {
 
   } catch (error) {
     console.error('Error in addExpenseFromVoice:', error);
-    res.status(500).json({ error: 'Failed to process and save expense.' });
+    res.status(500).json({ error: 'Internal server error while processing expense.' });
   }
 };
 

@@ -1,56 +1,36 @@
-import { Link } from "react-router-dom";
-import { CircleUser, Search, Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import useAuthStore from "@/store/authStore";
+import { Search, User } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import useAuthStore from '@/store/authStore';
+import { MobileNav } from './Sidebar'; // Import the new mobile nav trigger
 
-export default function TopNav() {
-  const { user, logout } = useAuthStore();
+const TopNav = () => {
+  const { user } = useAuthStore();
+  const displayName = user?.name || "User";
 
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
-      <div className="flex-1">
-        <h1 className="text-lg font-semibold md:text-2xl">
-          Welcome back, {user?.name || 'User'}!
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur-sm sm:px-6">
+      {/* The Mobile Hamburger Menu now lives here */}
+      <MobileNav />
+
+      {/* The rest of your TopNav */}
+      <div className="flex w-full items-center gap-4 md:ml-auto md:flex-row">
+        <h1 className="text-lg font-semibold md:text-2xl hidden sm:block">
+          Welcome back, {displayName}!
         </h1>
-      </div>
-      <div className="flex flex-1 items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
-        <form className="ml-auto flex-1 sm:flex-initial">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search expenses..."
-              className="pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px]"
-            />
-          </div>
-        </form>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="icon" className="rounded-full">
-              <CircleUser className="h-5 w-5" />
-              <span className="sr-only">Toggle user menu</span>
+        <div className="ml-auto flex items-center gap-2">
+            <form className="relative flex-1 sm:flex-grow-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input type="search" placeholder="Search expenses..." className="w-full rounded-lg bg-muted pl-9" />
+            </form>
+            <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0">
+              <User className="h-5 w-5" />
+              <span className="sr-only">User Menu</span>
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{user?.name}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Support</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        </div>
       </div>
     </header>
   );
-}
+};
+
+export default TopNav;
