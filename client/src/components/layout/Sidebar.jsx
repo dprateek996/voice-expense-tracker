@@ -128,7 +128,7 @@ const Sidebar = () => {
       initial={false}
       animate={{ width: open ? "16rem" : "5.5rem" }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="hidden md:flex flex-col h-screen bg-background border-r border-border z-50 p-3"
+      className="sticky top-0 hidden md:flex flex-col h-screen bg-background border-r border-border z-50 p-3"
     >
       <div className="flex items-center justify-between p-2 h-16 border-b border-border">
         <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center"><Gem className="w-8 h-8 text-primary shrink-0" /><span className="ml-3 text-xl font-bold whitespace-nowrap">VoiceExpense</span></motion.div>}</AnimatePresence>

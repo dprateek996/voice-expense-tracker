@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import DashboardHome from './pages/DashboardHome';
+import Analytics from './pages/Analytics';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -26,7 +27,7 @@ function App() {
             }
           >
             <Route index element={<DashboardHome />} />
-            <Route path="analytics" element={<div className="p-8 text-center"><h1 className='text-3xl font-bold'>Analytics coming soon...</h1></div>} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="history" element={<div className="p-8 text-center"><h1 className='text-3xl font-bold'>History coming soon...</h1></div>} />
             <Route path="categories" element={<div className="p-8 text-center"><h1 className='text-3xl font-bold'>Categories coming soon...</h1></div>} />
             <Route path="settings" element={<div className="p-8 text-center"><h1 className='text-3xl font-bold'>Settings coming soon...</h1></div>} />

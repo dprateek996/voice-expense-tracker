@@ -1,47 +1,72 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mic, Send, Loader2 } from 'lucide-react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
+import { Loader2 } from 'lucide-react';
+import useVoiceStore from '@/store/voiceStore';
 import VoiceWaveform from './VoiceWaveform';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import CommandInput from './CommandInput';
 
-const CommandInput = ({ onTextCommand, onMicClick, isListening, isProcessing, transcript }) => {
-  const [text, setText] = useState('');
+const CommandInterface = ({
+  onTextCommand,
+  onVoiceCommand,
+  isListening,
+  startListening,
+  stopListening
+}) => {
+  const { isOpen, uiState, close, setState } = useVoiceStore();
 
+  // sync UI state
   useEffect(() => {
-    setText(transcript);
-  }, [transcript]);
+    if (isListening) setState("listening");
+    else if (uiState === "listening") setState("idle");
+  }, [isListening]);
 
-  const handleSubmit = (e) => { e.preventDefault(); if (text.trim()) { onTextCommand(text.trim()); setText(''); } };
-  const placeholder = isListening ? "Listening..." : "Log an expense or tap the mic";
+  const isProcessing = uiState === "refining" || uiState === "processing";
 
-  return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
-      <div className="relative flex items-center">
-        <Input value={text} onChange={(e) => setText(e.target.value)} placeholder={placeholder} disabled={isProcessing} className="h-14 pl-5 pr-28 text-lg rounded-full bg-muted border-border focus-visible:ring-primary focus-visible:ring-2" />
-        <div className="absolute right-4 flex items-center gap-2">
-          {text && !isListening && (<Button type="submit" size="icon" className="w-10 h-10 rounded-full bg-primary" disabled={isProcessing}><Send className="h-5 w-5" /></Button>)}
-          <Button type="button" size="icon" onClick={onMicClick} className={`w-10 h-10 rounded-full ${isListening ? 'bg-destructive' : 'bg-primary'}`} disabled={isProcessing}><Mic className="h-5 w-5" /></Button>
-        </div>
-      </div>
-    </form>
-  );
-};
-
-const CommandInterface = ({ isOpen, uiState, onClose, onTextCommand, isListening, startListening, stopListening, transcript }) => {
-  const isProcessing = uiState === 'processing';
-  const getHelperText = () => { switch (uiState) { case 'processing': return 'Adding to your ledger...'; case 'listening': return null; default: return 'What did you spend on?'; } };
-  const toggleListening = isListening ? stopListening : startListening;
+  const getHelperText = () => {
+    switch (uiState) {
+      case "refining": return "Checking that for you...";
+      case "processing": return "Adding to your ledger...";
+      default: return "What did you spend on?";
+    }
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex flex-col justify-end bg-background/90 backdrop-blur-lg p-4" onClick={onClose}>
-          <motion.div className="w-full" onClick={(e) => e.stopPropagation()} initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} transition={{ type: "spring", stiffness: 400, damping: 40 }}>
-            <div className="flex-1 flex flex-col items-center justify-center text-center pb-8 min-h-[12rem]">
-              {isListening ? <VoiceWaveform /> : ( <> {isProcessing && <Loader2 className="animate-spin h-8 w-8 text-muted-foreground mb-4" />} <p className="text-xl font-medium text-muted-foreground">{getHelperText()}</p> </> )}
+        <motion.div
+          className="fixed inset-0 z-50 flex flex-col justify-end bg-background/90 backdrop-blur-lg p-4 sm:p-6"
+          onClick={close}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.div
+            className="w-full max-w-2xl mx-auto"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 400, damping: 40 }}
+          >
+            <div className="flex-1 flex flex-col items-center justify-center pb-8 min-h-[10rem] sm:min-h-[12rem]">
+              {isListening ? (
+                <VoiceWaveform />
+              ) : (
+                <>
+                  {isProcessing && <Loader2 className="animate-spin h-8 w-8 mb-3" />}
+                  <p className="text-lg sm:text-xl text-muted-foreground text-center px-4">{getHelperText()}</p>
+                </>
+              )}
             </div>
-            <CommandInput onTextCommand={onTextCommand} onMicClick={toggleListening} isListening={isListening} isProcessing={isProcessing} transcript={transcript} />
+
+            <CommandInput
+              onTextCommand={onTextCommand}
+              onVoiceCommand={onVoiceCommand}
+              isProcessing={isProcessing}
+              isListening={isListening}
+              startListening={startListening}
+              stopListening={stopListening}
+            />
           </motion.div>
         </motion.div>
       )}
@@ -49,4 +74,4 @@ const CommandInterface = ({ isOpen, uiState, onClose, onTextCommand, isListening
   );
 };
 
-export default CommandInterface;  
+export default CommandInterface;
