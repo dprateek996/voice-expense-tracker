@@ -11,7 +11,7 @@ try {
   const { GoogleGenerativeAI } = require("@google/generative-ai");
   const API_KEY = process.env.GEMINI_API_KEY;
   // --- FIX 3: Using the correct, stable model name ---
-  const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash-latest";// allow override
+  const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash";// allow override
   if (API_KEY) {
     const genAI = new GoogleGenerativeAI(API_KEY);
     // Wrap in try because older packages or mismatched versions may throw.

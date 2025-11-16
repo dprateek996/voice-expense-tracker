@@ -9,21 +9,26 @@ const authRoutes = require('./src/api/routes/auth.routes');
 const expenseRoutes = require('./src/api/routes/expense.routes');
 const conversationRoutes = require('./src/api/routes/conversation.routes');
 
+// === SECURITY MIDDLEWARE IMPORTS ===
+const { securityHeaders, authLimiter, apiLimiter } = require('./src/middleware/security.middleware');
 
 const app = express();
 
-// === MIDDLEWARE SETUP ===
+// === SECURITY MIDDLEWARE SETUP ===
+app.use(securityHeaders);
+
+// === GENERAL MIDDLEWARE SETUP ===
 app.use(cors({
   origin: 'http://localhost:5173',
   credentials: true,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Limit payload size
 app.use(cookieParser());
 
-// === API ROUTE REGISTRATION ===
-app.use('/api/auth', authRoutes);
-app.use('/api/expense', expenseRoutes);
-app.use('/api/conversation', conversationRoutes);
+// === API ROUTE REGISTRATION WITH RATE LIMITING ===
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/expense', apiLimiter, expenseRoutes);
+app.use('/api/conversation', apiLimiter, conversationRoutes);
 
 // === ROOT ENDPOINT ===
 app.get('/', (req, res) => {

@@ -233,8 +233,8 @@ async function testExpenseWithAuth() {
   try {
     log.info('Attempting to create expense with auth...');
     const response = await client.post(
-      '/expenses',
-      { text: 'Spent 50 rupees on coffee' },
+      '/expense/voice',
+      { transcript: 'Spent 50 rupees on coffee' },
       { headers: { Cookie: cookies } }
     );
     
@@ -253,7 +253,7 @@ async function testExpenseWithoutAuth() {
   
   try {
     log.info('Attempting to create expense without auth...');
-    await client.post('/expenses', { text: 'Spent 50 rupees on coffee' });
+    await client.post('/expense/voice', { transcript: 'Spent 50 rupees on coffee' });
     log.error('Should have failed without authentication');
     return false;
   } catch (error) {
@@ -270,7 +270,7 @@ async function testGetExpenses() {
   
   try {
     log.info('Attempting to get expenses...');
-    const response = await client.get('/expenses', {
+    const response = await client.get('/expense', {
       headers: { Cookie: cookies },
     });
     

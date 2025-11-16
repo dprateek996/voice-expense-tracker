@@ -4,11 +4,12 @@ const express = require('express');
 const router = express.Router();
 const { addExpenseFromVoice, getAllExpenses } = require('../controllers/expense.controller');
 const { protect } = require('../../middleware/auth.middleware');
+const { validateExpense } = require('../../middleware/validation.middleware');
 
 // @route   POST /api/expense/voice
 // @desc    Add a new expense from a voice transcript
 // @access  Private
-router.post('/voice', protect, addExpenseFromVoice);
+router.post('/voice', protect, validateExpense, addExpenseFromVoice);
 
 // @route   GET /api/expense
 // @desc    Get all expenses for the logged-in user

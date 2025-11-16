@@ -8,9 +8,10 @@ const {
   refreshAccessToken,
 } = require('../controllers/auth.controller');
 const { protect } = require('../../middleware/auth.middleware');
+const { validateRegistration, validateLogin } = require('../../middleware/validation.middleware');
 
-router.post('/register', register);
-router.post('/login', login);
+router.post('/register', validateRegistration, register);
+router.post('/login', validateLogin, login);
 router.post('/logout', logout);
 router.post('/refresh-token', refreshAccessToken);
 router.get('/me', protect, getMe);
