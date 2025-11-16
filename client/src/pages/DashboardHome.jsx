@@ -1,313 +1,85 @@
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { Wallet, ReceiptText, Tag, CalendarClock } from "lucide-react";
-import VoiceOrb from "@/components/VoiceOrb";
-import useSpeechRecognition from "@/hooks/useSpeechRecognition";
-import { addExpenseFromVoice, getAllExpenses } from "@/api/expense.api";
-import { ConfirmationDialog } from "@/components/ConfirmationDialog";
-import { motion } from "framer-motion";
+import { useEffect } from 'react';
+import { Wallet, ReceiptText, Tag, CalendarClock } from 'lucide-react';
+import useExpenseStore from '@/store/expenseStore';
 
+// This function is now "bulletproof" and will not crash.
 const calculateStats = (expenses) => {
-  const currentMonthExpenses = expenses.filter((expense) => {
-    const expenseDate = new Date(expense.date);
-    const today = new Date();
-    return (
-      expenseDate.getMonth() === today.getMonth() &&
-      expenseDate.getFullYear() === today.getFullYear()
-    );
-  });
-
-  const baseStats = [
-    {
-      name: "Total Spent (Month)",
-      value: "₹0.00",
-      icon: <Wallet className="h-5 w-5 text-gray-400" />
-    },
-    {
-      name: "Avg. Daily Spend",
-      value: "₹0.00",
-      icon: <CalendarClock className="h-5 w-5 text-gray-400" />
-    },
-    {
-      name: "Most Spent On",
-      value: "N/A",
-      icon: <Tag className="h-5 w-5 text-gray-400" />
-    },
-    {
-      name: "Transactions",
-      value: "0",
-      icon: <ReceiptText className="h-5 w-5 text-gray-400" />
+    // THIS IS THE DEFINITIVE FIX:
+    // If 'expenses' is not a valid array, return the default stats immediately.
+    if (!Array.isArray(expenses)) {
+        return [
+            { name: "Total Spent (Month)", value: "₹0.00", icon: <Wallet className="h-5 w-5 text-muted-foreground" /> },
+            { name: "Avg. Daily Spend", value: "₹0.00", icon: <CalendarClock className="h-5 w-5 text-muted-foreground" /> },
+            { name: "Most Spent On", value: "N/A", icon: <Tag className="h-5 w-5 text-muted-foreground" /> },
+            { name: "Transactions", value: "0", icon: <ReceiptText className="h-5 w-5 text-muted-foreground" /> }
+        ];
     }
-  ];
 
-  if (currentMonthExpenses.length === 0) return baseStats;
+    const currentMonthExpenses = expenses.filter(expense => {
+        const expenseDate = new Date(expense.date);
+        const today = new Date();
+        return expenseDate.getMonth() === today.getMonth() && expenseDate.getFullYear() === today.getFullYear();
+    });
 
-  const totalSpend = currentMonthExpenses.reduce(
-    (sum, expense) => sum + expense.amount,
-    0
-  );
-  const transactionCount = currentMonthExpenses.length;
+    const baseStats = [
+        { name: "Total Spent (Month)", value: "₹0.00", icon: <Wallet className="h-5 w-5 text-muted-foreground" /> },
+        { name: "Avg. Daily Spend", value: "₹0.00", icon: <CalendarClock className="h-5 w-5 text-muted-foreground" /> },
+        { name: "Most Spent On", value: "N/A", icon: <Tag className="h-5 w-5 text-muted-foreground" /> },
+        { name: "Transactions", value: "0", icon: <ReceiptText className="h-5 w-5 text-muted-foreground" /> }
+    ];
 
-  const spendingByCategory = currentMonthExpenses.reduce((acc, expense) => {
-    acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
-    return acc;
-  }, {});
+    if (currentMonthExpenses.length === 0) return baseStats;
 
-  const topCategory = Object.keys(spendingByCategory).reduce(
-    (a, b) => (spendingByCategory[a] > spendingByCategory[b] ? a : b),
-    "N/A"
-  );
+    const totalSpend = currentMonthExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const transactionCount = currentMonthExpenses.length;
+    const spendingByCategory = currentMonthExpenses.reduce((acc, expense) => { acc[expense.category] = (acc[expense.category] || 0) + expense.amount; return acc; }, {});
+    const topCategory = Object.keys(spendingByCategory).reduce((a, b) => spendingByCategory[a] > spendingByCategory[b] ? a : b, 'N/A');
+    const uniqueDaysWithExpenses = new Set(currentMonthExpenses.map(e => new Date(e.date).getDate())).size;
+    const avgDailySpend = uniqueDaysWithExpenses > 0 ? totalSpend / uniqueDaysWithExpenses : 0;
 
-  const uniqueDaysWithExpenses = new Set(
-    currentMonthExpenses.map((e) => new Date(e.date).getDate())
-  ).size;
-
-  const avgDailySpend =
-    uniqueDaysWithExpenses > 0 ? totalSpend / uniqueDaysWithExpenses : 0;
-
-  return [
-    {
-      name: "Total Spent (Month)",
-      value: `₹${totalSpend.toLocaleString("en-IN", {
-        minimumFractionDigits: 2
-      })}`,
-      icon: <Wallet className="h-5 w-5 text-gray-400" />
-    },
-    {
-      name: "Avg. Daily Spend",
-      value: `₹${avgDailySpend.toLocaleString("en-IN", {
-        minimumFractionDigits: 2
-      })}`,
-      icon: <CalendarClock className="h-5 w-5 text-gray-400" />
-    },
-    {
-      name: "Most Spent On",
-      value: topCategory,
-      icon: <Tag className="h-5 w-5 text-gray-400" />
-    },
-    {
-      name: "Transactions",
-      value: transactionCount.toString(),
-      icon: <ReceiptText className="h-5 w-5 text-gray-400" />
-    }
-  ];
+    return [
+        { name: "Total Spent (Month)", value: `₹${totalSpend.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: <Wallet className="h-5 w-5 text-muted-foreground" /> },
+        { name: "Avg. Daily Spend", value: `₹${avgDailySpend.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, icon: <CalendarClock className="h-5 w-5 text-muted-foreground" /> },
+        { name: "Most Spent On", value: topCategory, icon: <Tag className="h-5 w-5 text-muted-foreground" /> },
+        { name: "Transactions", value: transactionCount.toString(), icon: <ReceiptText className="h-5 w-5 text-muted-foreground" /> }
+    ];
 };
 
 const DashboardHome = () => {
-  const { isListening, transcript, startListening, stopListening, resetTranscript } =
-    useSpeechRecognition();
-
-  const [orbState, setOrbState] = useState("idle");
-  const [expenses, setExpenses] = useState([]);
-  const [stats, setStats] = useState(calculateStats([]));
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [refinementData, setRefinementData] = useState(null);
-
-  const fetchExpenses = async () => {
-    try {
-      const d = await getAllExpenses();
-      setExpenses(d);
-      setStats(calculateStats(d));
-    } catch (e) {
-      toast.error("Failed to fetch expenses.");
-    }
-  };
+  const { expenses, fetchExpenses } = useExpenseStore();
+  const stats = calculateStats(expenses);
 
   useEffect(() => {
-    fetchExpenses();
-  }, []);
-
-  const handleOrbClick = () => {
-    if (isListening) stopListening();
-    else if (orbState === "idle") startListening();
-  };
-
-  const parseAndSaveExpense = async (finalTranscript) => {
-    setDialogOpen(false);
-    setOrbState("processing");
-
-    try {
-      const result = await addExpenseFromVoice(finalTranscript);
-      toast.success(
-        `Expense added: ${result.expense.description} (₹${result.expense.amount})`
-      );
-      setOrbState("success");
+    // Only fetch if expenses haven't been loaded yet to avoid unnecessary calls
+    if (expenses.length === 0) {
       fetchExpenses();
-    } catch (error) {
-      toast.error(error.message || "Sorry, I couldn't understand that expense.");
-      setOrbState("error");
-    } finally {
-      setTimeout(() => setOrbState("idle"), 2500);
     }
-  };
-
-  const handleVoiceInput = async (spokenTranscript) => {
-    toast.info("Analyzing your command...");
-
-    try {
-      const response = await fetch("/api/refine", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ transcript: spokenTranscript })
-      });
-
-      if (!response.ok) throw new Error("Failed to connect to AI engine.");
-
-      const data = await response.json();
-      setRefinementData(data);
-      setDialogOpen(true);
-    } catch (error) {
-      toast.error(error.message);
-      setOrbState("error");
-      setTimeout(() => setOrbState("idle"), 2500);
-    }
-
-    resetTranscript();
-  };
-
-  useEffect(() => {
-    if (isListening) setOrbState("listening");
-    else if (orbState === "listening") setOrbState("idle");
-  }, [isListening]);
-
-  useEffect(() => {
-    if (transcript) handleVoiceInput(transcript);
-  }, [transcript]);
+  }, [fetchExpenses, expenses.length]);
 
   return (
-    <div className="min-h-screen bg-[#0E0F11]">
-      <div
-        className="
-          max-w-6xl 
-          mx-auto 
-          pt-8 
-          pb-40 
-          px-4 
-          lg:ml-20 
-          md:ml-16 
-          ml-4 
-          space-y-10
-        "
-      >
-
-        {/* WELCOME HEADER */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="space-y-1"
-        >
-          <h1 className="text-3xl font-semibold text-white">
-            Welcome back, Prateek 👋
-          </h1>
-          <p className="text-gray-400 text-sm">
-            Track your spending effortlessly with your voice.
-          </p>
-        </motion.div>
-
-        {/* STATS GRID */}
-        <motion.div
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-          initial="hidden"
-          animate="visible"
-          variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-        >
-          {stats.map((stat, index) => (
-            // REPLACE IT WITH THIS LINE:
-          <motion.div
-           key={index}
-            variants={{
-            hidden: { opacity: 0, y: 20 },
-            visible: { opacity: 1, y: 0 }
-            }}
-           whileHover={{ scale: 1.03 }}
-           className="bg-[#141518] p-5 rounded-xl border border-[#1F2023] shadow-lg transition-colors hover:border-primary"
-           >
-              <div className="flex justify-between items-center">
-                <p className="text-sm text-gray-400">{stat.name}</p>
-                {stat.icon}
-              </div>
-              <p className="text-3xl font-semibold text-white mt-3">
-                {stat.value}
-              </p>
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* RECENT EXPENSES */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-[#141518] p-5 rounded-xl border border-[#1F2023] shadow-xl"
-        >
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Recent Expenses
-          </h3>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-gray-400">
-                <tr className="border-b border-[#1F2023]">
-                  <th className="p-3 text-left">Description</th>
-                  <th className="p-3 text-left">Category</th>
-                  <th className="p-3 text-left">Date</th>
-                  <th className="p-3 text-right">Amount</th>
-                </tr>
-              </thead>
-
-              <tbody className="text-gray-200">
-                {expenses.length > 0 ? (
-                  expenses.map((e) => (
-                    <motion.tr
-                      key={e.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="border-b border-[#1F2023] hover:bg-[#1A1C1F] transition"
-                    >
-                      <td className="p-3">{e.description}</td>
-                      <td className="p-3 text-gray-400">{e.category}</td>
-                      <td className="p-3 text-gray-400">
-                        {new Date(e.date).toLocaleDateString()}
-                      </td>
-                      <td className="p-3 text-right font-mono">
-                        ₹{e.amount.toFixed(2)}
-                      </td>
-                    </motion.tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4" className="p-8 text-center text-gray-500">
-                      No transactions yet. Tap the orb to add one!
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-
-        {/* FLOATING VOICE ORB */}
-        <motion.div
-          className="fixed bottom-6 right-6 sm:bottom-10 sm:right-10 z-50"
-          initial={{ opacity: 0, scale: 0.7 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", stiffness: 140 }}
-        >
-          <div className="bg-[#1A1C1F]/80 backdrop-blur-xl p-4 rounded-full shadow-2xl border border-white/10">
-            <VoiceOrb state={orbState} onClick={handleOrbClick} />
-          </div>
-        </motion.div>
-
-        <ConfirmationDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          refinementData={refinementData}
-          onConfirm={parseAndSaveExpense}
-          onCancel={() => setDialogOpen(false)}
-        />
-
+    <>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
+        {stats.map((stat, index) => (
+            <div key={index} className="bg-card p-6 rounded-xl border border-border transition-all duration-200 transform hover:scale-[1.03] hover:shadow-lg hover:border-primary">
+                <div className="flex items-start justify-between">
+                    <h3 className="text-sm font-medium text-muted-foreground">{stat.name}</h3>
+                    {stat.icon}
+                </div>
+                <p className="text-3xl font-bold mt-2">{stat.value}</p>
+            </div>
+        ))}
       </div>
-    </div>
+
+      <div className="bg-card p-6 rounded-xl border border-border">
+        <h3 className="text-lg font-semibold mb-4">Recent Expenses</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm text-left">
+            <thead className="text-muted-foreground"><tr className="border-b border-border"><th className="p-3 font-normal text-xs tracking-wider uppercase">Description</th><th className="p-3 font-normal text-xs tracking-wider uppercase">Category</th><th className="p-3 font-normal text-xs tracking-wider uppercase">Date</th><th className="p-3 text-right font-normal text-xs tracking-wider uppercase">Amount</th></tr></thead>
+            <tbody>{expenses.length > 0 ? expenses.map(e => (<tr key={e.id} className="border-b border-border last:border-0 hover:bg-muted/50"><td className="p-3 font-medium">{e.description}</td><td className="p-3 text-muted-foreground">{e.category}</td><td className="p-3 text-muted-foreground">{new Date(e.date).toLocaleDateString()}</td><td className="p-3 text-right font-mono">₹{e.amount.toFixed(2)}</td></tr>)) : (<tr><td colSpan="4" className="p-8 text-center text-muted-foreground">Click the orb to record your first expense!</td></tr>)}</tbody>
+          </table>
+        </div>
+      </div>
+    </>
   );
 };
 

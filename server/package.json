@@ -9,12 +9,8 @@
     "db:migrate": "prisma migrate dev --name init",
     "db:generate": "prisma generate"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
+    "@google/generative-ai": "^0.11.3",
     "@prisma/client": "^5.17.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",

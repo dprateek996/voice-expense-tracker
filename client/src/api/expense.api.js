@@ -1,3 +1,4 @@
+// /client/src/api/expense.api.js
 import apiClient from './axios.config';
 
 export const addExpenseFromVoice = async (transcript) => {
@@ -5,7 +6,7 @@ export const addExpenseFromVoice = async (transcript) => {
     const { data } = await apiClient.post('/expense/voice', { transcript });
     return data;
   } catch (error) {
-    throw new Error(error.response?.data?.error || 'Failed to add expense from voice');
+    throw new Error(error.response?.data?.error || 'Failed to add expense');
   }
 };
 
