@@ -1,6 +1,4 @@
-const prisma = require('../../../prisma.config');
-const { hashPassword, comparePassword, validatePassword } = require('../../utils/password.util');
-const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../../utils/jwt.util');
+const crypto = require('crypto');
 
 const setTokens = (res, user) => {
   const accessToken = generateAccessToken(user.id, user.email);
@@ -126,10 +124,42 @@ const refreshAccessToken = (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return res.status(200).json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Save to database
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { resetToken, resetTokenExpiry },
+    });
+
+    // In a real app, send email here
+    // For now, just return success
+    res.status(200).json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 module.exports = {
   register,
   login,
   logout,
   getMe,
   refreshAccessToken,
+  forgotPassword,
 };
