@@ -2,7 +2,8 @@ import axios from 'axios';
 import useAuthStore from '../store/authStore';
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5001/api',
+  // We are temporarily hardcoding the full, correct URL
+  baseURL: 'https://expense-tracker-backend-svsa.onrender.com/api',
   withCredentials: true,
 });
 
