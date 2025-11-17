@@ -14,6 +14,10 @@ const { securityHeaders, authLimiter, apiLimiter } = require('./src/middleware/s
 
 const app = express();
 
+// --- ADD THIS LINE ---
+app.set('trust proxy', 1);
+// This tells Express to trust the first proxy it sees (which is Render's)
+
 // === SECURITY MIDDLEWARE SETUP ===
 app.use(securityHeaders);
 
