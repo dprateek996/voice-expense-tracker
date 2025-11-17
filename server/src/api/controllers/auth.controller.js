@@ -1,4 +1,7 @@
 const crypto = require('crypto');
+const prisma = require('../../../prisma.config');
+const { hashPassword, comparePassword, validatePassword } = require('../../utils/password.util');
+const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../../utils/jwt.util');
 
 const setTokens = (res, user) => {
   const accessToken = generateAccessToken(user.id, user.email);
