@@ -1,34 +1,59 @@
-import { Search, User } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import useAuthStore from '@/store/authStore';
-import { MobileNav } from './Sidebar'; // Import the new mobile nav trigger
+import { MobileNav } from './Sidebar';
+import { useNavigate } from 'react-router-dom';
 
 const TopNav = () => {
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
+  const navigate = useNavigate();
   const displayName = user?.name || "User";
 
-  return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background/95 px-4 backdrop-blur-sm sm:px-6">
-      {/* The Mobile Hamburger Menu now lives here */}
-      <MobileNav />
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
-      {/* The rest of your TopNav */}
-      <div className="flex w-full items-center gap-4 md:ml-auto md:flex-row">
+  return (
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/95 px-4 backdrop-blur-sm sm:px-6">
+      {/* Left side - Mobile menu and welcome message */}
+      <div className="flex items-center gap-4">
+        <MobileNav />
         <h1 className="text-lg font-semibold md:text-2xl hidden sm:block">
           Welcome back, {displayName}!
         </h1>
-        <div className="ml-auto flex items-center gap-2">
-            <form className="relative flex-1 sm:flex-grow-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search expenses..." className="w-full rounded-lg bg-muted pl-9" />
-            </form>
-            <Button variant="ghost" size="icon" className="rounded-full flex-shrink-0">
-              <User className="h-5 w-5" />
-              <span className="sr-only">User Menu</span>
-            </Button>
-        </div>
       </div>
+
+      {/* Right side - Profile menu */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <User className="h-5 w-5" />
+            <span className="sr-only">User Menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => navigate('/dashboard/settings')}>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Settings</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 };

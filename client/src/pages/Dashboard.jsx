@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { toast } from 'sonner';
 import Sidebar from '@/components/layout/Sidebar';
+import TopNav from '@/components/layout/TopNav';
 import VoiceOrb from '@/components/VoiceOrb';
 import CommandInterface from '@/components/CommandInterface';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
@@ -56,12 +57,16 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr]">
+    <div className="flex min-h-screen w-full">
       <Sidebar />
 
-      <main className="flex flex-col flex-1 gap-4 p-4 sm:p-6 md:p-8">
-        <Outlet />
-      </main>
+      <div className="flex flex-col flex-1">
+        <TopNav />
+
+        <main className="flex flex-col flex-1 gap-4 p-4 sm:p-6 md:p-8">
+          <Outlet />
+        </main>
+      </div>
 
       {/* COMMAND INTERFACE RECEIVES THE REQUIRED PROPS */}
       <CommandInterface

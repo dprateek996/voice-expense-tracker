@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -29,6 +29,9 @@ export const ConfirmationDialog = ({
         <DialogHeader>
           <DialogTitle className="text-xl">Review & Confirm</DialogTitle>
         </DialogHeader>
+        <DialogDescription>
+          Review and edit the transcribed text before adding it as an expense
+        </DialogDescription>
 
         <div>
           <label className="text-sm font-medium text-muted-foreground">Is this what you said?</label>

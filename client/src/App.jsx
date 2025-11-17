@@ -7,6 +7,9 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import DashboardHome from './pages/DashboardHome';
 import Analytics from './pages/Analytics';
+import History from './pages/History';
+import Categories from './pages/Categories';
+import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -28,10 +31,12 @@ function App() {
           >
             <Route index element={<DashboardHome />} />
             <Route path="analytics" element={<Analytics />} />
-            <Route path="history" element={<div className="p-8 text-center"><h1 className='text-3xl font-bold'>History coming soon...</h1></div>} />
-            <Route path="categories" element={<div className="p-8 text-center"><h1 className='text-3xl font-bold'>Categories coming soon...</h1></div>} />
-            <Route path="settings" element={<div className="p-8 text-center"><h1 className='text-3xl font-bold'>Settings coming soon...</h1></div>} />
+            <Route path="history" element={<History />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
+          {/* Temporary route for testing Settings page */}
+          <Route path="/test-settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

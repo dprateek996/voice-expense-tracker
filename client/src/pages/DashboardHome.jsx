@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Mic, TrendingUp, Calendar, Target, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import useExpenseStore from '@/store/expenseStore';
 import useVoiceStore from '@/store/voiceStore';
@@ -21,8 +21,26 @@ const getThisWeeksExpenses = (expenses) => {
   return expenses.filter(exp => new Date(exp.date) >= startOfWeek);
 };
 
-// Calculate budget progress (assuming a monthly budget of ₹5000 for demo)
-const BUDGET_MONTHLY = 5000;
+// ICONS FOR CATEGORIES
+const CATEGORY_ICONS = {
+  groceries: '🛒',
+  dining: '🍽️',
+  food: '🛒',
+  transport: '🚗',
+  shopping: '🛍️',
+  utilities: '⚡',
+  bills: '⚡',
+  health: '🏥',
+  medicine: '🏥',
+  entertainment: '🎭',
+  travel: '✈️',
+  education: '📚',
+  work: '💼',
+  'personal care': '💅',
+  personalcare: '💅',
+  fuel: '⛽',
+  other: '📦'
+};
 
 const DashboardHome = () => {
   const { expenses, fetchExpenses, budget, setBudget } = useExpenseStore();
@@ -67,8 +85,8 @@ const DashboardHome = () => {
     <div className="space-y-8">
       {/* Hero Section */}
       <div className="text-center space-y-4 py-12">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-          Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}!
+        <h1 className="text-4xl font-bold text-foreground">
+          Your Financial Dashboard
         </h1>
         <p className="text-xl text-muted-foreground">Ready to track your expenses? Just speak or type.</p>
         <Button onClick={open} size="lg" className="text-lg px-8 py-3">
@@ -78,69 +96,71 @@ const DashboardHome = () => {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover:scale-105 transition-transform duration-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Spend</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹{todaysTotal.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Today's Spend */}
+        <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:scale-105 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+          <div className="text-6xl group-hover:animate-bounce">💰</div>
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">Today's Spend</h3>
+            <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">₹{todaysTotal.toFixed(2)}</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
               {todaysExpenses.length} transaction{todaysExpenses.length !== 1 ? 's' : ''}
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="hover:scale-105 transition-transform duration-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Week</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">₹{weeksTotal.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
+        {/* This Week */}
+        <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 hover:scale-105 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+          <div className="text-6xl group-hover:animate-bounce">📈</div>
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold text-green-700 dark:text-green-300">This Week</h3>
+            <p className="text-3xl font-bold text-green-900 dark:text-green-100">₹{weeksTotal.toFixed(2)}</p>
+            <p className="text-sm text-green-600 dark:text-green-400">
               Avg: ₹{avgDailyThisWeek.toFixed(2)}/day
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="hover:scale-105 transition-transform duration-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Budget Progress</CardTitle>
-            <Button variant="ghost" size="sm" onClick={() => {
+        {/* Budget Progress */}
+        <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:scale-105 hover:shadow-lg transition-all duration-300 cursor-pointer group relative">
+          <div className="text-6xl group-hover:animate-bounce">🎯</div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
               setTempBudget(budget.toString());
               setIsBudgetDialogOpen(true);
-            }}>
-              <Target className="h-4 w-4" />
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{budgetProgress.toFixed(0)}%</div>
-            <div className="w-full bg-secondary rounded-full h-2 mt-2">
-              <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300" 
+            }}
+            className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/80 hover:bg-white"
+          >
+            ✏️
+          </Button>
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">Budget Progress</h3>
+            <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{budgetProgress.toFixed(0)}%</p>
+            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-2">
+              <div
+                className="bg-slate-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${budgetProgress}%` }}
               ></div>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
               of ₹{budget} monthly
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card className="hover:scale-105 transition-transform duration-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Streak</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">3 days</div>
-            <p className="text-xs text-muted-foreground">
+        {/* Streak */}
+        <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 hover:scale-105 hover:shadow-lg transition-all duration-300 cursor-pointer group">
+          <div className="text-6xl group-hover:animate-bounce">🔥</div>
+          <div className="space-y-1">
+            <h3 className="text-lg font-semibold text-orange-700 dark:text-orange-300">Streak</h3>
+            <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">3 days</p>
+            <p className="text-sm text-orange-600 dark:text-orange-400">
               Keep it up!
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Today's Expenses */}
@@ -154,7 +174,9 @@ const DashboardHome = () => {
               {todaysExpenses.map((expense) => (
                 <div key={expense.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
                   <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 bg-primary rounded-full"></div>
+                    <div className="text-2xl">
+                      {CATEGORY_ICONS[expense.category] || "📦"}
+                    </div>
                     <div>
                       <p className="font-medium">{expense.description}</p>
                       <p className="text-sm text-muted-foreground capitalize">{expense.category}</p>
@@ -215,6 +237,9 @@ const DashboardHome = () => {
           <DialogHeader>
             <DialogTitle>Set Monthly Budget</DialogTitle>
           </DialogHeader>
+          <DialogDescription>
+            Set your spending limit for the current month
+          </DialogDescription>
           <div className="space-y-4">
             <div>
               <label htmlFor="budget" className="text-sm font-medium">Monthly Budget (₹)</label>

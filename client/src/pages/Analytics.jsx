@@ -1,62 +1,19 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip
-} from 'recharts';
 import useExpenseStore from '@/store/expenseStore';
 import { toast } from 'sonner';
 
-// ICONS FOR CATEGORIES
-const CATEGORY_ICONS = {
-  food: "🍔",
-  travel: "✈️",
-  bills: "💡",
-  shopping: "🛍️",
-  entertainment: "🎬",
-  medicine: "💊",
-  other: "📦"
-};
-
-const COLORS = [
-  "#FBBF24",
-  "#F59E0B",
-  "#F97316",
-  "#EF4444",
-  "#10B981",
-  "#6366F1"
-];
-
 const Analytics = () => {
   const { expenses, fetchExpenses } = useExpenseStore();
-  const [chartData, setChartData] = useState([]);
-  const [pieData, setPieData] = useState([]);
-  const [totalSpent, setTotalSpent] = useState(0);
-  const [topExpenses, setTopExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch expenses
   useEffect(() => {
     const load = async () => {
       try {
         setLoading(true);
         await fetchExpenses();
-      } catch {
-        toast.error("Failed to load analytics.");
+      } catch (error) {
+        console.error('Failed to load analytics:', error);
+        toast.error("Failed to load analytics data. Please try logging in again.");
       } finally {
         setLoading(false);
       }
@@ -64,185 +21,130 @@ const Analytics = () => {
     load();
   }, []);
 
-  // Compute charts
-  useEffect(() => {
-    if (expenses.length === 0) return;
-
-    // Monthly chart
-    const monthlyTotals = expenses.reduce((acc, exp) => {
-      const month = new Date(exp.date).toLocaleString("default", {
-        month: "short",
-        year: "numeric"
-      });
-      acc[month] = (acc[month] || 0) + exp.amount;
-      return acc;
-    }, {});
-    setChartData(
-      Object.entries(monthlyTotals).map(([month, amount]) => ({
-        month,
-        amount
-      }))
-    );
-
-    // Category Pie
-    const categoryTotals = expenses.reduce((acc, exp) => {
-      acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
-      return acc;
-    }, {});
-    setPieData(
-      Object.entries(categoryTotals).map(([name, value]) => ({
-        name,
-        value
-      }))
-    );
-
-    // Top expenses
-    const sorted = [...expenses]
-      .sort((a, b) => b.amount - a.amount)
-      .slice(0, 5);
-    setTopExpenses(sorted);
-
-    setTotalSpent(
-      expenses.reduce((sum, e) => sum + e.amount, 0)
-    );
-  }, [expenses]);
-
-  // LOADING SKELETON
   if (loading) {
     return (
-      <div className="p-6 space-y-4 animate-pulse">
-        <div className="h-10 w-40 bg-muted rounded-lg"></div>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="h-24 bg-muted rounded-lg"></div>
-          <div className="h-24 bg-muted rounded-lg"></div>
-          <div className="h-24 bg-muted rounded-lg"></div>
-        </div>
-        <div className="grid grid-cols-2 gap-6 mt-4">
-          <div className="h-64 bg-muted rounded-lg"></div>
-          <div className="h-64 bg-muted rounded-lg"></div>
+      <div className="p-6">
+        <div className="text-xl text-white">Loading analytics...</div>
+      </div>
+    );
+  }
+
+  if (expenses.length === 0) {
+    return (
+      <div className="p-6">
+        <h1 className="text-4xl font-bold text-foreground mb-8">
+          Expense Analytics
+        </h1>
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">📊</div>
+          <h2 className="text-2xl font-semibold mb-2 text-white">No expenses yet</h2>
+          <p className="text-gray-400">Add some expenses to see your analytics!</p>
         </div>
       </div>
     );
   }
 
+  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const averageExpense = totalSpent / expenses.length;
+
+  // Category icons mapping
+  const CATEGORY_ICONS = {
+    groceries: '🛒',
+    dining: '🍽️',
+    food: '🛒',
+    transport: '🚗',
+    shopping: '🛍️',
+    utilities: '⚡',
+    bills: '⚡',
+    health: '🏥',
+    medicine: '🏥',
+    entertainment: '🎭',
+    travel: '✈️',
+    education: '📚',
+    work: '💼',
+    'personal care': '💅',
+    personalcare: '💅',
+    fuel: '⛽',
+    other: '📦'
+  };
+
+  // Get top 5 expenses
+  const topExpenses = [...expenses]
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
+
   return (
-    <div className="space-y-8 p-6">
-      {/* Title */}
-      <motion.h1
-        className="text-4xl font-bold bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
+    <div className="p-6">
+      <h1 className="text-4xl font-bold text-foreground mb-8">
         Expense Analytics
-      </motion.h1>
+      </h1>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="rounded-2xl shadow hover:scale-105 hover:shadow-lg hover:border-amber-500 transition-transform duration-200">
-          <CardHeader>
-            <CardTitle>Total Spent</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">₹{totalSpent.toFixed(2)}</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 hover:shadow-xl transition-transform duration-200 hover:border hover:border-amber-400">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-2xl">💰</span>
+            <span className="text-white font-semibold">Total Spent</span>
+          </div>
+          <p className="text-3xl font-bold text-amber-400">₹{totalSpent.toFixed(2)}</p>
+        </div>
 
-        <Card className="rounded-2xl shadow hover:scale-105 hover:shadow-lg hover:border-amber-500 transition-transform duration-200">
-          <CardHeader>
-            <CardTitle>Total Entries</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{expenses.length}</p>
-          </CardContent>
-        </Card>
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 hover:shadow-xl transition-transform duration-200 hover:border hover:border-amber-400">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-2xl">📊</span>
+            <span className="text-white font-semibold">Total Entries</span>
+          </div>
+          <p className="text-3xl font-bold text-amber-400">{expenses.length}</p>
+        </div>
 
-        <Card className="rounded-2xl shadow hover:scale-105 hover:shadow-lg hover:border-amber-500 transition-transform duration-200">
-          <CardHeader>
-            <CardTitle>Average Expense</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              ₹{(totalSpent / expenses.length).toFixed(2)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* CHARTS */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Bar Chart */}
-        <Card className="rounded-2xl shadow-lg">
-          <CardHeader><CardTitle>Monthly Spending</CardTitle></CardHeader>
-          <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="amount" fill="#F59E0B" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        {/* Pie Chart */}
-        <Card className="rounded-2xl shadow-lg">
-          <CardHeader><CardTitle>Spending by Category</CardTitle></CardHeader>
-          <CardContent className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  label
-                >
-                  {pieData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-
-            {/* LEGEND */}
-            <div className="flex flex-wrap gap-3 mt-4">
-              {pieData.map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm">
-                  <span className="text-xl">{CATEGORY_ICONS[item.name] || "•"}</span>
-                  {item.name} — ₹{item.value}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 hover:shadow-xl transition-transform duration-200 hover:border hover:border-amber-400">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-2xl">📏</span>
+            <span className="text-white font-semibold">Average Expense</span>
+          </div>
+          <p className="text-3xl font-bold text-amber-400">₹{averageExpense.toFixed(2)}</p>
+        </div>
       </div>
 
       {/* Top 5 Expenses */}
-      <Card className="p-6 rounded-2xl shadow-lg">
-        <CardTitle className="mb-4">Top 5 Expenses</CardTitle>
+      <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
+        <h2 className="text-2xl font-bold text-white mb-4">Top 5 Expenses</h2>
         <div className="space-y-3">
           {topExpenses.map((exp, i) => (
-            <motion.div
-              key={i}
-              className="flex justify-between bg-muted p-3 rounded-xl cursor-pointer"
-              whileHover={{ scale: 1.02, backgroundColor: "rgba(0,0,0,0.05)" }}
-              transition={{ duration: 0.2 }}
-            >
-              <span className="capitalize text-lg">
-                {CATEGORY_ICONS[exp.category] || "•"} {exp.description}
-              </span>
-              <span className="text-primary font-semibold text-lg">
-                ₹{exp.amount}
-              </span>
-            </motion.div>
+            <div key={i} className="flex items-center justify-between bg-gray-700 p-4 rounded-xl hover:scale-102 hover:shadow-lg transition-all duration-200 hover:border hover:border-amber-400">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">{CATEGORY_ICONS[exp.category] || '📦'}</span>
+                <div>
+                  <p className="text-white font-medium capitalize">{exp.category}: {exp.description}</p>
+                  <p className="text-gray-400 text-sm">{new Date(exp.date).toLocaleDateString()}</p>
+                </div>
+              </div>
+              <span className="text-amber-400 font-bold text-xl">₹{exp.amount}</span>
+            </div>
           ))}
         </div>
-      </Card>
+      </div>
+
+      {/* Simple Category Breakdown */}
+      <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
+        <h2 className="text-2xl font-bold text-white mb-4">Category Breakdown</h2>
+        <div className="space-y-3">
+          {Object.entries(
+            expenses.reduce((acc, exp) => {
+              acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
+              return acc;
+            }, {})
+          ).map(([category, amount]) => (
+            <div key={category} className="flex items-center justify-between bg-gray-700 p-4 rounded-xl">
+              <div className="flex items-center space-x-3">
+                <span className="text-2xl">{CATEGORY_ICONS[category] || '📦'}</span>
+                <span className="text-white font-medium capitalize">{category}</span>
+              </div>
+              <span className="text-amber-400 font-bold">₹{amount.toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

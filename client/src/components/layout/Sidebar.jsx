@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import useAuthStore from "@/store/authStore";
 import {
-  LayoutDashboard, BarChart3, History, Tags, Settings, LogOut, Gem, PanelLeft, PanelLeftClose, PanelLeftOpen
+  LayoutDashboard, BarChart3, History, Tags, Settings, LogOut, PanelLeft, PanelLeftClose, PanelLeftOpen
 } from "lucide-react";
+import Logo from "@/components/Logo";
 
 // --- Links Configuration ---
 const navLinks = [
@@ -110,7 +111,7 @@ const NavContent = ({ open, onLinkClick }) => {
             key={link.label}
             link={link}
             open={open}
-            onClick={() => { if(link.onClick) link.onClick(); if(onLinkClick) onLinkClick(); }}
+            onClick={link.onClick ? () => { link.onClick(); if(onLinkClick) onLinkClick(); } : undefined}
             isHovered={hoveredLabel === link.label}
             onHover={() => setHoveredLabel(link.label)}
           />
@@ -123,6 +124,12 @@ const NavContent = ({ open, onLinkClick }) => {
 // --- Desktop Sidebar ---
 const Sidebar = () => {
   const [open, setOpen] = useState(true);
+  const navigate = useNavigate();
+
+  const handleLogoClick = () => {
+    navigate('/dashboard');
+  };
+
   return (
     <motion.aside
       initial={false}
@@ -131,7 +138,7 @@ const Sidebar = () => {
       className="sticky top-0 hidden md:flex flex-col h-screen bg-background border-r border-border z-50 p-3"
     >
       <div className="flex items-center justify-between p-2 h-16 border-b border-border">
-        <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center"><Gem className="w-8 h-8 text-primary shrink-0" /><span className="ml-3 text-xl font-bold whitespace-nowrap">VoiceExpense</span></motion.div>}</AnimatePresence>
+        <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center cursor-pointer" onClick={handleLogoClick}><Logo showText={true} size="md" /></motion.div>}</AnimatePresence>
         <Button onClick={() => setOpen(!open)} variant="ghost" size="icon" className="shrink-0">{open ? <PanelLeftClose /> : <PanelLeftOpen />}</Button>
       </div>
       <NavContent open={open} />
@@ -142,12 +149,26 @@ const Sidebar = () => {
 // --- Mobile Navigation Sheet ---
 export const MobileNav = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const handleLogoClick = () => {
+      navigate('/dashboard');
+      setIsOpen(false);
+    };
+
     return (
       <div className="md:hidden">
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild><Button variant="ghost" size="icon"><PanelLeft className="h-6 w-6" /><span className="sr-only">Toggle Navigation</span></Button></SheetTrigger>
-          <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
-            <div className="flex items-center gap-2 px-4 py-6 border-b border-border"><Gem className="h-6 w-6 text-primary" /><h1 className="text-xl font-bold">VoiceExpense</h1></div>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+              <PanelLeft className="h-5 w-5" />
+              <span className="sr-only">Toggle Navigation</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
+            <div className="flex items-center gap-2 px-4 py-6 border-b border-border cursor-pointer" onClick={handleLogoClick}>
+              <Logo showText={true} size="sm" />
+            </div>
             <NavContent open={true} onLinkClick={() => setIsOpen(false)} />
           </SheetContent>
         </Sheet>

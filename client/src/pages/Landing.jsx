@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
+import Logo from "@/components/Logo";
 
 import {
   Pizza,
@@ -52,10 +53,19 @@ const HeroSection = () => (
 
     {/* FOREGROUND TEXT */}
     <div className="relative z-20 flex flex-col items-center px-6">
-      <motion.h1
+      <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7 }}
+        className="mb-6"
+      >
+        <Logo showText={true} size="lg" />
+      </motion.div>
+
+      <motion.h1
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.7, delay: 0.1 }}
         className="text-center text-5xl md:text-7xl font-black tracking-tight"
       >
         Your Expenses, <span className="text-primary">Just Spoken.</span>
