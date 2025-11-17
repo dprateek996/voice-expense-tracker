@@ -9,9 +9,18 @@ const apiClient = axios.create({
 // Request interceptor to add JWT token to headers
 apiClient.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().getToken();
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
+    // Get token from localStorage (Zustand persist stores it here)
+    const authData = localStorage.getItem('auth-session-storage');
+    if (authData) {
+      try {
+        const parsed = JSON.parse(authData);
+        const token = parsed.state?.token;
+        if (token) {
+          config.headers['Authorization'] = `Bearer ${token}`;
+        }
+      } catch (error) {
+        // Ignore parsing errors
+      }
     }
     return config;
   },
