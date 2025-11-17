@@ -35,6 +35,16 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' })); // Limit payload size
 app.use(cookieParser());
 
+// --- PASTE THIS NEW TEST ROUTE HERE ---
+app.post('/test-post', (req, res) => {
+  console.log('--- /test-post route was hit! ---');
+  res.status(200).json({
+    message: 'POST request successful!',
+    data_received: req.body
+  });
+});
+// ------------------------------------
+
 // === API ROUTE REGISTRATION WITH RATE LIMITING ===
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/expense', apiLimiter, expenseRoutes);
