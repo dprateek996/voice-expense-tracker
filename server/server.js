@@ -14,6 +14,12 @@ const { securityHeaders, authLimiter, apiLimiter } = require('./src/middleware/s
 
 const app = express();
 
+// --- PASTE THIS CODE BLOCK HERE ---
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Hello from the server!' });
+});
+// ------------------------------------
+
 // --- ADD THIS LINE ---
 app.set('trust proxy', 1);
 // This tells Express to trust the first proxy it sees (which is Render's)
