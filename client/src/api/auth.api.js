@@ -4,7 +4,7 @@ import useAuthStore from '../store/authStore';
 export const registerUser = async (userData) => {
   try {
     const { data } = await apiClient.post('/auth/register', userData);
-    useAuthStore.getState().login(data.user);
+    useAuthStore.getState().login(data.user, data.token);
     return data;
   } catch (error) {
     throw new Error(error.response?.data?.error || 'Registration failed');
@@ -14,7 +14,7 @@ export const registerUser = async (userData) => {
 export const loginUser = async (credentials) => {
   try {
     const { data } = await apiClient.post('/auth/login', credentials);
-    useAuthStore.getState().login(data.user);
+    useAuthStore.getState().login(data.user, data.token);
     return data;
   } catch (error) {
     throw new Error(error.response?.data?.error || 'Login failed');

@@ -21,18 +21,10 @@ const comparePassword = async (password, hash) => {
 /**
  * Validate password requirements
  * - Minimum 8 characters
- * - Must include letters and numbers
  */
 const validatePassword = (password) => {
   if (password.length < 8) {
     return { valid: false, message: 'Password must be at least 8 characters long' };
-  }
-
-  const hasLetters = /[a-zA-Z]/.test(password);
-  const hasNumbers = /[0-9]/.test(password);
-
-  if (!hasLetters || !hasNumbers) {
-    return { valid: false, message: 'Password must include both letters and numbers' };
   }
 
   return { valid: true };

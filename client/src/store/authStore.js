@@ -3,22 +3,25 @@ import { persist } from 'zustand/middleware';
 
 const useAuthStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       isAuthenticated: false,
       user: null,
-      login: (userData) => {
-        set({ isAuthenticated: true, user: userData });
+      token: null,
+      login: (userData, token) => {
+        set({ isAuthenticated: true, user: userData, token });
       },
       logout: () => {
-        set({ isAuthenticated: false, user: null });
+        set({ isAuthenticated: false, user: null, token: null });
       },
+      getToken: () => get().token,
     }),
     {
       name: 'auth-session-storage', // unique name for localStorage key
-      // We only want to store the user object and auth status
+      // We only want to store the user object, auth status, and token
       partialize: (state) => ({ 
         user: state.user, 
-        isAuthenticated: state.isAuthenticated 
+        isAuthenticated: state.isAuthenticated,
+        token: state.token
       }),
     }
   )
