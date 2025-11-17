@@ -18,4 +18,9 @@ router.post('/refresh-token', refreshAccessToken);
 router.post('/forgot-password', forgotPassword);
 router.get('/me', protect, getMe);
 
+// Test route to check if auth routes are working
+router.get('/test', (req, res) => {
+  res.json({ message: 'Auth routes are working!' });
+});
+
 module.exports = router;
