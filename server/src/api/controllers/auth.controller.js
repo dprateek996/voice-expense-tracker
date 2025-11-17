@@ -55,8 +55,38 @@ const register = async (req, res) => {
 };
 
 const login = async (req, res) => {
-  console.log('--- LOGIN ROUTE CONTROLLER WAS HIT ---');
-  res.status(200).json({ message: 'Login route is working!' });
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    // Find user by email
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Verify password
+    const isPasswordValid = await comparePassword(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Generate tokens
+    const { accessToken } = setTokens(res, user);
+    const userResponse = { id: user.id, email: user.email, name: user.name };
+
+    res.status(200).json({
+      message: 'Login successful',
+      user: userResponse,
+      token: accessToken
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error during login' });
+  }
 };
 
 const logout = (req, res) => {
