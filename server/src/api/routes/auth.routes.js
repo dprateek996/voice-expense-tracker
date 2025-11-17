@@ -12,7 +12,7 @@ const { protect } = require('../../middleware/auth.middleware');
 const { validateRegistration, validateLogin } = require('../../middleware/validation.middleware');
 
 router.post('/register', validateRegistration, register);
-router.post('/login', login); // Temporarily removed validateLogin middleware
+router.get('/login', login); // Changed to GET for testing
 router.post('/logout', logout);
 router.post('/refresh-token', refreshAccessToken);
 router.post('/forgot-password', forgotPassword);
