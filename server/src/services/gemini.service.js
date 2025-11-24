@@ -7,9 +7,8 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-2.0-flash",
   generationConfig: {
-    responseMimeType: "application/json",
     temperature: 0.2,
     maxOutputTokens: 256,
   },
@@ -24,7 +23,14 @@ const model = genAI.getGenerativeModel({
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function validateResult(obj) {
-  if (!obj || typeof obj !== "object") return false;
+  if (!obj) return false;
+
+  // Handle array of expenses
+  if (Array.isArray(obj)) {
+    return obj.every(item => validateResult(item));
+  }
+
+  if (typeof obj !== "object") return false;
   const requiredKeys = ["amount", "category", "description", "location", "date", "is_unclear"];
   for (const key of requiredKeys) { if (!(key in obj)) return false; }
   return typeof obj.is_unclear === "boolean";
@@ -33,7 +39,7 @@ function validateResult(obj) {
 async function parseExpenseWithGemini(transcript) {
   try {
     if (!transcript || typeof transcript !== "string") {
-      return { is_unclear: true };
+      return [{ is_unclear: true }];
     }
     const cleanTranscript = transcript.replace(/[{}$`]/g, "");
     const prompt = `
@@ -41,7 +47,14 @@ async function parseExpenseWithGemini(transcript) {
       - **Primary Goal**: Understand the user's intent. Correct obvious speech-to-text errors (e.g., "2004 burger" means "200 for burger").
       - **Currency**: INR (₹).
       - **Categories**: ["Groceries","Dining","Transport","Shopping","Utilities","Health","Entertainment","Travel","Education","Work","Personal Care","Fuel","Other"].
-      - **Output**: Strict JSON only. If no amount can be logically found, you MUST set "is_unclear" to true.
+      - **Output**: Strict JSON only.
+      - **Fields Required**:
+        - "amount": number (in INR)
+        - "category": string (one of the allowed categories, default "Other" if unknown)
+        - "description": string (default "Voice Entry" if unknown)
+        - "location": string (merchant or place name, or null if not found)
+        - "date": string (ISO date, or null)
+        - "is_unclear": boolean (set to false if amount is found, even if other details are missing)
       - **Parse this transcript**: "${cleanTranscript}"
     `;
 
@@ -57,9 +70,14 @@ async function parseExpenseWithGemini(transcript) {
         );
         clearTimeout(timeout);
         const text = result?.response?.text?.() || "{}";
-        const parsed = JSON.parse(text);
+        console.log("🤖 [Gemini Raw Response]:", text);
+
+        // Clean markdown code blocks if present
+        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(cleanText);
         if (validateResult(parsed)) {
-          return parsed;
+          // Normalize to array
+          return Array.isArray(parsed) ? parsed : [parsed];
         }
         throw new Error("Invalid schema from AI");
       } catch (err) {
@@ -70,7 +88,7 @@ async function parseExpenseWithGemini(transcript) {
     }
   } catch (error) {
     console.error("Gemini parsing failed after retries:", error);
-    return { is_unclear: true };
+    return [{ is_unclear: true }];
   }
 }
 

@@ -53,8 +53,7 @@ const SidebarLink = ({ link, open, isHovered, onHover, onClick }) => {
   );
 
   const linkClasses = (isActive) =>
-    `relative flex items-center p-3 my-1 rounded-lg transition-colors duration-200 cursor-pointer text-muted-foreground ${
-      isActive || isHovered ? "text-foreground" : "hover:text-foreground"
+    `relative flex items-center p-3 my-1 rounded-lg transition-colors duration-200 cursor-pointer text-muted-foreground ${isActive || isHovered ? "text-foreground" : "hover:text-foreground"
     }`;
 
   // If the link is an action (like Logout), render a div. Otherwise, render a NavLink.
@@ -110,7 +109,7 @@ const NavContent = ({ open, onLinkClick }) => {
             key={link.label}
             link={link}
             open={open}
-            onClick={() => { if(link.onClick) link.onClick(); if(onLinkClick) onLinkClick(); }}
+            onClick={() => { if (link.onClick) link.onClick(); if (onLinkClick) onLinkClick(); }}
             isHovered={hoveredLabel === link.label}
             onHover={() => setHoveredLabel(link.label)}
           />
@@ -131,7 +130,7 @@ const Sidebar = () => {
       className="sticky top-0 hidden md:flex flex-col h-screen bg-background border-r border-border z-50 p-3"
     >
       <div className="flex items-center justify-between p-2 h-16 border-b border-border">
-        <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center"><Gem className="w-8 h-8 text-primary shrink-0" /><span className="ml-3 text-xl font-bold whitespace-nowrap">VoiceExpense</span></motion.div>}</AnimatePresence>
+        <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center"><Gem className="w-8 h-8 text-primary shrink-0" /><span className="ml-3 text-xl font-bold whitespace-nowrap">VoEx</span></motion.div>}</AnimatePresence>
         <Button onClick={() => setOpen(!open)} variant="ghost" size="icon" className="shrink-0">{open ? <PanelLeftClose /> : <PanelLeftOpen />}</Button>
       </div>
       <NavContent open={open} />
@@ -141,18 +140,18 @@ const Sidebar = () => {
 
 // --- Mobile Navigation Sheet ---
 export const MobileNav = () => {
-    const [isOpen, setIsOpen] = useState(false);
-    return (
-      <div className="md:hidden">
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild><Button variant="ghost" size="icon"><PanelLeft className="h-6 w-6" /><span className="sr-only">Toggle Navigation</span></Button></SheetTrigger>
-          <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
-            <div className="flex items-center gap-2 px-4 py-6 border-b border-border"><Gem className="h-6 w-6 text-primary" /><h1 className="text-xl font-bold">VoiceExpense</h1></div>
-            <NavContent open={true} onLinkClick={() => setIsOpen(false)} />
-          </SheetContent>
-        </Sheet>
-      </div>
-    );
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className="md:hidden">
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetTrigger asChild><Button variant="ghost" size="icon"><PanelLeft className="h-6 w-6" /><span className="sr-only">Toggle Navigation</span></Button></SheetTrigger>
+        <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
+          <div className="flex items-center gap-2 px-4 py-6 border-b border-border"><Gem className="h-6 w-6 text-primary" /><h1 className="text-xl font-bold">VoEx</h1></div>
+          <NavContent open={true} onLinkClick={() => setIsOpen(false)} />
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
 };
 
 export default Sidebar;

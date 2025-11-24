@@ -2,55 +2,38 @@
 
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your-super-secret-refresh-key';
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'dev_access_secret';
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || 'dev_refresh_secret';
+const ACCESS_TOKEN_EXPIRES_IN = process.env.ACCESS_TOKEN_EXPIRES_IN || '15m';
+const REFRESH_TOKEN_EXPIRES_IN = process.env.REFRESH_TOKEN_EXPIRES_IN || '30d';
 
-const ACCESS_TOKEN_EXPIRY = '30m'; // 30 minutes
-const REFRESH_TOKEN_EXPIRY = '7d'; // 7 days
+function signAccessToken(payload) {
+  return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRES_IN });
+}
 
-/**
- * Generate access token
- */
-const generateAccessToken = (userId, email) => {
-  return jwt.sign({ userId, email }, JWT_SECRET, {
-    expiresIn: ACCESS_TOKEN_EXPIRY,
-  });
-};
+function signRefreshToken(payload) {
+  return jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRES_IN });
+}
 
-/**
- * Generate refresh token
- */
-const generateRefreshToken = (userId) => {
-  return jwt.sign({ userId }, JWT_REFRESH_SECRET, {
-    expiresIn: REFRESH_TOKEN_EXPIRY,
-  });
-};
-
-/**
- * Verify access token
- */
-const verifyAccessToken = (token) => {
+function verifyAccessToken(token) {
   try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch (error) {
+    return jwt.verify(token, ACCESS_TOKEN_SECRET);
+  } catch (err) {
     return null;
   }
-};
+}
 
-/**
- * Verify refresh token
- */
-const verifyRefreshToken = (token) => {
+function verifyRefreshToken(token) {
   try {
-    return jwt.verify(token, JWT_REFRESH_SECRET);
-  } catch (error) {
+    return jwt.verify(token, REFRESH_TOKEN_SECRET);
+  } catch (err) {
     return null;
   }
-};
+}
 
 module.exports = {
-  generateAccessToken,
-  generateRefreshToken,
+  signAccessToken,
+  signRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
 };

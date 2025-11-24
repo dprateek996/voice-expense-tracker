@@ -10,6 +10,7 @@ import useVoiceStore from '@/store/voiceStore';
 import { useState } from 'react';
 import { playOpenSound } from '@/lib/audioUtils';
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import ExpenseConfirmation from '@/components/ExpenseConfirmation';
 
 const Dashboard = () => {
   const fetchExpenses = useExpenseStore((state) => state.fetchExpenses);
@@ -18,10 +19,11 @@ const Dashboard = () => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [transcriptToConfirm, setTranscriptToConfirm] = useState("");
+  const [confirmationData, setConfirmationData] = useState(null);
 
   // 🎤 GLOBAL SPEECH RECOGNITION
-  const { isListening, startListening, stopListening } = useSpeechRecognition({
-    onResult: () => {},
+  const { isListening, transcript, startListening, stopListening } = useSpeechRecognition({
+    onResult: () => { },
     onEnd: (transcript) => {
       if (transcript) handleVoiceCommand(transcript);
     },
@@ -46,7 +48,17 @@ const Dashboard = () => {
     setState('processing');
     try {
       const result = await expenseApi.addFromVoice(finalTranscript);
-      toast.success(`Expense added: ${result.expense.description} (₹${result.expense.amount})`);
+      const count = result.expenses ? result.expenses.length : 1;
+      const firstDesc = result.expenses ? result.expenses[0].description : result.expense.description;
+      const totalAmount = result.expenses
+        ? result.expenses.reduce((sum, exp) => sum + exp.amount, 0)
+        : result.expense.amount;
+
+      // Show confirmation card instead of just toast
+      setConfirmationData(result.expenses || [result.expense]);
+
+      // Still show a subtle toast for feedback if needed, or rely on the card
+      // toast.success(`Added ${count} expense(s)`); 
       fetchExpenses();
     } catch (error) {
       toast.error(error.message || "Could not save expense.");
@@ -68,6 +80,7 @@ const Dashboard = () => {
         onTextCommand={handleTextCommand}
         onVoiceCommand={handleVoiceCommand}
         isListening={isListening}
+        transcript={isListening ? transcript : ""}
         startListening={startListening}
         stopListening={stopListening}
       />
@@ -79,6 +92,13 @@ const Dashboard = () => {
         onConfirm={parseAndSaveExpense}
         onCancel={() => close()}
       />
+
+      {confirmationData && (
+        <ExpenseConfirmation
+          expenses={confirmationData}
+          onDismiss={() => setConfirmationData(null)}
+        />
+      )}
     </div>
   );
 };

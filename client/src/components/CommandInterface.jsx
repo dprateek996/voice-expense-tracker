@@ -9,6 +9,7 @@ const CommandInterface = ({
   onTextCommand,
   onVoiceCommand,
   isListening,
+  transcript,
   startListening,
   stopListening
 }) => {
@@ -64,6 +65,7 @@ const CommandInterface = ({
               onVoiceCommand={onVoiceCommand}
               isProcessing={isProcessing}
               isListening={isListening}
+              transcript={transcript}
               startListening={startListening}
               stopListening={stopListening}
             />

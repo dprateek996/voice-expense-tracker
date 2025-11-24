@@ -73,7 +73,7 @@ const DashboardHome = () => {
         <p className="text-xl text-muted-foreground">Ready to track your expenses? Just speak or type.</p>
         <Button onClick={open} size="lg" className="text-lg px-8 py-3">
           <Mic className="h-5 w-5 mr-2" />
-          Start Voice Expense
+          Add Expense
         </Button>
       </div>
 
@@ -118,8 +118,8 @@ const DashboardHome = () => {
           <CardContent>
             <div className="text-2xl font-bold">{budgetProgress.toFixed(0)}%</div>
             <div className="w-full bg-secondary rounded-full h-2 mt-2">
-              <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300" 
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-300"
                 style={{ width: `${budgetProgress}%` }}
               ></div>
             </div>
@@ -184,9 +184,9 @@ const DashboardHome = () => {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              {budgetProgress > 80 ? "You're close to your budget! Consider reviewing non-essential spends." : 
-               todaysTotal > avgDailyThisWeek * 1.5 ? "Today's spending is higher than usual. Stay mindful!" : 
-               "Great job staying on track! Keep up the good work with expense tracking."}
+              {budgetProgress > 80 ? "You're close to your budget! Consider reviewing non-essential spends." :
+                todaysTotal > avgDailyThisWeek * 1.5 ? "Today's spending is higher than usual. Stay mindful!" :
+                  "Great job staying on track! Keep up the good work with expense tracking."}
             </p>
           </CardContent>
         </Card>
@@ -200,8 +200,8 @@ const DashboardHome = () => {
               Stay under ₹{budget} total. You're {budgetProgress < 50 ? 'on track' : budgetProgress < 80 ? 'doing well' : 'close to the limit'}!
             </p>
             <div className="w-full bg-secondary rounded-full h-2 mt-2">
-              <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300" 
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-300"
                 style={{ width: `${budgetProgress}%` }}
               ></div>
             </div>

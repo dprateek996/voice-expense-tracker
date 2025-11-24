@@ -1,7 +1,7 @@
 {
-  "name": "server",
+  "name": "voex-server",
   "version": "1.0.0",
-  "description": "Backend for Voice Expense Tracker",
+  "description": "Backend for VoEx - Voice Expense Tracker",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

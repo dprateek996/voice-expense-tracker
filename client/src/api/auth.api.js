@@ -1,42 +1,39 @@
-import apiClient from './axios.config';
-import useAuthStore from '../store/authStore';
+import api from './axios.config';
 
-export const registerUser = async (userData) => {
-  try {
-    const { data } = await apiClient.post('/auth/register', userData);
-    useAuthStore.getState().login(data.user);
-    return data;
-  } catch (error) {
-    throw new Error(error.response?.data?.error || 'Registration failed');
-  }
-};
+export async function registerUser(userData) {
+  const res = await api.post('/auth/register', userData);
+  return res.data;
+}
 
-export const loginUser = async (credentials) => {
-  try {
-    const { data } = await apiClient.post('/auth/login', credentials);
-    useAuthStore.getState().login(data.user);
-    return data;
-  } catch (error) {
-    throw new Error(error.response?.data?.error || 'Login failed');
-  }
-};
+export async function loginUser(credentials) {
+  const res = await api.post('/auth/login', credentials);
+  return res.data;
+}
 
-export const logoutUser = async () => {
-  try {
-    await apiClient.post('/auth/logout');
-    useAuthStore.getState().logout();
-  } catch (error) {
-    throw new Error(error.response?.data?.error || 'Logout failed');
-  }
-};
+export async function logoutUser() {
+  const res = await api.post('/auth/logout');
+  return res.data;
+}
 
-export const fetchMe = async () => {
-  try {
-    const { data } = await apiClient.get('/auth/me');
-    useAuthStore.getState().login(data);
-    return data;
-  } catch (error) {
-    useAuthStore.getState().logout();
-    throw new Error(error.response?.data?.error || 'Failed to fetch user');
-  }
+export async function getMe() {
+  const res = await api.get('/auth/me');
+  return res.data;
+}
+
+// Add alias to satisfy consumers expecting fetchMe
+export const fetchMe = getMe;
+
+export async function refreshToken() {
+  const res = await api.post('/auth/refresh');
+  return res.data;
+}
+
+// default export (object) for any default imports (legacy)
+export default {
+  registerUser,
+  loginUser,
+  logoutUser,
+  getMe,
+  fetchMe,
+  refreshToken
 };

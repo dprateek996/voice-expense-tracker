@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { loginUser } from '../api/auth.api';
+import useAuthStore from '../store/authStore';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const login = useAuthStore((state) => state.login);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,7 +25,8 @@ const Login = () => {
     }
 
     try {
-      await loginUser(formData);
+      const res = await loginUser(formData);
+      login(res.user, res.token);
       toast.success('Login successful! Redirecting...');
       navigate('/dashboard');
     } catch (error) {

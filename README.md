@@ -1,4 +1,4 @@
-# Voice Expense Tracker — India-ready
+# VoEx — Voice Expense Tracker
 
 A fast, modern, voice-powered expense tracker built with a full-stack JavaScript setup. Users can log expenses by speaking or typing, and the system automatically parses, cleans, and categorizes the input using Gemini AI.
 
