@@ -38,7 +38,7 @@ const HeroSection = () => (
   <div className="relative flex flex-col items-center justify-center w-full h-screen overflow-hidden">
 
     {/* BACKGROUND ANIMATED CARDS – YOUR ORIGINAL ANIMATION */}
-    <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-3 gap-8 p-4 md:p-8 transform-gpu opacity-15 [mask-image:radial-gradient(ellipse_at_center,transparent_10%,black)]">
+    <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-3 gap-8 p-4 md:p-8 transform-gpu opacity-30 [mask-image:radial-gradient(ellipse_at_center,transparent_10%,black)]">
       <div className="flex flex-col gap-8">
         <InfiniteMovingCards items={leftColumnItems} direction="right" speed="slow" />
       </div>

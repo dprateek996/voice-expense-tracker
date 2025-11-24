@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import useAuthStore from "@/store/authStore";
 import {
-  LayoutDashboard, BarChart3, History, Tags, Settings, LogOut, Gem, PanelLeft, PanelLeftClose, PanelLeftOpen
+  LayoutDashboard, BarChart3, History, Tags, Settings, LogOut, PanelLeft, PanelLeftClose, PanelLeftOpen
 } from "lucide-react";
 
 // --- Links Configuration ---
@@ -124,13 +124,13 @@ const Sidebar = () => {
   const [open, setOpen] = useState(true);
   return (
     <motion.aside
-      initial={false}
-      animate={{ width: open ? "16rem" : "5.5rem" }}
+      initial={{ x: open ? 0 : -280 }}
+      animate={{ x: 0, width: open ? 280 : 80 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="sticky top-0 hidden md:flex flex-col h-screen bg-background border-r border-border z-50 p-3"
+      className="sticky top-0 hidden md:flex flex-col h-screen bg-background/50 backdrop-blur-md border-r border-border z-50 p-3"
     >
       <div className="flex items-center justify-between p-2 h-16 border-b border-border">
-        <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center"><Gem className="w-8 h-8 text-primary shrink-0" /><span className="ml-3 text-xl font-bold whitespace-nowrap">VoEx</span></motion.div>}</AnimatePresence>
+        <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center"><img src="/favicon.png" alt="VoEx" className="w-8 h-8 shrink-0" /><span className="ml-3 text-xl font-bold whitespace-nowrap">VoEx</span></motion.div>}</AnimatePresence>
         <Button onClick={() => setOpen(!open)} variant="ghost" size="icon" className="shrink-0">{open ? <PanelLeftClose /> : <PanelLeftOpen />}</Button>
       </div>
       <NavContent open={open} />
@@ -146,7 +146,7 @@ export const MobileNav = () => {
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild><Button variant="ghost" size="icon"><PanelLeft className="h-6 w-6" /><span className="sr-only">Toggle Navigation</span></Button></SheetTrigger>
         <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
-          <div className="flex items-center gap-2 px-4 py-6 border-b border-border"><Gem className="h-6 w-6 text-primary" /><h1 className="text-xl font-bold">VoEx</h1></div>
+          <div className="flex items-center gap-2 px-4 py-6 border-b border-border"><img src="/favicon.png" alt="VoEx" className="h-6 w-6" /><h1 className="text-xl font-bold">VoEx</h1></div>
           <NavContent open={true} onLinkClick={() => setIsOpen(false)} />
         </SheetContent>
       </Sheet>

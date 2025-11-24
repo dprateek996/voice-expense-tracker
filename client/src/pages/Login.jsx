@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { loginUser } from '../api/auth.api';
 import useAuthStore from '../store/authStore';
+import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
+import { Wallet, UtensilsCrossed, Music, Pizza, Car, CupSoda, Fuel, Train, Shirt } from "lucide-react";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -37,8 +39,22 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="w-full max-w-md p-8 space-y-8 bg-card rounded-lg shadow-lg border border-border">
+    <div className="relative flex items-center justify-center min-h-screen bg-background overflow-hidden">
+      {/* Animated Background */}
+      <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-3 gap-8 p-4 md:p-8 transform-gpu opacity-30 [mask-image:radial-gradient(ellipse_at_center,transparent_10%,black)]">
+        <div className="flex flex-col gap-8">
+          <InfiniteMovingCards items={leftColumnItems} direction="right" speed="slow" />
+        </div>
+        <div className="hidden md:flex flex-col gap-8">
+          <InfiniteMovingCards items={middleColumnItems} direction="left" speed="slow" />
+        </div>
+        <div className="hidden md:flex flex-col gap-8">
+          <InfiniteMovingCards items={rightColumnItems} direction="right" speed="slow" />
+        </div>
+      </div>
+
+      {/* Login Form */}
+      <div className="relative z-10 w-full max-w-md p-8 space-y-8 bg-card/80 backdrop-blur-md rounded-lg shadow-lg border border-border">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
           <p className="text-muted-foreground">Sign in to access your dashboard</p>
@@ -105,5 +121,24 @@ const Login = () => {
     </div>
   );
 };
+
+// Sample data for animated cards
+const leftColumnItems = [
+  { title: "Paid via UPI", amount: "₹200", icon: <Wallet className="h-6 w-6 text-primary" /> },
+  { title: "Zomato", amount: "₹189", icon: <UtensilsCrossed className="h-6 w-6 text-red-400" /> },
+  { title: "Spotify", amount: "₹59", icon: <Music className="h-6 w-6 text-green-400" /> },
+];
+
+const middleColumnItems = [
+  { title: "Domino's", amount: "₹445", icon: <Pizza className="h-6 w-6 text-blue-400" /> },
+  { title: "Uber", amount: "₹168", icon: <Car className="h-6 w-6 text-white" /> },
+  { title: "Canteen", amount: "₹80", icon: <CupSoda className="h-6 w-6 text-orange-400" /> },
+];
+
+const rightColumnItems = [
+  { title: "Fuel – Cash", amount: "₹200", icon: <Fuel className="h-6 w-6 text-yellow-400" /> },
+  { title: "Metro Recharge", amount: "₹300", icon: <Train className="h-6 w-6 text-purple-400" /> },
+  { title: "H&M", amount: "₹1200", icon: <Shirt className="h-6 w-6 text-pink-400" /> },
+];
 
 export default Login;
