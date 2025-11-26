@@ -14,10 +14,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
-    <div className="dark text-foreground bg-background relative min-h-screen">
-      {/* Modern background elements with warm tones */}
-      <div className="fixed inset-0 z-[-2] bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(64,54,48,0.25),transparent),radial-gradient(ellipse_60%_90%_at_90%_50%,rgba(48,42,38,0.18),transparent),radial-gradient(ellipse_100%_80%_at_10%_80%,rgba(38,33,30,0.2),transparent)] bg-[hsl(var(--background))]"></div>
-      <div className="fixed inset-0 z-[-1] bg-[linear-gradient(rgba(120,110,100,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(120,110,100,0.06)_1px,transparent_1px)] bg-[length:50px_50px] bg-[position:-1px_-1px]"></div>
+    <div className="text-foreground bg-background relative min-h-screen">
 
       <BrowserRouter>
         <Routes>

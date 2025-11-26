@@ -127,11 +127,32 @@ const Sidebar = () => {
       initial={{ x: open ? 0 : -280 }}
       animate={{ x: 0, width: open ? 280 : 80 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="sticky top-0 hidden md:flex flex-col h-screen bg-background/50 backdrop-blur-md border-r border-border z-50 p-3"
+      className="sticky top-0 hidden md:flex flex-col h-screen bg-white/60 backdrop-blur-xl border-r border-slate-200/60 z-50 p-3 shadow-sm"
     >
-      <div className="flex items-center justify-between p-2 h-16 border-b border-border">
-        <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center"><img src="/favicon.png" alt="VoEx" className="w-8 h-8 shrink-0" /><span className="ml-3 text-xl font-bold whitespace-nowrap">VoEx</span></motion.div>}</AnimatePresence>
-        <Button onClick={() => setOpen(!open)} variant="ghost" size="icon" className="shrink-0">{open ? <PanelLeftClose /> : <PanelLeftOpen />}</Button>
+      <div className="flex items-center justify-between p-2 h-16 mb-2">
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex items-center"
+            >
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-primary/20">
+                V
+              </div>
+              <span className="ml-3 text-xl font-bold whitespace-nowrap text-foreground tracking-tight">VoEx</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <Button
+          onClick={() => setOpen(!open)}
+          variant="ghost"
+          size="icon"
+          className="shrink-0 hover:bg-slate-100 text-slate-500 hover:text-foreground"
+        >
+          {open ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
+        </Button>
       </div>
       <NavContent open={open} />
     </motion.aside>

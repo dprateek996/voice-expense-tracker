@@ -1,60 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 7%;
-    /* Warm charcoal */
-    --foreground: 30 8% 95%;
-    /* Warm white */
-    --card: 0 0% 10%;
-    /* Slightly lighter charcoal */
-    --card-foreground: 30 8% 95%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 30 8% 95%;
-    --primary: 25 95% 53%;
-    /* Warm orange/amber accent */
-    --primary-foreground: 0 0% 7%;
-    --primary-glow: 25 95% 60%;
-    --secondary: 30 6% 15%;
-    /* Warm gray */
-    --secondary-foreground: 30 8% 95%;
-    --muted: 30 6% 15%;
-    --muted-foreground: 30 5% 65%;
-    /* Warm mid-gray */
-    --accent: 30 6% 15%;
-    --accent-foreground: 30 8% 95%;
-    --destructive: 0 65% 51%;
-    --destructive-foreground: 30 8% 95%;
-    --border: 30 6% 18%;
-    /* Warm border */
-    --input: 30 6% 15%;
-    --ring: 25 95% 53%;
-    --radius: 0.75rem;
-  }
+    /* Base - Clean White */
+    --background: 210 40% 98%;
+    /* Very light cool gray/white */
+    --foreground: 222 47% 11%;
+    /* Dark blue-gray for text */
 
-  .dark {
-    --background: 0 0% 7%;
-    --foreground: 30 8% 95%;
-    --card: 0 0% 10%;
-    --card-foreground: 30 8% 95%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 30 8% 95%;
-    --primary: 25 95% 53%;
-    --primary-foreground: 0 0% 7%;
-    --primary-glow: 25 95% 60%;
-    --secondary: 30 6% 15%;
-    --secondary-foreground: 30 8% 95%;
-    --muted: 30 6% 15%;
-    --muted-foreground: 30 5% 65%;
-    --accent: 30 6% 15%;
-    --accent-foreground: 30 8% 95%;
-    --destructive: 0 65% 51%;
-    --destructive-foreground: 30 8% 95%;
-    --border: 30 6% 18%;
-    --input: 30 6% 15%;
-    --ring: 25 95% 53%;
+    /* Cards - White with subtle shadow */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    /* Popovers */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Icy Blue */
+    --primary: 199 89% 48%;
+    /* Bright Icy Blue */
+    --primary-foreground: 210 40% 98%;
+    --primary-glow: 199 89% 60%;
+
+    /* Secondary - Very Light Blue/Gray */
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47% 11.2%;
+
+    /* Muted */
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    /* Accent - Icy Blue Tint */
+    --accent: 199 89% 96%;
+    --accent-foreground: 222 47% 11.2%;
+
+    /* Destructive */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    /* Border & Input */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 199 89% 48%;
+
+    --radius: 0.75rem;
   }
 }
 
@@ -64,12 +57,12 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
     position: relative;
     overflow-x: hidden;
   }
 
-  /* Modern minimalistic background with warm mesh gradient */
+  /* Icy Blue Mesh Gradient Background */
   body::before {
     content: '';
     position: fixed;
@@ -79,73 +72,37 @@
     bottom: 0;
     z-index: -2;
     background:
-      radial-gradient(ellipse 80% 80% at 50% -20%, rgba(64, 54, 48, 0.25), transparent),
-      radial-gradient(ellipse 60% 90% at 90% 50%, rgba(48, 42, 38, 0.18), transparent),
-      radial-gradient(ellipse 100% 80% at 10% 80%, rgba(38, 33, 30, 0.2), transparent);
+      radial-gradient(circle at 0% 0%, rgba(186, 230, 253, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 100% 0%, rgba(224, 242, 254, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(186, 230, 253, 0.4) 0%, transparent 50%),
+      radial-gradient(circle at 0% 100%, rgba(224, 242, 254, 0.4) 0%, transparent 50%);
     background-color: hsl(var(--background));
   }
-
-  /* Subtle grid pattern overlay */
-  body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: -1;
-    background-image:
-      linear-gradient(rgba(120, 110, 100, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(120, 110, 100, 0.06) 1px, transparent 1px);
-    background-size: 50px 50px;
-    background-position: -1px -1px;
-  }
 }
 
-/* Floating dots animation */
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0px);
-    opacity: 0.3;
-  }
-
-  50% {
-    transform: translateY(-20px);
-    opacity: 0.6;
-  }
+/* Glassmorphism Utilities */
+.glass-card {
+  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-lg;
 }
 
-.dot-pattern {
-  position: fixed;
+.glass-card-hover {
+  @apply hover:bg-white/80 transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+}
+
+/* Subtle Grain Texture */
+.bg-grain {
+  position: relative;
+}
+
+.bg-grain::after {
+  content: "";
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: -1;
+  opacity: 0.03;
   pointer-events: none;
-}
-
-.dot-pattern::before,
-.dot-pattern::after {
-  content: '';
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(120, 110, 100, 0.5);
-  box-shadow: 0 0 10px rgba(120, 110, 100, 0.3);
-}
-
-.dot-pattern::before {
-  top: 20%;
-  left: 15%;
-  animation: float 6s ease-in-out infinite;
-}
-
-.dot-pattern::after {
-  top: 60%;
-  right: 20%;
-  animation: float 8s ease-in-out infinite 2s;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  z-index: -1;
 }

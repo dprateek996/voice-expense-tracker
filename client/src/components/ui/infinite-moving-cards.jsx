@@ -66,7 +66,7 @@ export const InfiniteMovingCards = ({
     <div
       ref={containerRef}
       className={cn(
-        "scroller relative z-20 max-w-7xl overflow-hidden [mask-image:linear-gradient(to_bottom,transparent,white_20%,white_80%,transparent)]",
+        "scroller relative z-20 max-w-7xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_20%,white_80%,transparent)]",
         className
       )}
     >
@@ -80,30 +80,28 @@ export const InfiniteMovingCards = ({
       >
         {items.map((item, idx) => (
           <li
-            className="w-[350px] max-w-full relative rounded-2xl border border-b-0 flex-shrink-0 border-slate-700 px-8 py-6 md:w-[450px]"
-            style={{
-              background:
-                "linear-gradient(180deg, var(--slate-800), var(--slate-900)",
-            }}
-            key={item.title}
+            className="w-[280px] md:w-[320px] max-w-full relative rounded-2xl border border-slate-100 flex-shrink-0 bg-white/80 backdrop-blur-sm px-6 py-5 md:px-8 md:py-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow duration-300"
+            key={item.title + idx}
           >
-            <blockquote>
-              <div
-                aria-hidden="true"
-                className="user-select-none -z-1 pointer-events-none absolute -left-0.5 -top-0.5 h-[calc(100%_+_4px)] w-[calc(100%_+_4px)]"
-              ></div>
-              <div className="relative z-20 flex flex-row items-center">
-                <span className="flex gap-2 items-center">
-                  {item.icon}
-                  <span className="text-sm leading-[1.6] text-gray-400 font-normal">
-                    {item.title}
-                  </span>
+            <div className="relative z-20 flex flex-row items-center justify-between gap-4">
+              <span className="flex gap-4 items-center">
+                <div className="relative w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 border border-slate-100">
+                  {typeof item.icon === 'string' ? (
+                    <img src={item.icon} alt={item.title} className="w-6 h-6 object-contain opacity-80" />
+                  ) : (
+                    <div className="text-slate-500">
+                      {item.icon}
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm leading-[1.6] text-slate-600 font-medium">
+                  {item.title}
                 </span>
-                <span className="ml-auto text-lg leading-[1.6] text-gray-200 font-bold">
-                  {item.amount}
-                </span>
-              </div>
-            </blockquote>
+              </span>
+              <span className="text-lg leading-[1.6] text-slate-900 font-bold tracking-tight">
+                {item.amount}
+              </span>
+            </div>
           </li>
         ))}
       </ul>

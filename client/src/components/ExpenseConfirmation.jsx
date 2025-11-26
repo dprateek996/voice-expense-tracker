@@ -24,15 +24,15 @@ const ExpenseConfirmation = ({ expenses, onDismiss }) => {
                 exit={{ opacity: 0, y: 20, scale: 0.95 }}
                 className="fixed bottom-24 right-4 z-50 w-full max-w-sm"
             >
-                <Card className="border-green-500/20 bg-background/95 backdrop-blur shadow-2xl">
+                <Card className="glass-card border-primary/20 shadow-2xl shadow-primary/10">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-green-500 flex items-center gap-2">
-                            <div className="h-6 w-6 rounded-full bg-green-500/10 flex items-center justify-center">
-                                <Check className="h-4 w-4" />
+                        <CardTitle className="text-sm font-bold text-primary flex items-center gap-2">
+                            <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center">
+                                <Check className="h-4 w-4 text-primary" />
                             </div>
                             Expense Added!
                         </CardTitle>
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDismiss}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={onDismiss}>
                             <X className="h-4 w-4" />
                         </Button>
                     </CardHeader>
@@ -41,15 +41,15 @@ const ExpenseConfirmation = ({ expenses, onDismiss }) => {
                             {expenses.map((expense, index) => (
                                 <div key={index} className="flex items-center justify-between text-sm">
                                     <div className="flex flex-col">
-                                        <span className="font-medium">{expense.description}</span>
-                                        <span className="text-xs text-muted-foreground">{expense.category}</span>
+                                        <span className="font-semibold text-foreground">{expense.description}</span>
+                                        <span className="text-xs text-muted-foreground capitalize">{expense.category}</span>
                                     </div>
-                                    <div className="font-bold">₹{expense.amount}</div>
+                                    <div className="font-bold text-foreground">₹{expense.amount}</div>
                                 </div>
                             ))}
 
                             {expenses.length > 1 && (
-                                <div className="pt-2 mt-2 border-t flex justify-between items-center font-bold">
+                                <div className="pt-2 mt-2 border-t border-slate-100 flex justify-between items-center font-bold text-foreground">
                                     <span>Total</span>
                                     <span>₹{totalAmount}</span>
                                 </div>
