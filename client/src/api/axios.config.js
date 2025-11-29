@@ -1,33 +1,21 @@
 import axios from 'axios';
 import useAuthStore from '../store/authStore';
 
-const apiClient = axios.create({
-  // We are temporarily hardcoding the full, correct URL
-  baseURL: 'https://expense-tracker-backend-svsa.onrender.com/api',
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
+
+const api = axios.create({
+  baseURL: API_BASE,
   withCredentials: true,
+  timeout: 15000,
 });
 
-// Request interceptor to add JWT token to headers
-apiClient.interceptors.request.use(
-  (config) => {
-    // Get token from localStorage (Zustand persist stores it here)
-    const authData = localStorage.getItem('auth-session-storage');
-    if (authData) {
-      try {
-        const parsed = JSON.parse(authData);
-        const token = parsed.state?.token;
-        if (token) {
-          config.headers['Authorization'] = `Bearer ${token}`;
-        }
-      } catch (error) {
-        // Ignore parsing errors
-      }
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+// Inject token from store
+api.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().token;
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-);
+  return config;
+});
 
-export default apiClient;
+export default api;

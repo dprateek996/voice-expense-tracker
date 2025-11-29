@@ -9,7 +9,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
  */
 const sendMessageToAI = async (userMessage, conversationHistory) => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     // Build conversation context
     const contextMessages = conversationHistory
@@ -51,7 +51,7 @@ Respond naturally and helpfully. If you have enough information to create an exp
     };
   } catch (error) {
     console.error('AI conversation error:', error);
-    
+
     // Fallback response
     return {
       text: "I'm having trouble processing that right now. Could you try again?",
@@ -65,7 +65,7 @@ Respond naturally and helpfully. If you have enough information to create an exp
  */
 const extractExpenseFromConversation = async (conversationHistory) => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
     // Get last few messages for context
     const recentMessages = conversationHistory
@@ -108,7 +108,7 @@ Return ONLY the JSON object, no markdown, no explanations.`;
     expenseData.category = expenseData.category || 'Others';
     expenseData.description = expenseData.description || 'Expense';
     expenseData.is_unclear = expenseData.is_unclear || false;
-    
+
     if (expenseData.date) {
       expenseData.date = new Date(expenseData.date);
     }
@@ -130,11 +130,11 @@ const shouldCreateExpense = (conversationHistory) => {
     .filter(msg => msg.role === 'user')
     .map(msg => msg.content.toLowerCase());
 
-  const hasAmount = userMessages.some(msg => 
+  const hasAmount = userMessages.some(msg =>
     /\d+\s*(rupees?|rs?|₹)/i.test(msg) || /₹?\s*\d+/.test(msg)
   );
 
-  const hasItem = userMessages.some(msg => 
+  const hasItem = userMessages.some(msg =>
     msg.length > 10 && !/(how much|what|where|when)/i.test(msg)
   );
 

@@ -9,6 +9,7 @@ const CommandInterface = ({
   onTextCommand,
   onVoiceCommand,
   isListening,
+  transcript,
   startListening,
   stopListening
 }) => {
@@ -34,7 +35,7 @@ const CommandInterface = ({
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex flex-col justify-end bg-background/90 backdrop-blur-lg p-4 sm:p-6"
+          className="fixed inset-0 z-50 flex flex-col justify-end bg-white/80 backdrop-blur-xl p-4 sm:p-6"
           onClick={close}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -53,8 +54,8 @@ const CommandInterface = ({
                 <VoiceWaveform />
               ) : (
                 <>
-                  {isProcessing && <Loader2 className="animate-spin h-8 w-8 mb-3" />}
-                  <p className="text-lg sm:text-xl text-muted-foreground text-center px-4">{getHelperText()}</p>
+                  {isProcessing && <Loader2 className="animate-spin h-8 w-8 mb-3 text-primary" />}
+                  <p className="text-lg sm:text-xl text-muted-foreground text-center px-4 font-medium">{getHelperText()}</p>
                 </>
               )}
             </div>
@@ -64,6 +65,7 @@ const CommandInterface = ({
               onVoiceCommand={onVoiceCommand}
               isProcessing={isProcessing}
               isListening={isListening}
+              transcript={transcript}
               startListening={startListening}
               stopListening={stopListening}
             />

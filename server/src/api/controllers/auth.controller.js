@@ -1,141 +1,139 @@
-const crypto = require('crypto');
-const prisma = require('../../../prisma.config');
-const { hashPassword, comparePassword, validatePassword } = require('../../utils/password.util');
-const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../../utils/jwt.util');
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
+const prisma = new PrismaClient();
+const {
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken
+} = require('../../utils/jwt.util');
 
-const setTokens = (res, user) => {
-  const accessToken = generateAccessToken(user.id, user.email);
-  const refreshToken = generateRefreshToken(user.id);
+const ACCESS_TOKEN_MAX_AGE_MS = 1000 * 60 * 15; // 15 minutes
+const REFRESH_TOKEN_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
 
-  res.cookie('accessToken', accessToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 15 * 60 * 1000
-  });
-
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 7 * 24 * 60 * 60 * 1000
-  });
-
-  return { accessToken, refreshToken };
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  path: '/',
 };
 
-const register = async (req, res) => {
+async function register(req, res) {
   try {
     const { email, password, name } = req.body;
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: 'All fields are required' });
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Missing email or password' });
     }
 
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.valid) {
-      return res.status(400).json({ error: passwordValidation.message });
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      return res.status(400).json({ error: 'Email already registered' });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      return res.status(409).json({ error: 'User with this email already exists' });
-    }
-
-    const hashedPassword = await hashPassword(password);
+    const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
-      data: { email, password: hashedPassword, name },
+      data: { email, password: hashed, name },
     });
 
-    const { accessToken } = setTokens(res, user);
-    const userResponse = { id: user.id, email: user.email, name: user.name };
-    res.status(201).json({ user: userResponse, token: accessToken, message: 'Registration successful' });
-  } catch (error) {
-    res.status(500).json({ error: 'Internal server error during registration' });
-  }
-};
+    const payload = { userId: user.id };
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
 
-const login = async (req, res) => {
+    res.cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: ACCESS_TOKEN_MAX_AGE_MS });
+    res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: REFRESH_TOKEN_MAX_AGE_MS });
+
+    return res.status(201).json({ user: { id: user.id, email: user.email, name: user.name } });
+  } catch (err) {
+    console.error('Register error:', err);
+    if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
+      return res.status(503).json({ error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.' });
+    }
+    return res.status(500).json({ error: 'Server error' });
+  }
+}
+
+async function login(req, res) {
   try {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
+    if (!email || !password) return res.status(400).json({ error: 'Missing email or password' });
 
     // Find user by email
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const payload = { userId: user.id };
+    const accessToken = signAccessToken(payload);
+    const refreshToken = signRefreshToken(payload);
+
+    res.cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: ACCESS_TOKEN_MAX_AGE_MS });
+    res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: REFRESH_TOKEN_MAX_AGE_MS });
+
+    return res.json({ user: { id: user.id, email: user.email, name: user.name } });
+  } catch (err) {
+    console.error('Login error:', err);
+    if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
+      return res.status(503).json({ error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.' });
     }
-
-    // Verify password
-    const isPasswordValid = await comparePassword(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
-    }
-
-    // Generate tokens
-    const { accessToken } = setTokens(res, user);
-    const userResponse = { id: user.id, email: user.email, name: user.name };
-
-    res.status(200).json({
-      message: 'Login successful',
-      user: userResponse,
-      token: accessToken
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Internal server error during login' });
+    return res.status(500).json({ error: 'Server error' });
   }
-};
+  }
+}
 
-const logout = (req, res) => {
-  res.clearCookie('accessToken');
-  res.clearCookie('refreshToken');
-  res.status(200).json({ message: 'Logout successful' });
-};
-
-const getMe = async (req, res) => {
+async function logout(req, res) {
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.userId },
-      select: { id: true, email: true, name: true },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    res.clearCookie('accessToken', COOKIE_OPTIONS);
+    res.clearCookie('refreshToken', COOKIE_OPTIONS);
+    return res.json({ message: 'Logged out' });
+  } catch (err) {
+    console.error('Logout error:', err);
+    if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
+      return res.status(503).json({ error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.' });
     }
-    res.status(200).json(user);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch user data' });
+    return res.status(500).json({ error: 'Server error' });
   }
-};
+}
 
-const refreshAccessToken = (req, res) => {
-  const { refreshToken } = req.cookies;
-  if (!refreshToken) {
-    return res.status(401).json({ error: 'Refresh token not found' });
-  }
-
+async function refreshAccessToken(req, res) {
   try {
+    const { refreshToken } = req.cookies;
+    if (!refreshToken) return res.status(401).json({ error: 'No refresh token provided' });
+
     const decoded = verifyRefreshToken(refreshToken);
-    if (!decoded) {
-      return res.status(403).json({ error: 'Invalid refresh token' });
+    if (!decoded) return res.status(401).json({ error: 'Invalid refresh token' });
+
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!user) return res.status(401).json({ error: 'User not found' });
+
+    const newAccess = signAccessToken({ userId: user.id });
+    res.cookie('accessToken', newAccess, { ...COOKIE_OPTIONS, maxAge: ACCESS_TOKEN_MAX_AGE_MS });
+
+    return res.json({ accessToken: newAccess });
+  } catch (err) {
+    console.error('Refresh error:', err);
+    if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
+      return res.status(503).json({ error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.' });
     }
-
-    const accessToken = generateAccessToken(decoded.userId);
-    res.cookie('accessToken', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 15 * 60 * 1000
-    });
-
-    res.status(200).json({ accessToken });
-  } catch (error) {
-    return res.status(403).json({ error: 'Invalid refresh token' });
+    return res.status(500).json({ error: 'Server error' });
   }
-};
+}
+
+async function getMe(req, res) {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: 'Not authorized' });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    return res.json({ user: { id: user.id, email: user.email, name: user.name } });
+  } catch (err) {
+    console.error('getMe error:', err);
+    if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
+      return res.status(503).json({ error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.' });
+    }
+    return res.status(500).json({ error: 'Server error' });
+  }
+}
 
 const forgotPassword = async (req, res) => {
   try {
@@ -172,7 +170,7 @@ module.exports = {
   register,
   login,
   logout,
-  getMe,
   refreshAccessToken,
+  getMe,
   forgotPassword,
 };

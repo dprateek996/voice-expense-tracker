@@ -3,60 +3,92 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-
-// === ALL ROUTE IMPORTS ===
-const authRoutes = require('./src/api/routes/auth.routes');
-const expenseRoutes = require('./src/api/routes/expense.routes');
-const conversationRoutes = require('./src/api/routes/conversation.routes');
-
-// === SECURITY MIDDLEWARE IMPORTS ===
-const { securityHeaders, authLimiter, apiLimiter } = require('./src/middleware/security.middleware');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 
-// --- PASTE THIS CODE BLOCK HERE ---
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Hello from the server!' });
-});
-// ------------------------------------
+const authRoutes = require('./src/api/routes/auth.routes');
+const expenseRoutes = require('./src/api/routes/expense.routes');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+// ... require other routes if needed
 
-// --- ADD THIS LINE ---
-app.set('trust proxy', 1);
-// This tells Express to trust the first proxy it sees (which is Render's)
-
-// === SECURITY MIDDLEWARE SETUP ===
-app.use(securityHeaders);
-
-// === GENERAL MIDDLEWARE SETUP ===
-app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true,
-}));
-app.use(express.json({ limit: '10mb' })); // Limit payload size
+app.use(express.json());
 app.use(cookieParser());
 
-// --- PASTE THIS NEW TEST ROUTE HERE ---
-app.post('/test-post', (req, res) => {
-  console.log('--- /test-post route was hit! ---');
-  res.status(200).json({
-    message: 'POST request successful!',
-    data_received: req.body
+// Allow Vite dev server origin + credentials
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+
+// Mount routers with stable API namespaces
+app.use('/api/auth', authRoutes);      // <-- was '/api' before — matches frontend /api/auth/login
+app.use('/api/expense', expenseRoutes); // keep expense route
+
+// If you have a general API prefix, keep any other API mounts here...
+// Example: app.use('/api/conversation', conversationRoutes);
+
+// DB-check endpoint useful during startup/debug
+app.get('/api/db-check', async (req, res) => {
+  try {
+    // quick lightweight query
+    await prisma.$queryRaw`SELECT 1`;
+    return res.json({ status: 'ok', db: 'connected' });
+  } catch (err) {
+    console.error('DB check failed:', err?.message || err);
+    return res.status(503).json({ status: 'error', db: 'unavailable' });
+  }
+});
+
+// 404 for unknown API paths
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: 'API route not found' });
+});
+
+// Serve client build (if present) to support deep routes like /login in production
+const clientDist = path.resolve(__dirname, '..', 'client', 'dist');
+if (fs.existsSync(clientDist)) {
+  app.use(express.static(clientDist));
+  app.get('*', (req, res) => {
+    // non-api requests should return client index.html
+    if (req.path.startsWith('/api')) return res.status(404).send('Not Found');
+    res.sendFile(path.join(clientDist, 'index.html'));
   });
+} else {
+  // In dev we let Vite handle SPA routes
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.status(404).send('Not Found');
+  });
+}
+
+// Basic error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(err.status || 500).json({ error: err.message || 'Server error' });
 });
-// ------------------------------------
 
-// === API ROUTE REGISTRATION WITH RATE LIMITING ===
-app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/expense', apiLimiter, expenseRoutes);
-app.use('/api/conversation', apiLimiter, conversationRoutes);
-
-// === ROOT ENDPOINT ===
-app.get('/', (req, res) => {
-  res.send('Voice Expense Tracker API is running!');
-});
-
-// === SERVER START ===
 const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+async function start() {
+  try {
+    await prisma.$connect();
+    console.log('Prisma connected to DB');
+  } catch (err) {
+    console.error('Prisma connection failed at startup:', err?.message || err);
+    console.error('Make sure your database is running and DATABASE_URL is set in server/.env');
+    process.exit(1);
+  }
+
+  const server = app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(`Port ${PORT} already in use. Kill the process using it or set PORT env var.`);
+      process.exit(1);
+    }
+    console.error('Server error:', err);
+    process.exit(1);
+  });
+}
+
+start();

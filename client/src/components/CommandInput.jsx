@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Send, Mic } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -10,6 +10,7 @@ const CommandInput = ({
   onVoiceCommand,
   isProcessing,
   isListening,
+  transcript,
   startListening,
   stopListening
 }) => {
@@ -17,6 +18,13 @@ const CommandInput = ({
   const [text, setText] = useState("");
   const voiceStore = useVoiceStore();
   const lastInterimRef = useRef("");
+
+  // Sync transcript to text input while listening
+  useEffect(() => {
+    if (isListening && transcript) {
+      setText(transcript);
+    }
+  }, [isListening, transcript]);
 
   // -------------------------------
   // Handle speech recognition result
@@ -86,8 +94,8 @@ const CommandInput = ({
               : "Type or say: '500 for groceries'"
           }
           disabled={isProcessing}
-          className="flex-1 h-12 sm:h-14 pl-4 sm:pl-5 pr-20 sm:pr-28 text-base sm:text-lg rounded-full bg-muted border-border 
-                     focus-visible:ring-primary focus-visible:ring-2"
+          className="flex-1 h-12 sm:h-14 pl-4 sm:pl-5 pr-20 sm:pr-28 text-base sm:text-lg rounded-full bg-white border-slate-200 shadow-sm
+                     focus-visible:ring-primary focus-visible:ring-2 focus-visible:border-transparent transition-all duration-200"
         />
 
         <div className="flex items-center gap-1 sm:gap-2">
@@ -107,9 +115,8 @@ const CommandInput = ({
             type="button"
             size="icon"
             onClick={toggleListening}
-            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full transition-colors ${
-              isListening ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
-            }`}
+            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full transition-colors ${isListening ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
+              }`}
             disabled={isProcessing}
           >
             <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
