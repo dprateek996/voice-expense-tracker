@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Mic, ArrowRight, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mic, ArrowRight, Check, Sparkles, BarChart3, Linkedin, Github, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 
@@ -34,7 +34,7 @@ const Navbar = () => (
         Sign In
       </Link>
       <Link to="/register">
-        <Button size="sm" className="rounded-full px-6 bg-primary hover:bg-primary/90 text-white relative overflow-hidden group shadow-lg shadow-primary/20">
+        <Button size="sm" className="rounded-full px-6 bg-primary hover:bg-primary/90 text-white relative overflow-hidden group shadow-lg shadow-primary/40">
           <span className="relative z-10 font-sans">Get Started</span>
           <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent z-0" />
         </Button>
@@ -64,8 +64,8 @@ const HeroSection = () => (
         transition={{ duration: 0.5 }}
         className="relative"
       >
-        {/* Subtle Glow Behind Text */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[300px] bg-blue-400/20 rounded-full blur-[100px] -z-10" />
+        {/* Subtle Glow Behind Text - Optimized Blur */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[240px] bg-blue-400/20 rounded-full blur-3xl -z-10" />
 
         <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-white/50 backdrop-blur-md border border-slate-200/50 text-slate-600 text-sm font-medium mb-8 shadow-sm font-sans">
           <span className="relative flex h-2 w-2">
@@ -75,28 +75,38 @@ const HeroSection = () => (
           New: Receipt Scanning
         </span>
 
-        <h1 className="text-4xl md:text-6xl font-bold text-slate-900 tracking-tight mb-6 font-heading leading-[1.1]">
+        <h1 className="text-4xl md:text-6xl font-bold text-slate-900 tracking-tight mb-6 font-heading leading-tight">
           Track expenses <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-blue-700 to-slate-900 animate-gradient-text bg-[length:200%_auto]">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-blue-700 to-slate-900 animate-gradient-text-slow bg-[length:200%_auto]">
             with your voice.
           </span>
         </h1>
 
         <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto mb-10 font-sans leading-relaxed">
-          No more spreadsheets. Just say "Spent 500 on lunch" and you're done.
+          No more spreadsheets or manual typing. Just speak, and it’s logged instantly.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link to="/register">
-            <Button size="lg" className="rounded-full px-8 h-14 text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/40 hover:-translate-y-0.5 transition-all duration-300 font-sans">
+            <Button size="lg" className="rounded-full px-8 h-14 text-lg bg-primary hover:bg-primary/90 text-white hover:-translate-y-0.5 transition-transform duration-200 ease-out font-sans will-change-transform transform-gpu">
               Start for free <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
+          <p className="text-xs text-slate-500 mt-4">No credit card required</p>
           <Link to="/demo">
             <Button variant="outline" size="lg" className="rounded-full px-8 h-14 text-lg border-slate-200 bg-white/50 backdrop-blur-sm text-slate-600 hover:bg-white hover:text-slate-900 font-sans">
               View Demo
             </Button>
           </Link>
+        </div>
+
+        <div className="mt-12 flex items-center justify-center gap-4 text-sm text-slate-500">
+          <div className="flex -space-x-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200" />
+            ))}
+          </div>
+          <p>Used by <span className="font-bold text-slate-900">2,000+</span> early adopters</p>
         </div>
       </motion.div>
 
@@ -104,7 +114,7 @@ const HeroSection = () => (
 
     {/* Infinite Cards Animation */}
     <div className="mt-20 relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white z-10 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-transparent to-white/80 z-10 pointer-events-none" />
       <InfiniteMovingCards
         items={heroItems}
         direction="right"
@@ -121,7 +131,7 @@ const HeroSection = () => (
 
 const InteractiveDemoSection = () => {
   const [input, setInput] = React.useState("");
-  const [input, setInput] = useState("");
+
   const [result, setResult] = useState(null);
   const [isListening, setIsListening] = useState(false);
 
@@ -141,14 +151,14 @@ const InteractiveDemoSection = () => {
       <div className="max-w-3xl mx-auto px-4 text-center">
         <h2 className="text-3xl font-bold text-slate-900 mb-12 font-heading">Try it yourself</h2>
 
-        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200 p-2 max-w-xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-2 max-w-xl mx-auto">
           <div className="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50">
             <div className={`p-3 rounded-lg transition-colors ${isListening ? 'bg-red-50 text-red-500 animate-pulse' : 'bg-white text-slate-400 shadow-sm'}`}>
               <Mic className="w-5 h-5" />
             </div>
             <input
               type="text"
-              placeholder="Type 'Lunch 500 at Cafe'..."
+              placeholder="Speak or type an expense..."
               className="flex-1 bg-transparent border-none focus:ring-0 text-lg font-medium text-slate-900 placeholder:text-slate-400"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -204,24 +214,102 @@ const InteractiveDemoSection = () => {
 const Footer = () => (
   <footer className="bg-white py-12 border-t border-slate-100">
     <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-      <div className="flex items-center gap-2">
-        <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-900 font-bold">
-          <span className="font-heading text-xs">V</span>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-900 font-bold">
+            <span className="font-heading text-xs">V</span>
+          </div>
+          <span className="text-sm font-bold text-slate-900 tracking-tight font-heading">VoEx</span>
         </div>
-        <span className="text-sm font-bold text-slate-900 tracking-tight font-heading">VoEx</span>
+        <p className="text-xs text-slate-400">Voice-powered expense tracking</p>
       </div>
 
       <p className="text-sm text-slate-400">
         © {new Date().getFullYear()} Voice Expense Tracker. All rights reserved.
       </p>
 
-      <div className="flex gap-6 text-sm font-medium text-slate-500">
-        <a href="#" className="hover:text-slate-900 transition-colors">Privacy</a>
-        <a href="#" className="hover:text-slate-900 transition-colors">Terms</a>
-        <a href="#" className="hover:text-slate-900 transition-colors">Contact</a>
+      <div className="flex gap-6 items-center">
+        <a href="#" className="text-slate-400 hover:text-slate-900 transition-colors">
+          <Github className="w-5 h-5" />
+        </a>
+        <a href="#" className="text-slate-400 hover:text-slate-900 transition-colors">
+          <Linkedin className="w-5 h-5" />
+        </a>
+        <a href="#" className="text-slate-400 hover:text-slate-900 transition-colors">
+          <Mail className="w-5 h-5" />
+        </a>
       </div>
     </div>
   </footer>
+);
+
+/* ------------------------------------------------------------------ */
+/*                          PRICING TEASER                            */
+/* ------------------------------------------------------------------ */
+
+const PricingSection = () => (
+  <div className="py-20 bg-slate-50 border-y border-slate-100">
+    <div className="max-w-7xl mx-auto px-4 text-center">
+      <h2 className="text-3xl font-bold text-slate-900 mb-12 font-heading">Simple, transparent pricing</h2>
+      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        {/* Free Plan */}
+        <div className="p-8 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <h3 className="text-xl font-bold text-slate-900 mb-2">Free Forever</h3>
+          <div className="text-4xl font-bold text-slate-900 mb-6">₹0<span className="text-lg text-slate-500 font-normal">/mo</span></div>
+          <ul className="space-y-3 text-left mb-8">
+            {['Voice expense logging', 'Basic analytics', 'Export to CSV', '50 expenses/month'].map((feature, i) => (
+              <li key={i} className="flex items-center gap-2 text-slate-600">
+                <Check className="w-4 h-4 text-primary" /> {feature}
+              </li>
+            ))}
+          </ul>
+          <Button variant="outline" className="w-full rounded-full border-slate-200">Get Started</Button>
+        </div>
+
+        {/* Pro Plan */}
+        <div className="p-8 rounded-2xl bg-slate-900 text-white shadow-xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-lg">POPULAR</div>
+          <h3 className="text-xl font-bold text-white mb-2">Pro</h3>
+          <div className="text-4xl font-bold text-white mb-6">₹199<span className="text-lg text-slate-400 font-normal">/mo</span></div>
+          <ul className="space-y-3 text-left mb-8">
+            {['Unlimited voice logging', 'Receipt scanning (AI)', 'Advanced insights', 'Priority support'].map((feature, i) => (
+              <li key={i} className="flex items-center gap-2 text-slate-300">
+                <Check className="w-4 h-4 text-primary" /> {feature}
+              </li>
+            ))}
+          </ul>
+          <Button className="w-full rounded-full bg-primary hover:bg-primary/90 text-white">Start Free Trial</Button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+/* ------------------------------------------------------------------ */
+/*                       HOW IT WORKS                                 */
+/* ------------------------------------------------------------------ */
+
+const HowItWorksSection = () => (
+  <div className="py-20 bg-white">
+    <div className="max-w-7xl mx-auto px-4 text-center">
+      <h2 className="text-3xl font-bold text-slate-900 mb-12 font-heading">How it works</h2>
+      <div className="grid md:grid-cols-3 gap-8">
+        {[
+          { title: "Speak", description: "Just say your expense naturally.", icon: Mic },
+          { title: "Process", description: "AI extracts the details instantly.", icon: Sparkles },
+          { title: "Track", description: "It's added to your dashboard.", icon: BarChart3 }
+        ].map((item, index) => (
+          <div key={index} className="p-8 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center text-center hover:shadow-lg transition-shadow duration-300">
+            <div className="p-4 bg-white rounded-full shadow-sm mb-6 text-primary">
+              <item.icon className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
+            <p className="text-slate-600 leading-relaxed">{item.description}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
 );
 
 /* ------------------------------------------------------------------ */
@@ -234,6 +322,7 @@ const Landing = () => {
       <Navbar />
       <HeroSection />
       <InteractiveDemoSection />
+      <PricingSection />
       <HowItWorksSection />
       <Footer />
     </div>

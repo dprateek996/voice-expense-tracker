@@ -18,26 +18,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Allow Vite dev server origin + credentials
-// Allow Vite dev server origin + credentials
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:5174',
-  process.env.CLIENT_ORIGIN
-].filter(Boolean);
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('Blocked by CORS:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
 
 // Mount routers with stable API namespaces
 app.use('/api/auth', authRoutes);      // <-- was '/api' before — matches frontend /api/auth/login

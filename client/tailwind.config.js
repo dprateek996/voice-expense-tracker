@@ -101,6 +101,7 @@ module.exports = {
         "float": "float 6s ease-in-out infinite",
         "shimmer": "shimmer 8s linear infinite",
         "gradient-text": "gradient-text 8s ease infinite",
+        "gradient-text-slow": "gradient-text 15s ease infinite",
       },
     },
   },

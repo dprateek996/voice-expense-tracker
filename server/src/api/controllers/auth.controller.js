@@ -41,10 +41,7 @@ async function register(req, res) {
     res.cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: ACCESS_TOKEN_MAX_AGE_MS });
     res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: REFRESH_TOKEN_MAX_AGE_MS });
 
-    return res.status(201).json({
-      user: { id: user.id, email: user.email, name: user.name },
-      token: accessToken
-    });
+    return res.status(201).json({ user: { id: user.id, email: user.email, name: user.name } });
   } catch (err) {
     console.error('Register error:', err);
     if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
@@ -72,10 +69,7 @@ async function login(req, res) {
     res.cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: ACCESS_TOKEN_MAX_AGE_MS });
     res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: REFRESH_TOKEN_MAX_AGE_MS });
 
-    return res.json({
-      user: { id: user.id, email: user.email, name: user.name },
-      token: accessToken
-    });
+    return res.json({ user: { id: user.id, email: user.email, name: user.name } });
   } catch (err) {
     console.error('Login error:', err);
     if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {

@@ -53,7 +53,9 @@ const SidebarLink = ({ link, open, isHovered, onHover, onClick }) => {
   );
 
   const linkClasses = (isActive) =>
-    `relative flex items-center p-3 my-1 rounded-lg transition-colors duration-200 cursor-pointer text-muted-foreground ${isActive || isHovered ? "text-foreground" : "hover:text-foreground"
+    `relative flex items-center p-3 my-1 rounded-xl transition-all duration-200 cursor-pointer ${isActive
+      ? "bg-primary/10 text-primary font-semibold border border-primary/20"
+      : "text-muted-foreground hover:text-foreground hover:bg-slate-50"
     }`;
 
   // If the link is an action (like Logout), render a div. Otherwise, render a NavLink.
