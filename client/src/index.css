@@ -57,14 +57,9 @@
   }
 
   body {
-<<<<<<< HEAD
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-=======
     @apply bg-background text-foreground font-sans;
     position: relative;
     overflow-x: hidden;
->>>>>>> updated-design
   }
 
   /* Icy Blue Mesh Gradient Background */

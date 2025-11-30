@@ -112,11 +112,7 @@ const NavContent = ({ open, onLinkClick }) => {
             key={link.label}
             link={link}
             open={open}
-<<<<<<< HEAD
-            onClick={link.onClick ? () => { link.onClick(); if(onLinkClick) onLinkClick(); } : undefined}
-=======
             onClick={() => { if (link.onClick) link.onClick(); if (onLinkClick) onLinkClick(); }}
->>>>>>> updated-design
             isHovered={hoveredLabel === link.label}
             onHover={() => setHoveredLabel(link.label)}
           />
@@ -142,11 +138,6 @@ const Sidebar = () => {
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className="sticky top-0 hidden md:flex flex-col h-screen bg-white/60 backdrop-blur-xl border-r border-slate-200/60 z-50 p-3 shadow-sm"
     >
-<<<<<<< HEAD
-      <div className="flex items-center justify-between p-2 h-16 border-b border-border">
-        <AnimatePresence>{open && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center cursor-pointer" onClick={handleLogoClick}><Logo showText={true} size="md" /></motion.div>}</AnimatePresence>
-        <Button onClick={() => setOpen(!open)} variant="ghost" size="icon" className="shrink-0">{open ? <PanelLeftClose /> : <PanelLeftOpen />}</Button>
-=======
       <div className="flex items-center justify-between p-2 h-16 mb-2">
         <AnimatePresence>
           {open && (
@@ -156,9 +147,7 @@ const Sidebar = () => {
               exit={{ opacity: 0 }}
               className="flex items-center"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-primary/20">
-                V
-              </div>
+              <img src="/logo.png" alt="VoEx" className="w-8 h-8" />
               <span className="ml-3 text-xl font-bold whitespace-nowrap text-foreground tracking-tight">VoEx</span>
             </motion.div>
           )}
@@ -171,7 +160,6 @@ const Sidebar = () => {
         >
           {open ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
         </Button>
->>>>>>> updated-design
       </div>
       <NavContent open={open} />
     </motion.aside>
@@ -180,47 +168,18 @@ const Sidebar = () => {
 
 // --- Mobile Navigation Sheet ---
 export const MobileNav = () => {
-<<<<<<< HEAD
-    const [isOpen, setIsOpen] = useState(false);
-    const navigate = useNavigate();
-
-    const handleLogoClick = () => {
-      navigate('/dashboard');
-      setIsOpen(false);
-    };
-
-    return (
-      <div className="md:hidden">
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9">
-              <PanelLeft className="h-5 w-5" />
-              <span className="sr-only">Toggle Navigation</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
-            <div className="flex items-center gap-2 px-4 py-6 border-b border-border cursor-pointer" onClick={handleLogoClick}>
-              <Logo showText={true} size="sm" />
-            </div>
-            <NavContent open={true} onLinkClick={() => setIsOpen(false)} />
-          </SheetContent>
-        </Sheet>
-      </div>
-    );
-=======
   const [isOpen, setIsOpen] = useState(false);
   return (
     <div className="md:hidden">
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild><Button variant="ghost" size="icon"><PanelLeft className="h-6 w-6" /><span className="sr-only">Toggle Navigation</span></Button></SheetTrigger>
         <SheetContent side="left" className="w-[300px] p-0 flex flex-col">
-          <div className="flex items-center gap-2 px-4 py-6 border-b border-border"><img src="/favicon.png" alt="VoEx" className="h-6 w-6" /><h1 className="text-xl font-bold">VoEx</h1></div>
+          <div className="flex items-center gap-2 px-4 py-6 border-b border-border"><img src="/logo.png" alt="VoEx" className="h-8 w-8" /><h1 className="text-xl font-bold">VoEx</h1></div>
           <NavContent open={true} onLinkClick={() => setIsOpen(false)} />
         </SheetContent>
       </Sheet>
     </div>
   );
->>>>>>> updated-design
 };
 
 export default Sidebar;

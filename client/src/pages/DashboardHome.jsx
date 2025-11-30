@@ -3,6 +3,12 @@ import { TrendingUp, Calendar, Target, Zap, ArrowUpRight, ArrowDownRight, Utensi
 import CustomMic from '../components/CustomMic';
 import CustomCalendar from '../components/CustomCalendar';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import useExpenseStore from '@/store/expenseStore';
+import useVoiceStore from '@/store/voiceStore';
 
 const getCategoryIcon = (category) => {
   const cat = category.toLowerCase();
@@ -15,12 +21,6 @@ const getCategoryIcon = (category) => {
   if (cat.includes('cloth') || cat.includes('fashion')) return <Shirt className="w-5 h-5" />;
   return <Landmark className="w-5 h-5" />;
 };
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import useExpenseStore from '@/store/expenseStore';
-import useVoiceStore from '@/store/voiceStore';
 
 // Calculate today's expenses
 const getTodaysExpenses = (expenses) => {
@@ -34,27 +34,6 @@ const getThisWeeksExpenses = (expenses) => {
   const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
   startOfWeek.setHours(0, 0, 0, 0);
   return expenses.filter(exp => new Date(exp.date) >= startOfWeek);
-};
-
-// ICONS FOR CATEGORIES
-const CATEGORY_ICONS = {
-  groceries: '🛒',
-  dining: '🍽️',
-  food: '🛒',
-  transport: '🚗',
-  shopping: '🛍️',
-  utilities: '⚡',
-  bills: '⚡',
-  health: '🏥',
-  medicine: '🏥',
-  entertainment: '🎭',
-  travel: '✈️',
-  education: '📚',
-  work: '💼',
-  'personal care': '💅',
-  personalcare: '💅',
-  fuel: '⛽',
-  other: '📦'
 };
 
 const DashboardHome = () => {
@@ -92,36 +71,7 @@ const DashboardHome = () => {
   const weeksTotal = thisWeeksExpenses.reduce((sum, exp) => sum + exp.amount, 0);
   const avgDailyThisWeek = weeksTotal / 7;
 
-  // Calculate progress
-  const monthlySpent = expenses.filter(exp => new Date(exp.date).getMonth() === new Date().getMonth()).reduce((sum, exp) => sum + exp.amount, 0);
-  const progress = Math.min((monthlySpent / budget) * 100, 100);
-
   return (
-<<<<<<< HEAD
-    <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="text-center space-y-4 py-12">
-        <h1 className="text-4xl font-bold text-foreground">
-          Your Financial Dashboard
-        </h1>
-        <p className="text-xl text-muted-foreground">Ready to track your expenses? Just speak or type.</p>
-        <Button onClick={open} size="lg" className="text-lg px-8 py-3">
-          <Mic className="h-5 w-5 mr-2" />
-          Start Voice Expense
-        </Button>
-      </div>
-
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {/* Today's Spend */}
-        <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:scale-105 hover:shadow-lg transition-all duration-300 cursor-pointer group">
-          <div className="text-6xl group-hover:animate-bounce">💰</div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">Today's Spend</h3>
-            <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">₹{todaysTotal.toFixed(2)}</p>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              {todaysExpenses.length} transaction{todaysExpenses.length !== 1 ? 's' : ''}
-=======
     <div className="space-y-8 font-sans text-slate-900">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -163,20 +113,11 @@ const DashboardHome = () => {
             <div className="text-3xl font-bold text-slate-900">₹{todaysTotal.toFixed(2)}</div>
             <p className="text-sm text-slate-500 mt-1">
               {todaysExpenses.length} transactions
->>>>>>> updated-design
             </p>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* This Week */}
-<<<<<<< HEAD
-        <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/20 dark:to-green-900/20 hover:scale-105 hover:shadow-lg transition-all duration-300 cursor-pointer group">
-          <div className="text-6xl group-hover:animate-bounce">📈</div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-green-700 dark:text-green-300">This Week</h3>
-            <p className="text-3xl font-bold text-green-900 dark:text-green-100">₹{weeksTotal.toFixed(2)}</p>
-            <p className="text-sm text-green-600 dark:text-green-400">
-=======
         <Card className="bg-white border border-slate-100 shadow-[0_4px_18px_rgba(0,0,0,0.04)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.06)] transition-all duration-300 rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-slate-500 flex items-center">
@@ -186,73 +127,11 @@ const DashboardHome = () => {
           <CardContent>
             <div className="text-3xl font-bold text-slate-900">₹{weeksTotal.toFixed(2)}</div>
             <p className="text-sm text-slate-500 mt-1">
->>>>>>> updated-design
               Avg: ₹{avgDailyThisWeek.toFixed(2)}/day
             </p>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-<<<<<<< HEAD
-        {/* Budget Progress */}
-        <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:scale-105 hover:shadow-lg transition-all duration-300 cursor-pointer group relative">
-          <div className="text-6xl group-hover:animate-bounce">🎯</div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setTempBudget(budget.toString());
-              setIsBudgetDialogOpen(true);
-            }}
-            className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full bg-white/80 hover:bg-white"
-          >
-            ✏️
-          </Button>
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300">Budget Progress</h3>
-            <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{budgetProgress.toFixed(0)}%</p>
-            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 mt-2">
-              <div
-                className="bg-slate-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${budgetProgress}%` }}
-              ></div>
-            </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-              of ₹{budget} monthly
-            </p>
-          </div>
-        </div>
-
-        {/* Streak */}
-        <div className="flex flex-col items-center text-center space-y-3 p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/20 dark:to-orange-900/20 hover:scale-105 hover:shadow-lg transition-all duration-300 cursor-pointer group">
-          <div className="text-6xl group-hover:animate-bounce">🔥</div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-orange-700 dark:text-orange-300">Streak</h3>
-            <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">3 days</p>
-            <p className="text-sm text-orange-600 dark:text-orange-400">
-              Keep it up!
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Today's Expenses */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Today's Expenses</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {todaysExpenses.length > 0 ? (
-            <div className="space-y-3">
-              {todaysExpenses.map((expense) => (
-                <div key={expense.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">
-                      {CATEGORY_ICONS[expense.category] || "📦"}
-                    </div>
-                    <div>
-                      <p className="font-medium">{expense.description}</p>
-                      <p className="text-sm text-muted-foreground capitalize">{expense.category}</p>
-=======
         {/* Last Expense */}
         <Card className="bg-white border border-slate-100 shadow-[0_4px_18px_rgba(0,0,0,0.04)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.06)] transition-all duration-300 rounded-2xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -361,7 +240,6 @@ const DashboardHome = () => {
                         </div>
                       </div>
                       <p className="font-bold text-slate-900 text-base">₹{expense.amount.toFixed(2)}</p>
->>>>>>> updated-design
                     </div>
                   ))}
                 </div>
@@ -425,14 +303,7 @@ const DashboardHome = () => {
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-slate-900">Set Monthly Budget</DialogTitle>
           </DialogHeader>
-<<<<<<< HEAD
-          <DialogDescription>
-            Set your spending limit for the current month
-          </DialogDescription>
-          <div className="space-y-4">
-=======
           <div className="space-y-4 py-4">
->>>>>>> updated-design
             <div>
               <label htmlFor="budget" className="text-sm font-medium text-slate-700">Monthly Budget (₹)</label>
               <Input

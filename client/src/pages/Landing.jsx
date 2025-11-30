@@ -56,55 +56,8 @@ const heroItems = [
 ];
 
 const HeroSection = () => (
-<<<<<<< HEAD
-  <div className="relative flex flex-col items-center justify-center w-full h-screen overflow-hidden">
-
-    {/* BACKGROUND ANIMATED CARDS – YOUR ORIGINAL ANIMATION */}
-    <div className="absolute inset-0 grid grid-cols-1 md:grid-cols-3 gap-8 p-4 md:p-8 transform-gpu opacity-15 [mask-image:radial-gradient(ellipse_at_center,transparent_10%,black)]">
-      <div className="flex flex-col gap-8">
-        <InfiniteMovingCards items={leftColumnItems} direction="right" speed="slow" />
-      </div>
-      <div className="hidden md:flex flex-col gap-8">
-        <InfiniteMovingCards items={middleColumnItems} direction="left" speed="slow" />
-      </div>
-      <div className="hidden md:flex flex-col gap-8">
-        <InfiniteMovingCards items={rightColumnItems} direction="right" speed="slow" />
-      </div>
-    </div>
-
-    {/* FOREGROUND TEXT */}
-    <div className="relative z-20 flex flex-col items-center px-6">
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className="mb-6"
-      >
-        <Logo showText={true} size="lg" />
-      </motion.div>
-
-      <motion.h1
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.1 }}
-        className="text-center text-5xl md:text-7xl font-black tracking-tight"
-      >
-        Your Expenses, <span className="text-primary">Just Spoken.</span>
-      </motion.h1>
-
-      <motion.p
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 0.15 }}
-        className="mt-6 max-w-xl text-lg text-neutral-300 text-center leading-relaxed"
-      >
-        Say it casually — “200 on pizza”, “300 metro recharge”.
-        We parse it, categorize it, and log it. No typing ever again.
-      </motion.p>
-=======
   <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
->>>>>>> updated-design
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}

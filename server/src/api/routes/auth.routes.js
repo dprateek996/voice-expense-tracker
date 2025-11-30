@@ -1,11 +1,5 @@
 const express = require('express');
 const router = express.Router();
-<<<<<<< HEAD
-const { login } = require('../controllers/auth.controller');
-
-// The only route in this file
-router.post('/login', login);
-=======
 const {
   register,
   login,
@@ -21,6 +15,5 @@ router.post('/login', login);
 router.post('/logout', logout);
 router.get('/me', protect, getMe);
 router.post('/refresh', refreshAccessToken);
->>>>>>> updated-design
 
 module.exports = router;

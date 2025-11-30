@@ -1,21 +1,5 @@
 const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
 
-<<<<<<< HEAD
-// ---------- Gemini client (optional) ----------
-let model = null;
-try {
-  const { GoogleGenerativeAI } = require("@google/generative-ai");
-  const API_KEY = process.env.GEMINI_API_KEY;
-  // --- FIX 3: Using the correct, stable model name ---
-  const MODEL_NAME = process.env.GEMINI_MODEL || "gemini-1.5-flash";// allow override
-  if (API_KEY) {
-    const genAI = new GoogleGenerativeAI(API_KEY);
-    // Wrap in try because older packages or mismatched versions may throw.
-    try {
-     model = genAI.getGenerativeModel({
-  model: MODEL_NAME,
-  generationConfig: { responseMimeType: "application/json" },
-=======
 const API_KEY = process.env.GEMINI_API_KEY;
 if (!API_KEY) {
   throw new Error("GEMINI_API_KEY is not set in the environment variables.");
@@ -34,7 +18,6 @@ const model = genAI.getGenerativeModel({
     { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
     { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
   ],
->>>>>>> updated-design
 });
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

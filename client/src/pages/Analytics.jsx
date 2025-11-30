@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-import { useEffect, useState } from 'react';
-=======
 import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -27,7 +24,6 @@ import {
   Tooltip,
   Legend
 } from 'recharts';
->>>>>>> updated-design
 import useExpenseStore from '@/store/expenseStore';
 import { toast } from 'sonner';
 import {
@@ -44,10 +40,6 @@ import DateRangePicker from '@/components/analytics/DateRangePicker';
 import TrendIndicator from '@/components/analytics/TrendIndicator';
 import InsightCard from '@/components/analytics/InsightCard';
 
-<<<<<<< HEAD
-const Analytics = () => {
-  const { expenses, fetchExpenses } = useExpenseStore();
-=======
 // ICONS FOR CATEGORIES
 const CATEGORY_ICONS = {
   food: "🍔",
@@ -82,7 +74,6 @@ const CustomTooltip = ({ active, payload, label }) => {
 const Analytics = () => {
   const { expenses, fetchExpenses } = useExpenseStore();
   const [dateRange, setDateRange] = useState(30);
->>>>>>> updated-design
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -100,26 +91,6 @@ const Analytics = () => {
     load();
   }, [fetchExpenses]);
 
-<<<<<<< HEAD
-  if (loading) {
-    return (
-      <div className="p-6">
-        <div className="text-xl text-white">Loading analytics...</div>
-      </div>
-    );
-  }
-
-  if (expenses.length === 0) {
-    return (
-      <div className="p-6">
-        <h1 className="text-4xl font-bold text-foreground mb-8">
-          Expense Analytics
-        </h1>
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">📊</div>
-          <h2 className="text-2xl font-semibold mb-2 text-white">No expenses yet</h2>
-          <p className="text-gray-400">Add some expenses to see your analytics!</p>
-=======
   // Filter expenses by date range
   const filteredExpenses = useMemo(() => {
     if (dateRange === 'all') return expenses;
@@ -301,116 +272,12 @@ const Analytics = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="h-96 bg-muted rounded-xl"></div>
           <div className="h-96 bg-muted rounded-xl"></div>
->>>>>>> updated-design
         </div>
       </div>
     );
   }
 
-  const totalSpent = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const averageExpense = totalSpent / expenses.length;
-
-  // Category icons mapping
-  const CATEGORY_ICONS = {
-    groceries: '🛒',
-    dining: '🍽️',
-    food: '🛒',
-    transport: '🚗',
-    shopping: '🛍️',
-    utilities: '⚡',
-    bills: '⚡',
-    health: '🏥',
-    medicine: '🏥',
-    entertainment: '🎭',
-    travel: '✈️',
-    education: '📚',
-    work: '💼',
-    'personal care': '💅',
-    personalcare: '💅',
-    fuel: '⛽',
-    other: '📦'
-  };
-
-  // Get top 5 expenses
-  const topExpenses = [...expenses]
-    .sort((a, b) => b.amount - a.amount)
-    .slice(0, 5);
-
   return (
-<<<<<<< HEAD
-    <div className="p-6">
-      <h1 className="text-4xl font-bold text-foreground mb-8">
-        Expense Analytics
-      </h1>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 hover:shadow-xl transition-transform duration-200 hover:border hover:border-amber-400">
-          <div className="flex items-center space-x-2 mb-2">
-            <span className="text-2xl">💰</span>
-            <span className="text-white font-semibold">Total Spent</span>
-          </div>
-          <p className="text-3xl font-bold text-amber-400">₹{totalSpent.toFixed(2)}</p>
-        </div>
-
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 hover:shadow-xl transition-transform duration-200 hover:border hover:border-amber-400">
-          <div className="flex items-center space-x-2 mb-2">
-            <span className="text-2xl">📊</span>
-            <span className="text-white font-semibold">Total Entries</span>
-          </div>
-          <p className="text-3xl font-bold text-amber-400">{expenses.length}</p>
-        </div>
-
-        <div className="bg-gray-800 p-6 rounded-2xl shadow-lg hover:scale-105 hover:shadow-xl transition-transform duration-200 hover:border hover:border-amber-400">
-          <div className="flex items-center space-x-2 mb-2">
-            <span className="text-2xl">📏</span>
-            <span className="text-white font-semibold">Average Expense</span>
-          </div>
-          <p className="text-3xl font-bold text-amber-400">₹{averageExpense.toFixed(2)}</p>
-        </div>
-      </div>
-
-      {/* Top 5 Expenses */}
-      <div className="bg-gray-800 p-6 rounded-2xl shadow-lg mb-8">
-        <h2 className="text-2xl font-bold text-white mb-4">Top 5 Expenses</h2>
-        <div className="space-y-3">
-          {topExpenses.map((exp, i) => (
-            <div key={i} className="flex items-center justify-between bg-gray-700 p-4 rounded-xl hover:scale-102 hover:shadow-lg transition-all duration-200 hover:border hover:border-amber-400">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">{CATEGORY_ICONS[exp.category] || '📦'}</span>
-                <div>
-                  <p className="text-white font-medium capitalize">{exp.category}: {exp.description}</p>
-                  <p className="text-gray-400 text-sm">{new Date(exp.date).toLocaleDateString()}</p>
-                </div>
-              </div>
-              <span className="text-amber-400 font-bold text-xl">₹{exp.amount}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Simple Category Breakdown */}
-      <div className="bg-gray-800 p-6 rounded-2xl shadow-lg">
-        <h2 className="text-2xl font-bold text-white mb-4">Category Breakdown</h2>
-        <div className="space-y-3">
-          {Object.entries(
-            expenses.reduce((acc, exp) => {
-              acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
-              return acc;
-            }, {})
-          ).map(([category, amount]) => (
-            <div key={category} className="flex items-center justify-between bg-gray-700 p-4 rounded-xl">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl">{CATEGORY_ICONS[category] || '📦'}</span>
-                <span className="text-white font-medium capitalize">{category}</span>
-              </div>
-              <span className="text-amber-400 font-bold">₹{amount.toFixed(2)}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-=======
     <motion.div
       className="space-y-6 p-6"
       variants={containerVariants}
@@ -670,7 +537,6 @@ const Analytics = () => {
         </Card>
       </motion.div>
     </motion.div>
->>>>>>> updated-design
   );
 };
 
