@@ -24,7 +24,7 @@ const addExpenseFromVoice = async (req, res) => {
 
     for (const expense of expensesToCreate) {
       // Relaxed validation: Accept if amount is valid, even if marked unclear (we trust the amount)
-      if ((!expense.amount || expense.amount <= 0)) {
+      if (!expense.amount || expense.amount <= 0 || isNaN(expense.amount)) {
         console.warn('⚠️ [API] Expense rejected: Invalid amount', expense);
         continue; // Skip invalid expenses in the batch
       }

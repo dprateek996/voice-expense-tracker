@@ -94,7 +94,7 @@ const CommandInput = ({
               : "Type or say: '500 for groceries'"
           }
           disabled={isProcessing}
-          className="flex-1 h-12 sm:h-14 pl-4 sm:pl-5 pr-20 sm:pr-28 text-base sm:text-lg rounded-full bg-white border-slate-200 shadow-sm
+          className="flex-1 h-12 sm:h-14 pl-4 sm:pl-5 pr-20 sm:pr-28 text-base sm:text-lg rounded-full bg-background border-border shadow-sm
                      focus-visible:ring-primary focus-visible:ring-2 focus-visible:border-transparent transition-all duration-200"
         />
 

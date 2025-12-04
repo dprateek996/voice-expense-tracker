@@ -52,14 +52,45 @@ const Dashboard = () => {
       const count = result.expenses ? result.expenses.length : 1;
       const firstDesc = result.expenses ? result.expenses[0].description : result.expense.description;
       const totalAmount = result.expenses
-        ? result.expenses.reduce((sum, exp) => sum + exp.amount, 0)
-        : result.expense.amount;
+        ? result.expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0)
+        : (result.expense.amount || 0);
 
       // Show confirmation card instead of just toast
       setConfirmationData(result.expenses || [result.expense]);
 
-      // Still show a subtle toast for feedback if needed, or rely on the card
-      // toast.success(`Added ${count} expense(s)`); 
+      // Show custom success toast with checkmark animation
+      toast.success(
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+            <svg 
+              viewBox="0 0 24 24" 
+              className="w-5 h-5 text-white"
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-semibold text-white">Expense Added Successfully!</p>
+            <p className="text-sm text-white/80">₹{totalAmount.toFixed(2)} added to {count > 1 ? `${count} expenses` : firstDesc}</p>
+          </div>
+        </div>,
+        {
+          duration: 3000,
+          style: {
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            border: 'none',
+            padding: '16px',
+            borderRadius: '12px',
+            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
+          }
+        }
+      );
+
       fetchExpenses();
     } catch (error) {
       toast.error(error.message || "Could not save expense.");

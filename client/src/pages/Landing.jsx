@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, ArrowRight, Check, Sparkles, BarChart3, Linkedin, Github, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
+import { Spotlight } from "@/components/ui/spotlight-new";
 import Logo from "@/components/Logo";
 
 /* ------------------------------------------------------------------ */
@@ -15,23 +16,23 @@ const Navbar = () => (
     initial={{ y: -20, opacity: 0 }}
     animate={{ y: 0, opacity: 1 }}
     transition={{ duration: 0.5 }}
-    className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200/50"
+    className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-black/50 backdrop-blur-md border-b border-white/10"
   >
     <div className="flex items-center gap-2">
       <div className="p-2 bg-primary/10 rounded-lg">
         <Mic className="w-6 h-6 text-primary" />
       </div>
-      <span className="text-xl font-bold text-slate-900 tracking-tight font-heading">VoEx</span>
+      <span className="text-xl font-bold text-white tracking-tight font-heading">VoEx</span>
     </div>
 
-    <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600 font-sans">
+    <div className="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-300 font-sans">
       <a href="#" className="hover:text-primary transition-colors">Features</a>
       <a href="#" className="hover:text-primary transition-colors">How it Works</a>
       <a href="#" className="hover:text-primary transition-colors">Pricing</a>
     </div>
 
     <div className="flex items-center gap-4">
-      <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors hidden sm:block font-sans">
+      <Link to="/login" className="text-sm font-medium text-neutral-300 hover:text-primary transition-colors hidden sm:block font-sans">
         Sign In
       </Link>
       <Link to="/register">
@@ -56,7 +57,10 @@ const heroItems = [
 ];
 
 const HeroSection = () => (
-  <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
+  <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-black/[0.96] antialiased bg-grid-white/[0.02]">
+    {/* Spotlight Effect */}
+    <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+    
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
 
       <motion.div
@@ -68,7 +72,7 @@ const HeroSection = () => (
         {/* Subtle Glow Behind Text - Optimized Blur */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[240px] bg-blue-400/20 rounded-full blur-3xl -z-10" />
 
-        <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-white/50 backdrop-blur-md border border-slate-200/50 text-slate-600 text-sm font-medium mb-8 shadow-sm font-sans">
+        <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-neutral-200 text-sm font-medium mb-8 shadow-sm font-sans">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
@@ -76,15 +80,15 @@ const HeroSection = () => (
           New: Receipt Scanning
         </span>
 
-        <h1 className="text-4xl md:text-6xl font-bold text-slate-900 tracking-tight mb-6 font-heading leading-tight">
+        <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-6 font-heading leading-tight">
           Track expenses <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-blue-700 to-slate-900 animate-gradient-text-slow bg-[length:200%_auto]">
+          <span className="text-transparent bg-clip-text bg-gradient-to-b from-neutral-50 to-neutral-400 bg-opacity-50">
             with your voice.
           </span>
         </h1>
 
-        <p className="mt-4 text-lg text-slate-500 max-w-xl mx-auto mb-10 font-sans leading-relaxed">
-          No more spreadsheets or manual typing. Just speak, and it’s logged instantly.
+        <p className="mt-4 text-lg text-neutral-300 max-w-xl mx-auto mb-10 font-sans leading-relaxed">
+          No more spreadsheets or manual typing. Add expenses instantly.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -93,21 +97,21 @@ const HeroSection = () => (
               Start for free <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
-          <p className="text-xs text-slate-500 mt-4">No credit card required</p>
+          <p className="text-xs text-neutral-400 mt-4">No credit card required</p>
           <Link to="/demo">
-            <Button variant="outline" size="lg" className="rounded-full px-8 h-14 text-lg border-slate-200 bg-white/50 backdrop-blur-sm text-slate-600 hover:bg-white hover:text-slate-900 font-sans">
+            <Button variant="outline" size="lg" className="rounded-full px-8 h-14 text-lg border-white/20 bg-white/5 backdrop-blur-sm text-neutral-200 hover:bg-white/10 hover:text-white font-sans">
               View Demo
             </Button>
           </Link>
         </div>
 
-        <div className="mt-12 flex items-center justify-center gap-4 text-sm text-slate-500">
+        <div className="mt-12 flex items-center justify-center gap-4 text-sm text-neutral-400">
           <div className="flex -space-x-2">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200" />
+              <div key={i} className="w-8 h-8 rounded-full border-2 border-black bg-neutral-700" />
             ))}
           </div>
-          <p>Used by <span className="font-bold text-slate-900">2,000+</span> early adopters</p>
+          <p>Used by <span className="font-bold text-neutral-200">2,000+</span> early adopters</p>
         </div>
       </motion.div>
 
@@ -159,7 +163,7 @@ const InteractiveDemoSection = () => {
             </div>
             <input
               type="text"
-              placeholder="Speak or type an expense..."
+              placeholder="Enter an expense..."
               className="flex-1 bg-transparent border-none focus:ring-0 text-lg font-medium text-slate-900 placeholder:text-slate-400"
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -296,7 +300,7 @@ const HowItWorksSection = () => (
       <h2 className="text-3xl font-bold text-slate-900 mb-12 font-heading">How it works</h2>
       <div className="grid md:grid-cols-3 gap-8">
         {[
-          { title: "Speak", description: "Just say your expense naturally.", icon: Mic },
+          { title: "Add", description: "Input your expense details.", icon: Mic },
           { title: "Process", description: "AI extracts the details instantly.", icon: Sparkles },
           { title: "Track", description: "It's added to your dashboard.", icon: BarChart3 }
         ].map((item, index) => (

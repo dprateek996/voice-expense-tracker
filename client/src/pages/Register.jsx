@@ -50,69 +50,69 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-slate-50 bg-grain relative overflow-hidden font-sans text-slate-900 selection:bg-primary/20">
+    <div className="min-h-screen w-full flex flex-col bg-background bg-grain relative overflow-hidden font-sans text-foreground selection:bg-primary/20">
 
       {/* Subtle Background Blobs */}
-      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/30 rounded-full blur-[100px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-200/30 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/30 dark:bg-blue-900/20 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-200/30 dark:bg-purple-900/20 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
-        <Card className="w-full max-w-md bg-white/80 backdrop-blur-xl border border-white/40 shadow-2xl shadow-slate-200/50">
+        <Card className="w-full max-w-md bg-card/80 backdrop-blur-xl border-border shadow-2xl">
           <CardHeader className="space-y-1 text-center">
             <div className="mx-auto w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4">
               <Mic className="w-6 h-6 text-primary" />
             </div>
-            <CardTitle className="text-2xl font-bold tracking-tight font-heading text-slate-900">Create an account</CardTitle>
-            <CardDescription className="text-slate-500">
+            <CardTitle className="text-2xl font-bold tracking-tight font-heading text-foreground">Create an account</CardTitle>
+            <CardDescription className="text-muted-foreground">
               Enter your information to get started
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-slate-700">Full Name</Label>
+                <Label htmlFor="name" className="text-foreground">Full Name</Label>
                 <Input
                   id="name"
                   placeholder="John Doe"
                   {...register('name')}
-                  className="bg-white/50 border-slate-200 focus:ring-primary focus:border-primary rounded-xl"
+                  className="bg-background border-border focus:ring-primary focus:border-primary rounded-xl text-foreground"
                 />
                 {errors.name && (
                   <p className="text-sm text-red-500">{errors.name.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-slate-700">Email</Label>
+                <Label htmlFor="email" className="text-foreground">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="name@example.com"
                   {...register('email')}
-                  className="bg-white/50 border-slate-200 focus:ring-primary focus:border-primary rounded-xl"
+                  className="bg-background border-border focus:ring-primary focus:border-primary rounded-xl text-foreground"
                 />
                 {errors.email && (
                   <p className="text-sm text-red-500">{errors.email.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-slate-700">Password</Label>
+                <Label htmlFor="password" className="text-foreground">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   {...register('password')}
-                  className="bg-white/50 border-slate-200 focus:ring-primary focus:border-primary rounded-xl"
+                  className="bg-background border-border focus:ring-primary focus:border-primary rounded-xl text-foreground"
                 />
                 {errors.password && (
                   <p className="text-sm text-red-500">{errors.password.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-slate-700">Confirm Password</Label>
+                <Label htmlFor="confirmPassword" className="text-foreground">Confirm Password</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
                   {...register('confirmPassword')}
-                  className="bg-white/50 border-slate-200 focus:ring-primary focus:border-primary rounded-xl"
+                  className="bg-background border-border focus:ring-primary focus:border-primary rounded-xl text-foreground"
                 />
                 {errors.confirmPassword && (
                   <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
@@ -128,7 +128,7 @@ const Register = () => {
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Account
               </Button>
-              <div className="text-center text-sm text-slate-500">
+              <div className="text-center text-sm text-muted-foreground">
                 Already have an account?{' '}
                 <Link to="/login" className="font-semibold text-primary hover:underline">
                   Sign in

@@ -14,7 +14,7 @@ const ExpenseConfirmation = ({ expenses, onDismiss }) => {
 
     if (!expenses || expenses.length === 0) return null;
 
-    const totalAmount = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const totalAmount = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
 
     return (
         <AnimatePresence>

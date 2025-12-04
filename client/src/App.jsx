@@ -11,11 +11,13 @@ import History from './pages/History';
 import Categories from './pages/Categories';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
+import useThemeStore from './store/themeStore';
 
 function App() {
+  const theme = useThemeStore((state) => state.theme);
+
   return (
     <div className="text-foreground bg-background relative min-h-screen">
-
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -41,7 +43,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
-      <Toaster richColors theme="dark" />
+      <Toaster richColors theme={theme} />
     </div>
   );
 }

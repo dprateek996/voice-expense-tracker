@@ -14,7 +14,16 @@ const navLinks = [
   { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
   { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" /> },
   { label: "History", href: "/dashboard/history", icon: <History className="w-5 h-5" /> },
-  { label: "Categories", href: "/dashboard/categories", icon: <Tags className="w-5 h-5" /> },
+  { 
+    label: "Categories", 
+    href: "/dashboard/categories", 
+    icon: (
+      <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+        <circle cx="7" cy="7" r="1.5" fill="currentColor" />
+      </svg>
+    )
+  },
 ];
 
 // --- The Definitive Animated Link Component ---
@@ -55,8 +64,8 @@ const SidebarLink = ({ link, open, isHovered, onHover, onClick }) => {
 
   const linkClasses = (isActive) =>
     `relative flex items-center p-3 my-1 rounded-xl transition-all duration-200 cursor-pointer ${isActive
-      ? "bg-primary/10 text-primary font-semibold border border-primary/20"
-      : "text-muted-foreground hover:text-foreground hover:bg-slate-50"
+      ? "bg-primary/15 text-primary font-semibold border border-primary/30 shadow-lg shadow-primary/5"
+      : "text-muted-foreground hover:text-foreground hover:bg-accent/80"
     }`;
 
   // If the link is an action (like Logout), render a div. Otherwise, render a NavLink.
@@ -112,7 +121,7 @@ const NavContent = ({ open, onLinkClick }) => {
             key={link.label}
             link={link}
             open={open}
-            onClick={() => { if (link.onClick) link.onClick(); if (onLinkClick) onLinkClick(); }}
+            onClick={link.onClick ? () => { link.onClick(); if (onLinkClick) onLinkClick(); } : undefined}
             isHovered={hoveredLabel === link.label}
             onHover={() => setHoveredLabel(link.label)}
           />
@@ -136,7 +145,7 @@ const Sidebar = () => {
       initial={{ x: open ? 0 : -280 }}
       animate={{ x: 0, width: open ? 280 : 80 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="sticky top-0 hidden md:flex flex-col h-screen bg-white/60 backdrop-blur-xl border-r border-slate-200/60 z-50 p-3 shadow-sm"
+      className="sticky top-0 hidden md:flex flex-col h-screen bg-card/95 backdrop-blur-xl border-r border-border z-50 p-3 shadow-xl"
     >
       <div className="flex items-center justify-between p-2 h-16 mb-2">
         <AnimatePresence>
@@ -156,7 +165,7 @@ const Sidebar = () => {
           onClick={() => setOpen(!open)}
           variant="ghost"
           size="icon"
-          className="shrink-0 hover:bg-slate-100 text-slate-500 hover:text-foreground"
+          className="shrink-0 hover:bg-accent text-muted-foreground hover:text-foreground"
         >
           {open ? <PanelLeftClose className="w-5 h-5" /> : <PanelLeftOpen className="w-5 h-5" />}
         </Button>

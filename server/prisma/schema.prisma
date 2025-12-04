@@ -29,7 +29,7 @@ model Expense {
   description String
   location    String?
   date        DateTime @default(now())
-  source      String   @default("voice")
+  source      String   @default("manual")
   parsed_by   String?  @default("gemini-1.5-flash")
   is_unclear  Boolean  @default(false)
   createdAt   DateTime @default(now())

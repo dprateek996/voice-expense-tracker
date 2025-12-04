@@ -11,62 +11,36 @@ import {
 import {
   User,
   Wallet,
-  Bell,
-  Shield,
   Download,
   Trash2,
-  Save,
-  Mail,
-  Phone,
-  LogOut
+  LogOut,
+  ChevronRight,
+  Moon,
+  Sun
 } from 'lucide-react';
 import useAuthStore from '@/store/authStore';
 import useExpenseStore from '@/store/expenseStore';
+import useThemeStore from '@/store/themeStore';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 
 const Settings = () => {
   const { user, logout } = useAuthStore();
   const { budget, setBudget, expenses } = useExpenseStore();
+  const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
 
-  // User profile state
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [phone, setPhone] = useState('');
-
-  // Budget state
   const [monthlyBudget, setMonthlyBudget] = useState(budget || 5000);
-
-  // Notification toggles
-  const [budgetAlerts, setBudgetAlerts] = useState(false);
-  const [dailySummary, setDailySummary] = useState(false);
-  const [weeklyReports, setWeeklyReports] = useState(false);
-
-  // Delete confirmation dialog
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  // Container animation
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
   const handleSaveProfile = () => {
-    // TODO: API call to update profile
-    // For now, just show success
     if (!name.trim()) {
       toast.error('Name cannot be empty');
       return;
@@ -75,7 +49,6 @@ const Settings = () => {
       toast.error('Please enter a valid email');
       return;
     }
-
     toast.success('Profile updated successfully');
   };
 
@@ -91,7 +64,6 @@ const Settings = () => {
 
   const handleExportData = () => {
     try {
-      // Export expenses to CSV
       const headers = ['Date', 'Category', 'Description', 'Amount'];
       const rows = expenses.map(exp => [
         new Date(exp.date).toLocaleDateString(),
@@ -109,7 +81,7 @@ const Settings = () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `voex-expenses-${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `expenses-${new Date().toISOString().split('T')[0]}.csv`;
       link.click();
       URL.revokeObjectURL(url);
 
@@ -119,327 +91,263 @@ const Settings = () => {
     }
   };
 
-  const handleDeleteAccount = () => {
-    // Show confirmation dialog
-    setShowDeleteDialog(true);
-  };
-
   const confirmDeleteAccount = () => {
-    // In a real app, this would call an API to delete the account
     setShowDeleteDialog(false);
     toast.success('Account deleted. Logging out...');
-
     setTimeout(() => {
       logout();
       navigate('/');
     }, 1500);
   };
 
-  const toggleNotification = (type) => {
-    switch (type) {
-      case 'budget':
-        setBudgetAlerts(!budgetAlerts);
-        toast.success(`Budget alerts ${!budgetAlerts ? 'enabled' : 'disabled'}`);
-        break;
-      case 'daily':
-        setDailySummary(!dailySummary);
-        toast.success(`Daily summary ${!dailySummary ? 'enabled' : 'disabled'}`);
-        break;
-      case 'weekly':
-        setWeeklyReports(!weeklyReports);
-        toast.success(`Weekly reports ${!weeklyReports ? 'enabled' : 'disabled'}`);
-        break;
-    }
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    toast.success('Logged out successfully');
   };
 
   return (
-    <motion.div
-      className="space-y-6 p-6"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
-      {/* Header */}
-      <motion.div variants={itemVariants}>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-700 via-slate-600 to-slate-500 bg-clip-text text-transparent">
-          Settings
-        </h1>
-        <p className="text-muted-foreground mt-1">Manage your account and preferences</p>
-      </motion.div>
+    <div className="min-h-screen p-6">
+      <div className="max-w-3xl mx-auto space-y-6">
+        
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-3xl font-bold">Settings</h1>
+          <p className="text-muted-foreground mt-1">Manage your account</p>
+        </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Profile Settings */}
-        <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5 text-slate-600" />
-                Profile Information
-              </CardTitle>
-              <CardDescription>Update your personal details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter your name"
+        {/* Theme Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <Card className="border-none shadow-lg">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center justify-between pb-4 border-b">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                    {theme === 'dark' ? (
+                      <Moon className="w-6 h-6 text-white" />
+                    ) : (
+                      <Sun className="w-6 h-6 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Appearance</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {theme === 'dark' ? 'Dark' : 'Light'} mode active
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={theme === 'dark'}
+                  onCheckedChange={toggleTheme}
                 />
               </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email" className="flex items-center gap-2">
-                  <Mail className="w-4 h-4" />
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="flex items-center gap-2">
-                  <Phone className="w-4 h-4" />
-                  Phone Number
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+91 98765 43210"
-                />
-              </div>
-
-              <Button onClick={handleSaveProfile} className="w-full">
-                <Save className="w-4 h-4 mr-2" />
-                Save Profile
-              </Button>
+              <p className="text-sm text-muted-foreground">
+                Toggle between light and dark theme for a comfortable viewing experience.
+              </p>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Budget Settings */}
-        <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wallet className="w-5 h-5 text-slate-600" />
-                Budget Settings
-              </CardTitle>
-              <CardDescription>Set your monthly spending limit</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="budget">Monthly Budget (₹)</Label>
+        {/* Profile Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+        >
+          <Card className="border-none shadow-lg">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center gap-3 pb-4 border-b">
+                <div className="w-12 h-12 rounded-full bg-slate-100 border-2 border-slate-300 flex items-center justify-center overflow-hidden">
+                  <svg 
+                    viewBox="0 0 24 24" 
+                    className="w-8 h-8 text-slate-600"
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="1.5"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="9" r="3" />
+                    <path d="M6.168 18.849A4 4 0 0 1 10 16h4a4 4 0 0 1 3.834 2.855" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Profile</h3>
+                  <p className="text-sm text-slate-600">Update your information</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name" className="text-slate-700">Name</Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="email" className="text-slate-700">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+
+                <Button onClick={handleSaveProfile} className="w-full">
+                  Save Changes
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Budget Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
+          <Card className="border-none shadow-lg">
+            <CardContent className="p-6 space-y-4">
+              <div className="flex items-center gap-3 pb-4 border-b">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center">
+                  <Wallet className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900">Monthly Budget</h3>
+                  <p className="text-sm text-slate-600">Current: ₹{budget.toLocaleString('en-IN')}</p>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="budget" className="text-slate-700">Budget Amount (₹)</Label>
                 <Input
                   id="budget"
                   type="number"
                   value={monthlyBudget}
                   onChange={(e) => setMonthlyBudget(e.target.value)}
-                  placeholder="5000"
+                  className="mt-1"
                   min="0"
                 />
-                <p className="text-sm text-muted-foreground">
-                  Current: ₹{budget.toFixed(2)} per month
-                </p>
-              </div>
-
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <h4 className="text-sm font-semibold mb-2">Budget Tips</h4>
-                <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Set realistic monthly limits</li>
-                  <li>• Track daily spending averages</li>
-                  <li>• Review and adjust regularly</li>
-                </ul>
               </div>
 
               <Button onClick={handleSaveBudget} className="w-full">
-                <Save className="w-4 h-4 mr-2" />
                 Update Budget
               </Button>
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Notifications */}
-        <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-slate-600" />
-                Notifications
-              </CardTitle>
-              <CardDescription>Manage your notification preferences</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Budget Alerts</p>
-                  <p className="text-sm text-muted-foreground">Get notified when you reach 80% of budget</p>
+        {/* Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+        >
+          <Card className="border-none shadow-lg">
+            <CardContent className="p-6 space-y-2">
+              
+              <button
+                onClick={handleExportData}
+                className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-slate-50 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                    <Download className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-slate-900">Export Data</p>
+                    <p className="text-sm text-slate-600">{expenses.length} transactions</p>
+                  </div>
                 </div>
-                <Button
-                  variant={budgetAlerts ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => toggleNotification('budget')}
-                >
-                  {budgetAlerts ? 'Enabled' : 'Enable'}
-                </Button>
-              </div>
+                <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+              </button>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Daily Summary</p>
-                  <p className="text-sm text-muted-foreground">Receive daily spending summary</p>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-slate-50 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center group-hover:bg-orange-200 transition-colors">
+                    <svg 
+                      viewBox="0 0 24 24" 
+                      className="w-5 h-5 text-orange-600"
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2"
+                    >
+                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                      <polyline points="10 17 15 12 10 7" />
+                      <line x1="15" y1="12" x2="3" y2="12" />
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-slate-900">Log Out</p>
+                    <p className="text-sm text-slate-600">Sign out of your account</p>
+                  </div>
                 </div>
-                <Button
-                  variant={dailySummary ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => toggleNotification('daily')}
-                >
-                  {dailySummary ? 'Enabled' : 'Enable'}
-                </Button>
-              </div>
+                <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+              </button>
 
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium">Weekly Reports</p>
-                  <p className="text-sm text-muted-foreground">Get weekly expense reports</p>
+              <button
+                onClick={() => setShowDeleteDialog(true)}
+                className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-red-50 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                    <Trash2 className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-red-600">Delete Account</p>
+                    <p className="text-sm text-red-600/70">Permanently remove your data</p>
+                  </div>
                 </div>
-                <Button
-                  variant={weeklyReports ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => toggleNotification('weekly')}
-                >
-                  {weeklyReports ? 'Enabled' : 'Enable'}
-                </Button>
-              </div>
+                <ChevronRight className="w-5 h-5 text-red-400 group-hover:text-red-600 transition-colors" />
+              </button>
+
             </CardContent>
           </Card>
         </motion.div>
 
-        {/* Security & Privacy */}
-        <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-slate-600" />
-                Security & Privacy
-              </CardTitle>
-              <CardDescription>Manage your account security</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={() => toast.info('Password change feature coming soon')}
-              >
-                Change Password
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={() => toast.info('2FA feature coming soon')}
-              >
-                Two-Factor Authentication
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={() => toast.info('Connected devices feature coming soon')}
-              >
-                Connected Devices
-              </Button>
-
-              <div className="pt-4 border-t">
-                <p className="text-sm text-muted-foreground mb-2">Account created:</p>
-                <p className="text-sm font-medium">November 2025</p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* App Info */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.45 }}
+          className="text-center text-sm text-muted-foreground pb-8"
+        >
+          <p>Version 1.0.0</p>
         </motion.div>
+
       </div>
 
-      {/* Data Management */}
-      <motion.div variants={itemVariants}>
-        <Card>
-          <CardHeader>
-            <CardTitle>Data Management</CardTitle>
-            <CardDescription>Export or delete your data</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button onClick={handleExportData} variant="outline" className="flex-1">
-                <Download className="w-4 h-4 mr-2" />
-                Export All Data
-              </Button>
-
-              <Button onClick={handleDeleteAccount} variant="destructive" className="flex-1">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Account
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground mt-4">
-              Exporting your data will download all expenses in CSV format ({expenses.length} transactions).
-              Deleting your account is permanent and cannot be undone.
-            </p>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* App Information */}
-      <motion.div variants={itemVariants}>
-        <Card>
-          <CardHeader>
-            <CardTitle>About VoEx</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-muted-foreground">Version</p>
-                <p className="font-semibold">1.0.0</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Last Updated</p>
-                <p className="font-semibold">Nov 2025</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Total Expenses</p>
-                <p className="font-semibold">{expenses.length}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Account Status</p>
-                <p className="font-semibold text-green-600">Active</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Delete Account Confirmation Dialog */}
+      {/* Delete Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Account?</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete your account and remove all your data from our servers.
+              This action cannot be undone. All your data will be permanently deleted.
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
-            <p className="text-sm font-semibold text-destructive mb-2">You will lose:</p>
-            <ul className="text-sm text-muted-foreground space-y-1">
-              <li>• All {expenses.length} expense records</li>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-sm font-semibold text-red-900 mb-2">You will lose:</p>
+            <ul className="text-sm text-red-800 space-y-1">
+              <li>• {expenses.length} expense records</li>
               <li>• All analytics and insights</li>
-              <li>• Your account preferences</li>
-              <li>• Access to this account permanently</li>
+              <li>• Account preferences</li>
             </ul>
           </div>
           <DialogFooter>
@@ -447,13 +355,12 @@ const Settings = () => {
               Cancel
             </Button>
             <Button variant="destructive" onClick={confirmDeleteAccount}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Delete My Account
+              Delete Account
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </motion.div>
+    </div>
   );
 };
 

@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import { WobbleCard } from '@/components/ui/wobble-card';
 import { Button } from '@/components/ui/button';
 import {
   AreaChart,
@@ -125,26 +126,99 @@ const Analytics = () => {
       };
     }
 
-    const totalSpent = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
-    const avgExpense = totalSpent / filteredExpenses.length;
+    const totalSpent = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const avgExpense = filteredExpenses.length > 0 ? totalSpent / filteredExpenses.length : 0;
 
-    // Monthly chart data
-    const monthlyTotals = filteredExpenses.reduce((acc, exp) => {
-      const month = new Date(exp.date).toLocaleString("default", {
-        month: "short",
-        year: "numeric"
-      });
-      acc[month] = (acc[month] || 0) + exp.amount;
-      return acc;
-    }, {});
-
-    const monthlyData = Object.entries(monthlyTotals)
-      .map(([month, amount]) => ({ month, amount }))
-      .sort((a, b) => new Date(a.month) - new Date(b.month));
+    // Generate chart data based on selected date range
+    let monthlyData = [];
+    const now = new Date();
+    
+    if (dateRange === 7) {
+      // Last 7 days - daily data
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        
+        const dayExpenses = filteredExpenses.filter(exp => {
+          const expDate = new Date(exp.date);
+          expDate.setHours(0, 0, 0, 0);
+          return expDate.getTime() === date.getTime();
+        });
+        
+        const amount = dayExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+        monthlyData.push({
+          month: date.toLocaleDateString('en-US', { weekday: 'short' }),
+          amount,
+          date: date.toISOString()
+        });
+      }
+    } else if (dateRange === 'month') {
+      // Current month - daily data
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(now.getFullYear(), now.getMonth(), day);
+        date.setHours(0, 0, 0, 0);
+        
+        const dayExpenses = filteredExpenses.filter(exp => {
+          const expDate = new Date(exp.date);
+          expDate.setHours(0, 0, 0, 0);
+          return expDate.getTime() === date.getTime();
+        });
+        
+        const amount = dayExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+        monthlyData.push({
+          month: date.getDate().toString(),
+          amount,
+          date: date.toISOString()
+        });
+      }
+    } else if (dateRange === 'year') {
+      // Current year - monthly data
+      for (let month = 0; month < 12; month++) {
+        const date = new Date(now.getFullYear(), month, 1);
+        const nextMonth = new Date(now.getFullYear(), month + 1, 1);
+        
+        const monthExpenses = filteredExpenses.filter(exp => {
+          const expDate = new Date(exp.date);
+          return expDate >= date && expDate < nextMonth;
+        });
+        
+        const amount = monthExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+        monthlyData.push({
+          month: date.toLocaleDateString('en-US', { month: 'short' }),
+          amount,
+          date: date.toISOString()
+        });
+      }
+    } else {
+      // Custom numeric range (fallback)
+      const days = typeof dateRange === 'number' ? dateRange : 30;
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        
+        const dayExpenses = filteredExpenses.filter(exp => {
+          const expDate = new Date(exp.date);
+          expDate.setHours(0, 0, 0, 0);
+          return expDate.getTime() === date.getTime();
+        });
+        
+        const amount = dayExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
+        monthlyData.push({
+          month: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          amount,
+          date: date.toISOString()
+        });
+      }
+    }
 
     // Category breakdown
     const categoryTotals = filteredExpenses.reduce((acc, exp) => {
-      acc[exp.category] = (acc[exp.category] || 0) + exp.amount;
+      acc[exp.category] = (acc[exp.category] || 0) + (exp.amount || 0);
       return acc;
     }, {});
 
@@ -154,20 +228,20 @@ const Analytics = () => {
 
     // Top 5 expenses
     const topExpenses = [...filteredExpenses]
-      .sort((a, b) => b.amount - a.amount)
+      .sort((a, b) => (b.amount || 0) - (a.amount || 0))
       .slice(0, 5);
 
     // Daily average
     const days = dateRange === 'all' ? 365 : (typeof dateRange === 'number' ? dateRange : 30);
-    const dailyAverage = totalSpent / days;
+    const dailyAverage = days > 0 ? totalSpent / days : 0;
 
     // Calculate trends (compare first half vs second half)
     const midPoint = Math.floor(filteredExpenses.length / 2);
     const firstHalf = filteredExpenses.slice(0, midPoint);
     const secondHalf = filteredExpenses.slice(midPoint);
 
-    const firstHalfTotal = firstHalf.reduce((sum, e) => sum + e.amount, 0);
-    const secondHalfTotal = secondHalf.reduce((sum, e) => sum + e.amount, 0);
+    const firstHalfTotal = firstHalf.reduce((sum, e) => sum + (e.amount || 0), 0);
+    const secondHalfTotal = secondHalf.reduce((sum, e) => sum + (e.amount || 0), 0);
     const spendingTrend = firstHalfTotal === 0 ? 0 : ((secondHalfTotal - firstHalfTotal) / firstHalfTotal) * 100;
 
     // Generate insights
@@ -303,134 +377,244 @@ const Analytics = () => {
       {/* KPI Cards with trends */}
       <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Spent */}
-        <Card className="hover:scale-105 transition-transform duration-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
+        <WobbleCard containerClassName="min-h-[140px]">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2 -mt-6">
+            <div className="text-sm font-medium">Total Spent</div>
             <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div>
             <div className="text-2xl font-bold">₹{analytics.totalSpent.toFixed(2)}</div>
             {analytics.trends.spending !== 0 && (
               <div className="mt-2">
                 <TrendIndicator value={analytics.trends.spending} isPositive={analytics.trends.spending > 0} />
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </WobbleCard>
 
         {/* Total Entries */}
-        <Card className="hover:scale-105 transition-transform duration-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Entries</CardTitle>
+        <WobbleCard containerClassName="min-h-[140px]">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2 -mt-6">
+            <div className="text-sm font-medium">Total Entries</div>
             <Receipt className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div>
             <div className="text-2xl font-bold">{analytics.totalEntries}</div>
             <p className="text-xs text-muted-foreground mt-2">transactions recorded</p>
-          </CardContent>
-        </Card>
+          </div>
+        </WobbleCard>
 
         {/* Average Expense */}
-        <Card className="hover:scale-105 transition-transform duration-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Expense</CardTitle>
+        <WobbleCard containerClassName="min-h-[140px]">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2 -mt-6">
+            <div className="text-sm font-medium">Avg Expense</div>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div>
             <div className="text-2xl font-bold">₹{analytics.avgExpense.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-2">per transaction</p>
-          </CardContent>
-        </Card>
+          </div>
+        </WobbleCard>
 
         {/* Daily Average */}
-        <Card className="hover:scale-105 transition-transform duration-200">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Daily Avg</CardTitle>
+        <WobbleCard containerClassName="min-h-[140px]">
+          <div className="flex flex-row items-center justify-between space-y-0 pb-2 -mt-6">
+            <div className="text-sm font-medium">Daily Avg</div>
             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div>
             <div className="text-2xl font-bold">₹{analytics.dailyAverage.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground mt-2">per day</p>
-          </CardContent>
-        </Card>
+          </div>
+        </WobbleCard>
       </motion.div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Spending - Line/Bar Chart */}
-        <motion.div variants={itemVariants}>
-          <Card className="shadow-lg border-slate-200 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-slate-600" />
-                Spending Trend
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="h-80">
-              {analytics.monthlyData.length === 0 ? (
-                <div className="flex items-center justify-center h-full text-muted-foreground">
-                  No data available for the selected period
+        {/* Monthly Spending - Glassmorphic Design */}
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ scale: 1.02 }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="relative bg-gradient-to-br from-slate-800 via-slate-900 to-blue-950 border-none shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-3xl overflow-hidden backdrop-blur-xl">
+            {/* Glassmorphic overlay with animation */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-blue-900/20 backdrop-blur-sm"
+              animate={{ opacity: [0.5, 0.7, 0.5] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
+            
+            <CardContent className="relative p-8">
+              {/* Header Section */}
+              <div className="flex items-start justify-between mb-6">
+                <div>
+                  <div className="text-white text-3xl font-bold mb-2">
+                    ₹{analytics.totalSpent.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                  </div>
+                  <div className="text-xs text-white/50">
+                    Compared to last month 
+                    <span className="text-white/80 ml-1">
+                      {analytics.trends.spending > 0 ? '+' : ''}{analytics.trends.spending.toFixed(2)}%
+                    </span>
+                  </div>
                 </div>
-              ) : analytics.monthlyData.length === 1 ? (
-                // Show bar chart for single data point
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={analytics.monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis
-                      dataKey="month"
-                      tick={{ fontSize: 14, fill: '#64748b' }}
-                      axisLine={{ stroke: '#cbd5e1' }}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 12, fill: '#64748b' }}
-                      axisLine={{ stroke: '#cbd5e1' }}
-                      tickFormatter={(value) => `₹${value}`}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Bar
-                      dataKey="amount"
-                      fill="#64748b"
-                      radius={[8, 8, 0, 0]}
-                      maxBarSize={120}
-                      animationDuration={800}
-                      label={{
-                        position: 'top',
-                        formatter: (value) => `₹${value.toFixed(2)}`,
-                        fill: '#334155',
-                        fontSize: 14,
-                        fontWeight: 600
-                      }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                // Show line chart for multiple data points
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={analytics.monthlyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis
-                      dataKey="month"
-                      tick={{ fontSize: 12, fill: '#64748b' }}
-                      axisLine={{ stroke: '#cbd5e1' }}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 12, fill: '#64748b' }}
-                      axisLine={{ stroke: '#cbd5e1' }}
-                      tickFormatter={(value) => `₹${value}`}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line
-                      type="natural"
-                      dataKey="amount"
-                      stroke="#64748b"
-                      strokeWidth={3}
-                      dot={{ fill: '#64748b', r: 5, strokeWidth: 2, stroke: '#fff' }}
-                      activeDot={{ r: 7, strokeWidth: 2, stroke: '#fff' }}
-                      animationDuration={800}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
+              </div>
+
+              {/* Time Range Tabs */}
+              <div className="flex gap-2 mb-6 flex-wrap">
+                {[
+                  { label: '7d', value: 7 },
+                  { label: 'Month', value: 'month' },
+                  { label: 'Year', value: 'year' }
+                ].map((period) => (
+                  <motion.button
+                    key={period.label}
+                    onClick={() => setDateRange(period.value)}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
+                      dateRange === period.value
+                        ? 'bg-blue-600/40 text-white backdrop-blur-sm shadow-lg scale-105'
+                        : 'bg-white/10 text-white/60 hover:bg-white/20'
+                    }`}
+                  >
+                    {period.label}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Chart Area */}
+              <div className="h-64 w-full relative">
+                {analytics.monthlyData.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-white/50">
+                    <div className="text-6xl mb-4">📊</div>
+                    <div className="text-lg font-medium mb-2">No expense data</div>
+                    <div className="text-sm">Add expenses to see your analytics</div>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={analytics.monthlyData}
+                      margin={{ top: 20, right: 10, left: -20, bottom: 20 }}
+                    >
+                      <defs>
+                        <filter id="analyticsGlow">
+                          <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+                          <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                        <linearGradient id="analyticsLineGradient" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="rgba(96,165,250,0.8)" />
+                          <stop offset="50%" stopColor="rgba(96,165,250,1)" />
+                          <stop offset="100%" stopColor="rgba(147,197,253,0.8)" />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                      <XAxis
+                        dataKey="month"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 11, fill: 'rgba(255,255,255,0.5)' }}
+                        dy={10}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'rgba(255,255,255,0.5)' }}
+                        tickFormatter={(value) => `₹${value}`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(30, 41, 59, 0.95)',
+                          borderRadius: '16px',
+                          border: '1px solid rgba(96,165,250,0.3)',
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                          backdropFilter: 'blur(10px)',
+                          padding: '12px 16px'
+                        }}
+                        itemStyle={{ color: '#fff', fontWeight: '600' }}
+                        labelStyle={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px' }}
+                        formatter={(value) => [`₹${value.toFixed(2)}`, '']}
+                        cursor={{ stroke: 'rgba(96,165,250,0.3)', strokeWidth: 2 }}
+                        animationDuration={300}
+                      />
+                      <Line
+                        type="natural"
+                        dataKey="amount"
+                        stroke="url(#analyticsLineGradient)"
+                        strokeWidth={4}
+                        filter="url(#analyticsGlow)"
+                        dot={(props) => {
+                          const { cx, cy, payload } = props;
+                          if (payload.amount === 0) return null;
+                          return (
+                            <circle
+                              cx={cx}
+                              cy={cy}
+                              r={5}
+                              fill="white"
+                              stroke="rgba(96,165,250,0.8)"
+                              strokeWidth={3}
+                              filter="drop-shadow(0 0 6px rgba(96,165,250,0.8))"
+                            />
+                          );
+                        }}
+                        activeDot={(props) => {
+                          const { cx, cy, payload } = props;
+                          if (payload.amount === 0) return null;
+                          return (
+                            <circle
+                              cx={cx}
+                              cy={cy}
+                              r={8}
+                              fill="white"
+                              stroke="rgba(96,165,250,1)"
+                              strokeWidth={4}
+                              filter="drop-shadow(0 0 10px rgba(96,165,250,1))"
+                            />
+                          );
+                        }}
+                        animationDuration={2500}
+                        animationEasing="ease-in-out"
+                        isAnimationActive={true}
+                        connectNulls
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+
+              {/* Average Info */}
+              <div className="mt-6 pt-6 border-t border-white/10">
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60 text-sm">Daily average</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-bold text-lg">
+                      ₹{analytics.dailyAverage.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                    </span>
+                    {analytics.trends.spending > 0 ? (
+                      <TrendingUp className="w-4 h-4 text-red-300" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 text-green-300" />
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* How it works button */}
+              <motion.button 
+                className="absolute bottom-6 right-6 flex items-center gap-2 text-white/70 hover:text-white text-xs transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="w-5 h-5 rounded-full border border-white/40 flex items-center justify-center">
+                  <span className="text-[10px]">?</span>
+                </div>
+                How it works?
+              </motion.button>
             </CardContent>
           </Card>
         </motion.div>
@@ -440,7 +624,7 @@ const Analytics = () => {
           <Card className="shadow-lg border-slate-200 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <PieChartIcon className="w-5 h-5 text-slate-600" />
+                <PieChartIcon className="w-5 h-5 text-muted-foreground" />
                 Category Breakdown
               </CardTitle>
             </CardHeader>
@@ -527,7 +711,7 @@ const Analytics = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-xl font-bold text-slate-700">₹{exp.amount.toFixed(2)}</p>
+                    <p className="text-xl font-bold text-foreground">₹{exp.amount.toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground">{new Date(exp.date).toLocaleDateString()}</p>
                   </div>
                 </motion.div>

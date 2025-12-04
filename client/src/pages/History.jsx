@@ -31,7 +31,7 @@ const History = () => {
         (expense) =>
           expense.description.toLowerCase().includes(lowerTerm) ||
           expense.category.toLowerCase().includes(lowerTerm) ||
-          expense.amount.toString().includes(lowerTerm)
+          (expense.amount || 0).toString().includes(lowerTerm)
       );
     }
 
@@ -151,7 +151,7 @@ const History = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <span className="font-bold text-foreground">
-                            ₹{expense.amount.toFixed(2)}
+                            ₹{(expense.amount || 0).toFixed(2)}
                           </span>
                         </TableCell>
                       </motion.tr>

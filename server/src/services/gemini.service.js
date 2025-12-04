@@ -1,24 +1,12 @@
-const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require("@google/generative-ai");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const API_KEY = process.env.GEMINI_API_KEY;
 if (!API_KEY) {
   throw new Error("GEMINI_API_KEY is not set in the environment variables.");
 }
 
+// Initialize the Gemini API
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({
-  model: "gemini-pro",
-  generationConfig: {
-    temperature: 0.2,
-    maxOutputTokens: 256,
-  },
-  safetySettings: [
-    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-  ],
-});
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -41,40 +29,55 @@ async function parseExpenseWithGemini(transcript) {
     if (!transcript || typeof transcript !== "string") {
       return [{ is_unclear: true }];
     }
+    
     const cleanTranscript = transcript.replace(/[{}$`]/g, "");
-    const prompt = `
-      You are a robust, production-grade expense extraction engine. Your task is to extract correct expense details from natural, and sometimes error-prone, voice transcripts.
-      - **Primary Goal**: Understand the user's intent. Correct obvious speech-to-text errors (e.g., "2004 burger" means "200 for burger").
-      - **Currency**: INR (₹).
-      - **Categories**: ["Groceries","Dining","Transport","Shopping","Utilities","Health","Entertainment","Travel","Education","Work","Personal Care","Fuel","Other"].
-      - **Output**: Strict JSON only.
-      - **Fields Required**:
-        - "amount": number (in INR)
-        - "category": string (one of the allowed categories, default "Other" if unknown)
-        - "description": string (default "Voice Entry" if unknown)
-        - "location": string (merchant or place name, or null if not found)
-        - "date": string (ISO date, or null)
-        - "is_unclear": boolean (set to false if amount is found, even if other details are missing)
-      - **Parse this transcript**: "${cleanTranscript}"
-    `;
+    
+    const prompt = `You are an expense extraction AI. Extract expense details from the following text and return ONLY valid JSON.
+
+Rules:
+- Extract the amount (number)
+- Determine category from: Groceries, Dining, Transport, Shopping, Utilities, Health, Entertainment, Travel, Education, Work, Personal Care, Fuel, Other
+- Create a brief description
+- Extract location if mentioned, otherwise null
+- Use current date if not specified, otherwise null
+- Set is_unclear to false if you found an amount
+
+Text: "${cleanTranscript}"
+
+Return JSON in this exact format:
+{
+  "amount": <number>,
+  "category": "<category>",
+  "description": "<description>",
+  "location": null,
+  "date": null,
+  "is_unclear": false
+}`;
 
     const maxRetries = 3;
     let attempt = 0;
+    
     while (attempt < maxRetries) {
       try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
-        const result = await model.generateContent(
-          { contents: [{ role: "user", parts: [{ text: prompt }] }] },
-          { signal: controller.signal }
-        );
-        clearTimeout(timeout);
-        const text = result?.response?.text?.() || "{}";
+        // Get the generative model - use gemini-2.0-flash
+        const model = genAI.getGenerativeModel({ 
+          model: "gemini-2.0-flash",
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 200,
+          }
+        });
+        
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
+        
         console.log("🤖 [Gemini Raw Response]:", text);
 
         // Clean markdown code blocks if present
         const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(cleanText);
+        
         if (validateResult(parsed)) {
           // Normalize to array
           return Array.isArray(parsed) ? parsed : [parsed];
@@ -82,12 +85,13 @@ async function parseExpenseWithGemini(transcript) {
         throw new Error("Invalid schema from AI");
       } catch (err) {
         attempt++;
+        console.log(`⚠️ [Gemini] Attempt ${attempt}/${maxRetries} failed:`, err.message);
         if (attempt >= maxRetries) throw err;
-        await wait(200 * attempt);
+        await wait(500 * attempt);
       }
     }
   } catch (error) {
-    console.error("Gemini parsing failed after retries:", error);
+    console.error("❌ [Gemini] Parsing failed:", error.message);
     return [{ is_unclear: true }];
   }
 }
