@@ -5,7 +5,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import DashboardHome from './pages/DashboardHome';
+import DashboardHomeRedesigned from './pages/DashboardHomeRedesigned';
 import Analytics from './pages/Analytics';
 import History from './pages/History';
 import Categories from './pages/Categories';
@@ -32,7 +32,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<DashboardHome />} />
+            <Route index element={<DashboardHomeRedesigned />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="history" element={<History />} />
             <Route path="categories" element={<Categories />} />

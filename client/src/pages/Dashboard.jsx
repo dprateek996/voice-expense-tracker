@@ -100,10 +100,16 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full bg-black relative">
+      {/* Gradient Background Overlays */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/[0.08] rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-sky-500/[0.08] rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '10s' }} />
+      </div>
+
       <Sidebar />
 
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 relative z-10">
         <TopNav />
 
         <main className="flex flex-col flex-1 gap-4 p-4 sm:p-6 md:p-8">

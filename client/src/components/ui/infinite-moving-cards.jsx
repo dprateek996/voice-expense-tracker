@@ -80,25 +80,25 @@ export const InfiniteMovingCards = ({
       >
         {items.map((item, idx) => (
           <li
-            className="w-[280px] md:w-[320px] max-w-full relative rounded-2xl border border-slate-100 flex-shrink-0 bg-white/80 backdrop-blur-sm px-6 py-5 md:px-8 md:py-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow duration-300"
+            className="w-[280px] md:w-[320px] max-w-full relative rounded-2xl border border-white/10 flex-shrink-0 bg-neutral-900/50 backdrop-blur-xl px-6 py-5 md:px-8 md:py-6 shadow-[0_8px_30px_rgb(0,0,0,0.3)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.5)] hover:border-primary/30 transition-all duration-300"
             key={item.title + idx}
           >
             <div className="relative z-20 flex flex-row items-center justify-between gap-4">
               <span className="flex gap-4 items-center">
-                <div className="relative w-10 h-10 flex items-center justify-center rounded-full bg-slate-50 border border-slate-100">
+                <div className="relative w-10 h-10 flex items-center justify-center rounded-full bg-neutral-800/50 border border-white/10">
                   {typeof item.icon === 'string' ? (
-                    <img src={item.icon} alt={item.title} className="w-6 h-6 object-contain opacity-80" />
+                    <img src={item.icon} alt={item.title} className="w-6 h-6 object-contain opacity-90" />
                   ) : (
-                    <div className="text-slate-500">
+                    <div className="text-neutral-400">
                       {item.icon}
                     </div>
                   )}
                 </div>
-                <span className="text-sm leading-[1.6] text-slate-600 font-medium">
+                <span className="text-sm leading-[1.6] text-neutral-300 font-medium">
                   {item.title}
                 </span>
               </span>
-              <span className="text-lg leading-[1.6] text-slate-900 font-bold tracking-tight">
+              <span className="text-lg leading-[1.6] text-white font-bold tracking-tight">
                 {item.amount}
               </span>
             </div>

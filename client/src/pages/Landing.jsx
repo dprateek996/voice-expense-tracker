@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, ArrowRight, Check, Sparkles, BarChart3, Linkedin, Github, Mail } from 'lucide-react';
+import { Mic, ArrowRight, Check, Sparkles, BarChart3, Linkedin, Github, Mail, Loader, MousePointerClick } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 import { Spotlight } from "@/components/ui/spotlight-new";
@@ -119,7 +119,7 @@ const HeroSection = () => (
 
     {/* Infinite Cards Animation */}
     <div className="mt-20 relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-white/80 via-transparent to-white/80 z-10 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-transparent to-black/90 z-10 pointer-events-none" />
       <InfiniteMovingCards
         items={heroItems}
         direction="right"
@@ -136,111 +136,362 @@ const HeroSection = () => (
 
 const InteractiveDemoSection = () => {
   const [input, setInput] = React.useState("");
-
   const [result, setResult] = useState(null);
   const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState("");
 
   const handleSimulate = () => {
     if (!input) return;
     setIsListening(true);
+    setTranscript(input);
+    
     setTimeout(() => {
       const amount = input.match(/\d+/)?.[0] || "0";
-      const category = input.toLowerCase().includes("food") || input.toLowerCase().includes("lunch") || input.toLowerCase().includes("pizza") ? "Food & Dining" : "General";
-      setResult({ amount, category, vendor: input.replace(/\d+/g, "").trim() || "Unknown" });
+      
+      // Extract vendor from input - better parsing
+      let vendor = "Unknown";
+      const inputLower = input.toLowerCase();
+      
+      // Common patterns: "for X at Y", "at Y for X", "for X"
+      const atMatch = inputLower.match(/at\s+([^,\.]+)/i);
+      const forMatch = inputLower.match(/for\s+([^,\.]+?)(?:\s+at|$)/i);
+      
+      if (atMatch) {
+        vendor = atMatch[1].trim();
+      } else if (forMatch) {
+        vendor = forMatch[1].replace(/\d+/g, '').trim();
+      }
+      
+      // Smart categorization based on keywords
+      let category = "Shopping";
+      
+      if (inputLower.includes("food") || inputLower.includes("lunch") || inputLower.includes("dinner") || 
+          inputLower.includes("breakfast") || inputLower.includes("pizza") || inputLower.includes("restaurant") ||
+          inputLower.includes("cafe") || inputLower.includes("coffee") || inputLower.includes("pasta") ||
+          inputLower.includes("burger") || inputLower.includes("meal")) {
+        category = "Food & Dining";
+      } else if (inputLower.includes("grocery") || inputLower.includes("groceries") || 
+                 inputLower.includes("walmart") || inputLower.includes("supermarket") ||
+                 inputLower.includes("vegetables") || inputLower.includes("fruits")) {
+        category = "Groceries";
+      } else if (inputLower.includes("uber") || inputLower.includes("cab") || inputLower.includes("taxi") ||
+                 inputLower.includes("transport") || inputLower.includes("bus") || inputLower.includes("metro") ||
+                 inputLower.includes("train") || inputLower.includes("flight") || inputLower.includes("gas") ||
+                 inputLower.includes("petrol") || inputLower.includes("fuel")) {
+        category = "Transport";
+      } else if (inputLower.includes("movie") || inputLower.includes("cinema") || inputLower.includes("concert") ||
+                 inputLower.includes("game") || inputLower.includes("entertainment") || inputLower.includes("netflix") ||
+                 inputLower.includes("spotify") || inputLower.includes("subscription")) {
+        category = "Entertainment";
+      } else if (inputLower.includes("medicine") || inputLower.includes("doctor") || inputLower.includes("hospital") ||
+                 inputLower.includes("pharmacy") || inputLower.includes("health") || inputLower.includes("medical")) {
+        category = "Healthcare";
+      } else if (inputLower.includes("bill") || inputLower.includes("electricity") || inputLower.includes("water") ||
+                 inputLower.includes("rent") || inputLower.includes("internet") || inputLower.includes("phone")) {
+        category = "Bills & Utilities";
+      } else if (inputLower.includes("cloth") || inputLower.includes("shirt") || inputLower.includes("shoes") ||
+                 inputLower.includes("dress") || inputLower.includes("fashion") || inputLower.includes("apparel")) {
+        category = "Shopping";
+      }
+      
+      // Capitalize vendor properly
+      vendor = vendor.split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+      
+      setResult({ amount, category, vendor });
       setIsListening(false);
-    }, 800);
+    }, 1200);
+  };
+
+  const resetDemo = () => {
+    setResult(null);
+    setInput("");
+    setTranscript("");
+    setIsListening(false);
   };
 
   return (
-    <div className="py-32 bg-slate-50/50 border-y border-slate-100">
-      <div className="max-w-3xl mx-auto px-4 text-center">
-        <h2 className="text-3xl font-bold text-slate-900 mb-12 font-heading">Try it yourself</h2>
+    <div className="py-32 bg-black relative overflow-hidden">
+      {/* Subtle gradient background - More unique */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/8 via-indigo-500/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-400/6 via-transparent to-transparent pointer-events-none" />
+      
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
+        <div className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/20 mb-6"
+          >
+            <MousePointerClick className="w-4 h-4 text-cyan-400" />
+            <span className="text-sm text-cyan-400 font-medium">Interactive Demo</span>
+          </motion.div>
+          
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-5xl md:text-7xl font-bold text-white mb-6 font-heading tracking-tight"
+          >
+            Try it yourself
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto leading-relaxed"
+          >
+            Experience the magic of voice-powered expense tracking in action
+          </motion.p>
+        </div>
 
-        <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 p-2 max-w-xl mx-auto">
-          <div className="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100 transition-all focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50">
-            <div className={`p-3 rounded-lg transition-colors ${isListening ? 'bg-red-50 text-red-500 animate-pulse' : 'bg-white text-slate-400 shadow-sm'}`}>
-              <Mic className="w-5 h-5" />
-            </div>
-            <input
-              type="text"
-              placeholder="Enter an expense..."
-              className="flex-1 bg-transparent border-none focus:ring-0 text-lg font-medium text-slate-900 placeholder:text-slate-400"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSimulate()}
-            />
-            <Button onClick={handleSimulate} size="sm" className="rounded-lg px-4 bg-slate-900 text-white hover:bg-slate-800">
-              {isListening ? 'Processing...' : 'Simulate'}
-            </Button>
-          </div>
-
-          <AnimatePresence>
-            {result && (
-              <motion.div
-                initial={{ height: 0, opacity: 0, marginTop: 0 }}
-                animate={{ height: "auto", opacity: 1, marginTop: 16 }}
-                exit={{ height: 0, opacity: 0, marginTop: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="p-6 bg-slate-900 rounded-xl text-left text-white mx-1 mb-1 shadow-inner">
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                        <Check className="w-3 h-3 text-emerald-400" />
+        {/* Main Demo Card with Gradient */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="relative max-w-4xl mx-auto"
+        >
+          {/* Gradient Card Background - More unique and subtle */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-indigo-500/15 to-sky-500/20 rounded-[3.5rem] blur-2xl opacity-30" />
+          
+          <div className="relative bg-gradient-to-br from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-3xl rounded-[3rem] shadow-[0_20px_80px_-20px_rgba(0,0,0,0.8)] border border-white/10 p-10 md:p-14 overflow-hidden">
+            {/* Subtle inner glow - More unique colors */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-40 bg-gradient-to-b from-sky-400/8 via-cyan-500/4 to-transparent blur-3xl" />
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/8 rounded-full blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-cyan-500/8 rounded-full blur-3xl" />
+            
+            <div className="relative z-10">
+              {/* Transcript Display */}
+              <div className="min-h-[100px] flex items-center justify-center mb-10">
+                <AnimatePresence mode="wait">
+                  {isListening && (
+                    <motion.div
+                      key="listening"
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-center"
+                    >
+                      <p className="text-2xl md:text-3xl font-semibold text-white mb-3 tracking-tight">{transcript}</p>
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader className="w-4 h-4 text-primary animate-spin" />
+                        <p className="text-sm text-neutral-400 font-medium">Processing your expense...</p>
                       </div>
-                      <span className="font-medium text-slate-300 text-sm">Expense Logged</span>
-                    </div>
-                    <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">JSON Output</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-8">
-                    <div>
-                      <div className="text-[10px] text-slate-500 mb-2 uppercase tracking-wider font-bold">Amount</div>
-                      <div className="text-2xl font-bold text-white">₹{result.amount}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-500 mb-2 uppercase tracking-wider font-bold">Category</div>
-                      <div className="text-xs font-bold text-slate-900 bg-white px-2 py-1 rounded inline-block">{result.category}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-slate-500 mb-2 uppercase tracking-wider font-bold">Vendor</div>
-                      <div className="text-sm font-medium text-slate-300">{result.vendor}</div>
-                    </div>
+                    </motion.div>
+                  )}
+                  {!isListening && !result && (
+                    <motion.div
+                      key="prompt"
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-center"
+                    >
+                      <p className="text-xl md:text-2xl font-medium text-neutral-400 tracking-tight">Type an expense below and click Start</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Input Section - Enhanced Design */}
+              <div className="relative group mb-8">
+                {/* Glow effect on focus/hover - More unique */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-indigo-500/25 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
+                
+                <div className={`relative bg-gradient-to-br from-neutral-800/70 to-neutral-900/70 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] border transition-all duration-300 ${
+                  isListening 
+                    ? 'border-cyan-400/50 shadow-[0_0_40px_-10px_rgba(34,211,238,0.25)]' 
+                    : 'border-white/10 group-hover:border-white/20'
+                }`}>
+                  <div className="flex items-center gap-4 p-5">
+                    <motion.div 
+                      className={`p-4 rounded-2xl transition-all duration-300 ${
+                        isListening 
+                          ? 'bg-cyan-500/15 text-cyan-400 shadow-lg shadow-cyan-500/20' 
+                          : 'bg-neutral-700/50 text-neutral-400 group-hover:bg-neutral-700/70 group-hover:text-neutral-300'
+                      }`}
+                      animate={isListening ? { scale: [1, 1.05, 1] } : {}}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <Mic className="w-5 h-5" />
+                    </motion.div>
+                    <input
+                      type="text"
+                      placeholder="Try: 500 for groceries at walmart"
+                      className="flex-1 bg-transparent border-none focus:outline-none focus:ring-0 text-base md:text-lg font-medium text-white placeholder:text-neutral-500/80"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && !isListening && input && handleSimulate()}
+                      disabled={isListening}
+                    />
+                    <Button 
+                      onClick={handleSimulate} 
+                      disabled={!input || isListening}
+                      className="rounded-2xl px-8 py-3 bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-white font-semibold shadow-lg shadow-cyan-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      {isListening ? (
+                        <span className="flex items-center gap-2">
+                          <Loader className="w-4 h-4 animate-spin" />
+                          Processing
+                        </span>
+                      ) : (
+                        'Start'
+                      )}
+                    </Button>
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+              </div>
+
+              {/* Result Display */}
+              <AnimatePresence>
+                {result && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0, y: -20 }}
+                    animate={{ height: "auto", opacity: 1, y: 0 }}
+                    exit={{ height: 0, opacity: 0, y: -20 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="overflow-hidden mb-8"
+                  >
+                    <div className="relative group">
+                      {/* Success glow - Enhanced */}
+                      <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/30 via-primary/20 to-emerald-500/30 rounded-[2rem] blur-xl opacity-70" />
+                      
+                      <div className="relative p-8 bg-gradient-to-br from-neutral-800/80 to-neutral-900/80 backdrop-blur-xl rounded-[2rem] text-left text-white shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] border border-emerald-500/30">
+                        <div className="flex items-center justify-between mb-8">
+                          <div className="flex items-center gap-3">
+                            <motion.div 
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: "spring", delay: 0.2 }}
+                              className="w-11 h-11 rounded-2xl bg-emerald-500/20 flex items-center justify-center ring-2 ring-emerald-500/40 shadow-lg shadow-emerald-500/20"
+                            >
+                              <Check className="w-6 h-6 text-emerald-400" />
+                            </motion.div>
+                            <div>
+                              <span className="font-semibold text-white text-lg block">Expense Logged!</span>
+                              <span className="text-xs text-neutral-400">Successfully saved to your account</span>
+                            </div>
+                          </div>
+                          <Button
+                            onClick={resetDemo}
+                            size="sm"
+                            variant="ghost"
+                            className="text-neutral-400 hover:text-white hover:bg-white/10 rounded-xl transition-all hover:scale-105 active:scale-95"
+                          >
+                            Try Again
+                          </Button>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-8">
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="space-y-2"
+                          >
+                            <div className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Amount</div>
+                            <div className="text-4xl font-bold text-white tracking-tight">₹{result.amount}</div>
+                          </motion.div>
+                          
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="space-y-2"
+                          >
+                            <div className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Category</div>
+                            <div className="inline-flex items-center text-sm font-semibold bg-gradient-to-r from-cyan-500 to-sky-500 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-cyan-500/25">
+                              {result.category}
+                            </div>
+                          </motion.div>
+                          
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="space-y-2"
+                          >
+                            <div className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Vendor</div>
+                            <div className="text-base font-semibold text-neutral-200 break-words">{result.vendor}</div>
+                          </motion.div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Example Prompts */}
+              {!result && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="mt-10 text-center"
+                >
+                  <p className="text-sm text-neutral-500 mb-5 font-medium tracking-wide">Try these examples:</p>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    {[
+                      "500 for groceries at walmart",
+                      "150 for lunch at pizza hut",
+                      "50 for uber to office"
+                    ].map((example, index) => (
+                      <motion.button
+                        key={example}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 + index * 0.1 }}
+                        onClick={() => setInput(example)}
+                        className="group relative px-6 py-3 text-sm font-medium text-neutral-300 bg-neutral-800/40 hover:bg-neutral-800/70 border border-white/10 hover:border-cyan-400/30 rounded-2xl transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg overflow-hidden"
+                      >
+                        <span className="relative z-10">{example}</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-sky-500/8 to-cyan-500/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );
 };
 
 const Footer = () => (
-  <footer className="bg-white py-12 border-t border-slate-100">
+  <footer className="bg-neutral-950 py-12 border-t border-white/5">
     <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-900 font-bold">
+          <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold">
             <span className="font-heading text-xs">V</span>
           </div>
-          <span className="text-sm font-bold text-slate-900 tracking-tight font-heading">VoEx</span>
+          <span className="text-sm font-bold text-white tracking-tight font-heading">VoEx</span>
         </div>
-        <p className="text-xs text-slate-400">Voice-powered expense tracking</p>
+        <p className="text-xs text-neutral-500">Voice-powered expense tracking</p>
       </div>
 
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-neutral-500">
         © {new Date().getFullYear()} Voice Expense Tracker. All rights reserved.
       </p>
 
       <div className="flex gap-6 items-center">
-        <a href="#" className="text-slate-400 hover:text-slate-900 transition-colors">
+        <a href="#" className="text-neutral-400 hover:text-primary transition-colors">
           <Github className="w-5 h-5" />
         </a>
-        <a href="#" className="text-slate-400 hover:text-slate-900 transition-colors">
+        <a href="#" className="text-neutral-400 hover:text-primary transition-colors">
           <Linkedin className="w-5 h-5" />
         </a>
-        <a href="#" className="text-slate-400 hover:text-slate-900 transition-colors">
+        <a href="#" className="text-neutral-400 hover:text-primary transition-colors">
           <Mail className="w-5 h-5" />
         </a>
       </div>
@@ -253,37 +504,38 @@ const Footer = () => (
 /* ------------------------------------------------------------------ */
 
 const PricingSection = () => (
-  <div className="py-20 bg-slate-50 border-y border-slate-100">
+  <div className="py-20 bg-black/[0.96] border-y border-white/5">
     <div className="max-w-7xl mx-auto px-4 text-center">
-      <h2 className="text-3xl font-bold text-slate-900 mb-12 font-heading">Simple, transparent pricing</h2>
+      <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 font-heading">Simple, transparent pricing</h2>
+      <p className="text-neutral-400 mb-12 max-w-2xl mx-auto">Start free, upgrade when you need more</p>
       <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         {/* Free Plan */}
-        <div className="p-8 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-          <h3 className="text-xl font-bold text-slate-900 mb-2">Free Forever</h3>
-          <div className="text-4xl font-bold text-slate-900 mb-6">₹0<span className="text-lg text-slate-500 font-normal">/mo</span></div>
+        <div className="p-8 rounded-2xl bg-neutral-900/50 backdrop-blur-xl border border-white/10 shadow-xl hover:border-white/20 transition-all hover:shadow-2xl">
+          <h3 className="text-xl font-bold text-white mb-2">Free Forever</h3>
+          <div className="text-4xl font-bold text-white mb-6">₹0<span className="text-lg text-neutral-400 font-normal">/mo</span></div>
           <ul className="space-y-3 text-left mb-8">
             {['Voice expense logging', 'Basic analytics', 'Export to CSV', '50 expenses/month'].map((feature, i) => (
-              <li key={i} className="flex items-center gap-2 text-slate-600">
+              <li key={i} className="flex items-center gap-2 text-neutral-300">
                 <Check className="w-4 h-4 text-primary" /> {feature}
               </li>
             ))}
           </ul>
-          <Button variant="outline" className="w-full rounded-full border-slate-200">Get Started</Button>
+          <Button variant="outline" className="w-full rounded-full border-white/20 bg-white/5 hover:bg-white/10 text-white">Get Started</Button>
         </div>
 
         {/* Pro Plan */}
-        <div className="p-8 rounded-2xl bg-slate-900 text-white shadow-xl relative overflow-hidden">
+        <div className="p-8 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-primary/50 text-white shadow-2xl shadow-primary/20 relative overflow-hidden hover:shadow-primary/30 transition-all">
           <div className="absolute top-0 right-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-bl-lg">POPULAR</div>
           <h3 className="text-xl font-bold text-white mb-2">Pro</h3>
-          <div className="text-4xl font-bold text-white mb-6">₹199<span className="text-lg text-slate-400 font-normal">/mo</span></div>
+          <div className="text-4xl font-bold text-white mb-6">₹199<span className="text-lg text-neutral-300 font-normal">/mo</span></div>
           <ul className="space-y-3 text-left mb-8">
             {['Unlimited voice logging', 'Receipt scanning (AI)', 'Advanced insights', 'Priority support'].map((feature, i) => (
-              <li key={i} className="flex items-center gap-2 text-slate-300">
+              <li key={i} className="flex items-center gap-2 text-white">
                 <Check className="w-4 h-4 text-primary" /> {feature}
               </li>
             ))}
           </ul>
-          <Button className="w-full rounded-full bg-primary hover:bg-primary/90 text-white">Start Free Trial</Button>
+          <Button className="w-full rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25">Start Free Trial</Button>
         </div>
       </div>
     </div>
@@ -295,21 +547,22 @@ const PricingSection = () => (
 /* ------------------------------------------------------------------ */
 
 const HowItWorksSection = () => (
-  <div className="py-20 bg-white">
+  <div className="py-20 bg-neutral-950 border-t border-white/5">
     <div className="max-w-7xl mx-auto px-4 text-center">
-      <h2 className="text-3xl font-bold text-slate-900 mb-12 font-heading">How it works</h2>
+      <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 font-heading">How it works</h2>
+      <p className="text-neutral-400 mb-12 max-w-2xl mx-auto">Three simple steps to effortless expense tracking</p>
       <div className="grid md:grid-cols-3 gap-8">
         {[
-          { title: "Add", description: "Input your expense details.", icon: Mic },
-          { title: "Process", description: "AI extracts the details instantly.", icon: Sparkles },
-          { title: "Track", description: "It's added to your dashboard.", icon: BarChart3 }
+          { title: "Speak", description: "Just say your expense naturally - no complex commands needed.", icon: Mic },
+          { title: "AI Magic", description: "Our AI instantly extracts amount, category, and details.", icon: Sparkles },
+          { title: "Track", description: "View insights and analytics on your beautiful dashboard.", icon: BarChart3 }
         ].map((item, index) => (
-          <div key={index} className="p-8 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center text-center hover:shadow-lg transition-shadow duration-300">
-            <div className="p-4 bg-white rounded-full shadow-sm mb-6 text-primary">
+          <div key={index} className="p-8 rounded-2xl bg-neutral-900/50 backdrop-blur-xl border border-white/10 flex flex-col items-center text-center hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 group">
+            <div className="p-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full mb-6 text-primary group-hover:scale-110 transition-transform duration-300">
               <item.icon className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-3">{item.title}</h3>
-            <p className="text-slate-600 leading-relaxed">{item.description}</p>
+            <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
+            <p className="text-neutral-400 leading-relaxed">{item.description}</p>
           </div>
         ))}
       </div>
@@ -323,7 +576,7 @@ const HowItWorksSection = () => (
 
 const Landing = () => {
   return (
-    <div className="min-h-screen bg-white bg-grain selection:bg-primary/20">
+    <div className="min-h-screen bg-black antialiased selection:bg-primary/20">
       <Navbar />
       <HeroSection />
       <InteractiveDemoSection />

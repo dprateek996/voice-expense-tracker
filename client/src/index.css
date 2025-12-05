@@ -154,6 +154,16 @@
   @apply hover:bg-slate-900/80;
 }
 
+/* Shimmer animation for header gradient */
+@keyframes shimmer {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
 /* Grid Background Pattern */
 .bg-grid-white\/\[0\.02\] {
   background-image: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
@@ -239,4 +249,18 @@
 
 .animate-spotlight {
   animation: spotlight 2s ease 0.75s 1 forwards;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% - 1rem));
+  }
+}
+
+.animate-scroll {
+  animation: scroll var(--animation-duration, 40s) linear infinite;
+  animation-direction: var(--animation-direction, forwards);
 }
