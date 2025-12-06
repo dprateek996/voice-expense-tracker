@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import useExpenseStore from '@/store/expenseStore';
 import useVoiceStore from '@/store/voiceStore';
 import useAuthStore from '@/store/authStore';
@@ -63,18 +64,23 @@ const useCountUp = (end, duration = 1000) => {
 };
 
 const DashboardHomeRedesigned = () => {
-  const { expenses, fetchExpenses, budget } = useExpenseStore();
+  const { expenses, fetchExpenses, budget, loading } = useExpenseStore();
   const { open } = useVoiceStore();
   const { user } = useAuthStore();
   
   const [dateRange, setDateRange] = useState('week');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredExpenses, setFilteredExpenses] = useState([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    if (expenses.length === 0) {
-      fetchExpenses();
-    }
+    const loadData = async () => {
+      if (expenses.length === 0) {
+        await fetchExpenses();
+      }
+      setIsInitialLoad(false);
+    };
+    loadData();
   }, [fetchExpenses, expenses.length]);
 
   // Calculate date-filtered expenses
@@ -138,17 +144,42 @@ const DashboardHomeRedesigned = () => {
   const budgetLeft = budget - monthTotal;
   const budgetPercentage = budget > 0 ? (monthTotal / budget) * 100 : 0;
 
-  // Calculate AI insights
-  const getFinancialInsight = () => {
-    if (budgetPercentage > 90) return { type: 'warning', message: "You're close to your budget limit. Consider reducing spending." };
-    if (budgetPercentage < 50) return { type: 'success', message: "You're on track financially! Keep up the good work." };
-    if (weekTotal > monthTotal * 0.3) return { type: 'info', message: "Your spending is higher than usual this week." };
-    return { type: 'success', message: "Your financial health looks stable this week." };
-  };
+  // Calculate previous periods for comparison
+  const yesterday = expenses.filter(exp => {
+    const expDate = new Date(exp.date);
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    return expDate.toDateString() === yesterdayDate.toDateString();
+  }).reduce((sum, exp) => sum + (exp.amount || 0), 0);
+  
+  const lastWeek = expenses.filter(exp => {
+    const expDate = new Date(exp.date);
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+    return expDate >= twoWeeksAgo && expDate < weekAgo;
+  }).reduce((sum, exp) => sum + (exp.amount || 0), 0);
 
-  const insight = getFinancialInsight();
+  const lastMonth = expenses.filter(exp => {
+    const expDate = new Date(exp.date);
+    const now = new Date();
+    const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    return expDate >= lastMonthDate && expDate <= lastMonthEnd;
+  }).reduce((sum, exp) => sum + (exp.amount || 0), 0);
 
-  // Category breakdown
+  // Calculate percentage changes
+  const todayChange = yesterday > 0 ? ((todaysTotal - yesterday) / yesterday) * 100 : 0;
+  const weekChange = lastWeek > 0 ? ((weekTotal - lastWeek) / lastWeek) * 100 : 0;
+  const monthChange = lastMonth > 0 ? ((monthTotal - lastMonth) / lastMonth) * 100 : 0;
+
+  // Count-up animations - ALWAYS call these hooks
+  const todayCount = useCountUp(todaysTotal, 1000);
+  const weekCount = useCountUp(weekTotal, 1000);
+  const monthCount = useCountUp(monthTotal, 1000);
+  const budgetLeftCount = useCountUp(Math.max(0, budgetLeft), 1000);
+
+  // Category breakdown - calculate BEFORE getFinancialInsight
   const categoryData = {};
   filteredExpenses.forEach(exp => {
     const cat = exp.category || 'Other';
@@ -163,6 +194,76 @@ const DashboardHomeRedesigned = () => {
       color: getCategoryColor(name)
     }))
     .sort((a, b) => b.value - a.value);
+
+  // Calculate AI insights with actionable tips
+  const getFinancialInsight = () => {
+    const topCategory = categoryArray[0];
+    const dailyAvg = monthTotal / new Date().getDate();
+    const projectedMonthSpend = dailyAvg * 30;
+    
+    // Critical budget warning
+    if (budgetPercentage > 90) {
+      return { 
+        type: 'warning', 
+        message: "Budget Alert: You've used 90% of your monthly budget!",
+        action: `Try to limit spending to ₹${Math.floor(budgetLeft / (30 - new Date().getDate()))} per day`,
+        icon: '🚨'
+      };
+    }
+    
+    // Projected overspend
+    if (projectedMonthSpend > budget && budgetPercentage > 50) {
+      const daysLeft = 30 - new Date().getDate();
+      const dailyTarget = budgetLeft / daysLeft;
+      return {
+        type: 'warning',
+        message: "You're on track to exceed your budget",
+        action: `Reduce daily spending to ₹${Math.floor(dailyTarget)} to stay on budget`,
+        icon: '⚠️'
+      };
+    }
+    
+    // High category spending
+    if (topCategory && topCategory.percentage > 40) {
+      return {
+        type: 'info',
+        message: `${topCategory.name} is ${topCategory.percentage.toFixed(0)}% of your spending`,
+        action: `Consider setting a limit for ${topCategory.name} expenses`,
+        icon: '💡'
+      };
+    }
+    
+    // Week over week increase
+    if (weekChange > 25) {
+      return {
+        type: 'info',
+        message: `Spending up ${weekChange.toFixed(0)}% from last week`,
+        action: "Review recent transactions and identify any unnecessary expenses",
+        icon: '📈'
+      };
+    }
+    
+    // Healthy spending
+    if (budgetPercentage < 50) {
+      const canSave = budgetLeft - (projectedMonthSpend - monthTotal);
+      return {
+        type: 'success',
+        message: "Great job! You're well within budget",
+        action: canSave > 0 ? `You could save ₹${Math.floor(canSave)} this month` : "Keep up the disciplined spending",
+        icon: '✨'
+      };
+    }
+    
+    // Default stable
+    return {
+      type: 'success',
+      message: "Your spending is stable and controlled",
+      action: "Continue monitoring to maintain financial health",
+      icon: '👍'
+    };
+  };
+
+  const insight = getFinancialInsight();
 
   // Filter categories >= 5%
   const significantCategories = categoryArray.filter(cat => cat.percentage >= 5);
@@ -227,15 +328,31 @@ const DashboardHomeRedesigned = () => {
           <Card className="bg-gradient-to-br from-neutral-900/60 to-neutral-900/40 backdrop-blur-xl border-white/10 rounded-xl overflow-hidden">
             <CardContent className="p-5">
               <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                <div className="flex-1">
+                  <h1 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
                     👋 Welcome back, {user?.name || 'User'}!
                   </h1>
-                  <p className={`text-sm ${insight.type === 'warning' ? 'text-orange-400' : insight.type === 'success' ? 'text-green-400' : 'text-cyan-400'}`}>
-                    {insight.message}
-                  </p>
+                  <div className={`flex items-start gap-2 p-3 rounded-lg ${
+                    insight.type === 'warning' ? 'bg-orange-500/10 border border-orange-500/20' :
+                    insight.type === 'success' ? 'bg-green-500/10 border border-green-500/20' :
+                    'bg-cyan-500/10 border border-cyan-500/20'
+                  }`}>
+                    <span className="text-xl">{insight.icon}</span>
+                    <div className="flex-1">
+                      <p className={`text-sm font-semibold mb-1 ${
+                        insight.type === 'warning' ? 'text-orange-300' :
+                        insight.type === 'success' ? 'text-green-300' :
+                        'text-cyan-300'
+                      }`}>
+                        {insight.message}
+                      </p>
+                      <p className="text-xs text-white/60">
+                        💡 {insight.action}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs px-3 py-1">
+                <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-400 text-xs px-3 py-1 ml-4">
                   AI Powered
                 </Badge>
               </div>
@@ -245,6 +362,30 @@ const DashboardHomeRedesigned = () => {
 
         {/* 🔷 SECTION 3: KPI GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {isInitialLoad ? (
+            // Loading Skeletons
+            <>
+              {[...Array(4)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <Card className="bg-gradient-to-br from-neutral-900/60 to-neutral-900/40 backdrop-blur-xl border-white/10 rounded-xl">
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <Skeleton className="h-10 w-10 rounded-xl" />
+                      </div>
+                      <Skeleton className="h-9 w-32 mb-2" />
+                      <Skeleton className="h-4 w-24" />
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </>
+          ) : (
+            <>
           {/* Today's Spend */}
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
             <Card className="bg-gradient-to-br from-neutral-900/60 to-neutral-900/40 backdrop-blur-xl border-white/10 rounded-xl hover:border-white/20 transition-all">
@@ -253,9 +394,24 @@ const DashboardHomeRedesigned = () => {
                   <div className="h-10 w-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
                     <Calendar className="h-5 w-5 text-cyan-400" />
                   </div>
+                  {yesterday > 0 && (
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${todayChange > 0 ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                      {todayChange > 0 ? (
+                        <ArrowUpRight className="h-3 w-3 text-red-400" />
+                      ) : (
+                        <ArrowDownRight className="h-3 w-3 text-green-400" />
+                      )}
+                      <span className={`text-xs font-semibold ${todayChange > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        {Math.abs(todayChange).toFixed(0)}%
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">₹{useCountUp(todaysTotal, 1000).toLocaleString()}</div>
+                <div className="text-3xl font-bold text-white mb-1">₹{todayCount.toLocaleString()}</div>
                 <div className="text-sm text-white/50">Today's Spend</div>
+                {yesterday > 0 && (
+                  <div className="text-xs text-white/40 mt-1">vs yesterday ₹{yesterday.toFixed(0)}</div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -268,9 +424,24 @@ const DashboardHomeRedesigned = () => {
                   <div className="h-10 w-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
                     <TrendingUp className="h-5 w-5 text-purple-400" />
                   </div>
+                  {lastWeek > 0 && (
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${weekChange > 0 ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                      {weekChange > 0 ? (
+                        <ArrowUpRight className="h-3 w-3 text-red-400" />
+                      ) : (
+                        <ArrowDownRight className="h-3 w-3 text-green-400" />
+                      )}
+                      <span className={`text-xs font-semibold ${weekChange > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        {Math.abs(weekChange).toFixed(0)}%
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">₹{useCountUp(weekTotal, 1000).toLocaleString()}</div>
+                <div className="text-3xl font-bold text-white mb-1">₹{weekCount.toLocaleString()}</div>
                 <div className="text-sm text-white/50">This Week</div>
+                {lastWeek > 0 && (
+                  <div className="text-xs text-white/40 mt-1">vs last week ₹{lastWeek.toFixed(0)}</div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -283,33 +454,88 @@ const DashboardHomeRedesigned = () => {
                   <div className="h-10 w-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
                     <Wallet className="h-5 w-5 text-blue-400" />
                   </div>
+                  {lastMonth > 0 && (
+                    <div className={`flex items-center gap-1 px-2 py-1 rounded-lg ${monthChange > 0 ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                      {monthChange > 0 ? (
+                        <ArrowUpRight className="h-3 w-3 text-red-400" />
+                      ) : (
+                        <ArrowDownRight className="h-3 w-3 text-green-400" />
+                      )}
+                      <span className={`text-xs font-semibold ${monthChange > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                        {Math.abs(monthChange).toFixed(0)}%
+                      </span>
+                    </div>
+                  )}
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">₹{useCountUp(monthTotal, 1000).toLocaleString()}</div>
+                <div className="text-3xl font-bold text-white mb-1">₹{monthCount.toLocaleString()}</div>
                 <div className="text-sm text-white/50">This Month</div>
+                {lastMonth > 0 && (
+                  <div className="text-xs text-white/40 mt-1">vs last month ₹{lastMonth.toFixed(0)}</div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
 
           {/* Budget Left */}
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }}>
-            <Card className="bg-gradient-to-br from-neutral-900/60 to-neutral-900/40 backdrop-blur-xl border-white/10 rounded-xl hover:border-white/20 transition-all">
+            <Card className={`bg-gradient-to-br from-neutral-900/60 to-neutral-900/40 backdrop-blur-xl rounded-xl hover:border-white/20 transition-all ${
+              budgetPercentage > 90 ? 'border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.15)]' :
+              budgetPercentage > 75 ? 'border-orange-500/30 shadow-[0_0_20px_rgba(249,115,22,0.15)]' :
+              budgetPercentage > 50 ? 'border-yellow-500/30' :
+              'border-green-500/30'
+            }`}>
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="h-10 w-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                    <Target className="h-5 w-5 text-green-400" />
+                  <div className={`h-10 w-10 rounded-xl flex items-center justify-center ${
+                    budgetPercentage > 90 ? 'bg-red-500/10' :
+                    budgetPercentage > 75 ? 'bg-orange-500/10' :
+                    budgetPercentage > 50 ? 'bg-yellow-500/10' :
+                    'bg-green-500/10'
+                  }`}>
+                    <Target className={`h-5 w-5 ${
+                      budgetPercentage > 90 ? 'text-red-400' :
+                      budgetPercentage > 75 ? 'text-orange-400' :
+                      budgetPercentage > 50 ? 'text-yellow-400' :
+                      'text-green-400'
+                    }`} />
+                  </div>
+                  <div className={`px-3 py-1.5 rounded-lg font-semibold text-xs ${
+                    budgetPercentage > 90 ? 'bg-red-500/20 text-red-300' :
+                    budgetPercentage > 75 ? 'bg-orange-500/20 text-orange-300' :
+                    budgetPercentage > 50 ? 'bg-yellow-500/20 text-yellow-300' :
+                    'bg-green-500/20 text-green-300'
+                  }`}>
+                    {budgetPercentage > 90 ? '🔴 Critical' :
+                     budgetPercentage > 75 ? '⚠️ Warning' :
+                     budgetPercentage > 50 ? '⚡ Moderate' :
+                     '✅ Healthy'}
                   </div>
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">₹{useCountUp(Math.max(0, budgetLeft), 1000).toLocaleString()}</div>
+                <div className="text-3xl font-bold text-white mb-1">₹{budgetLeftCount.toLocaleString()}</div>
                 <div className="text-sm text-white/50">Budget Left</div>
-                <div className="mt-3 h-2 bg-white/10 rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full ${budgetPercentage > 90 ? 'bg-red-500' : budgetPercentage > 70 ? 'bg-orange-500' : 'bg-green-500'}`}
-                    style={{ width: `${Math.min(budgetPercentage, 100)}%` }}
-                  />
+                <div className="mt-3 h-2.5 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(budgetPercentage, 100)}%` }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    className={`h-full relative ${
+                      budgetPercentage > 90 ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                      budgetPercentage > 75 ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                      budgetPercentage > 50 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                      'bg-gradient-to-r from-green-500 to-green-600'
+                    }`}
+                  >
+                    <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                  </motion.div>
+                </div>
+                <div className="text-xs text-white/40 mt-2">
+                  {budgetPercentage.toFixed(1)}% of ₹{budget.toLocaleString()} used
                 </div>
               </CardContent>
             </Card>
           </motion.div>
+            </>
+          )}
         </div>
 
         {/* Main Content Grid: Chart + Sidebar */}
@@ -356,11 +582,51 @@ const DashboardHomeRedesigned = () => {
                       <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} />
                       <YAxis axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} tickFormatter={(value) => `₹${value}`} />
                       <Tooltip
-                        contentStyle={{ backgroundColor: 'rgba(20, 20, 30, 0.95)', borderRadius: '12px', border: '1px solid rgba(62,166,255,0.3)', backdropFilter: 'blur(10px)' }}
-                        itemStyle={{ color: '#fff' }}
-                        labelStyle={{ color: 'rgba(255,255,255,0.7)' }}
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload;
+                            const expenses = filteredExpenses.filter(exp => {
+                              const expDate = new Date(exp.date);
+                              return expDate.toDateString() === data.fullDate.toDateString();
+                            });
+                            const topExpense = expenses.reduce((max, exp) => exp.amount > max.amount ? exp : max, { amount: 0 });
+                            
+                            return (
+                              <div className="bg-neutral-900/98 backdrop-blur-xl border-2 border-[#3EA6FF]/30 rounded-xl p-4 shadow-2xl">
+                                <p className="text-white font-bold mb-2 text-sm">{data.date}</p>
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between gap-4">
+                                    <span className="text-white/60 text-xs">Total Spent:</span>
+                                    <span className="text-[#3EA6FF] font-bold text-base">₹{payload[0].value.toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex items-center justify-between gap-4">
+                                    <span className="text-white/60 text-xs">Transactions:</span>
+                                    <span className="text-white font-semibold text-sm">{expenses.length}</span>
+                                  </div>
+                                  {topExpense.amount > 0 && (
+                                    <div className="pt-2 border-t border-white/10">
+                                      <div className="text-white/60 text-xs mb-1">Largest Expense:</div>
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="text-white/80 text-xs truncate">{topExpense.description || topExpense.category}</span>
+                                        <span className="text-orange-400 font-semibold text-sm">₹{topExpense.amount.toFixed(0)}</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
                       />
-                      <Area type="monotone" dataKey="amount" stroke="#3EA6FF" strokeWidth={2} fill="url(#colorAmount)" />
+                      <Area 
+                        type="monotone" 
+                        dataKey="amount" 
+                        stroke="#3EA6FF" 
+                        strokeWidth={2} 
+                        fill="url(#colorAmount)"
+                        activeDot={{ r: 6, fill: '#3EA6FF', stroke: '#fff', strokeWidth: 2 }}
+                      />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>

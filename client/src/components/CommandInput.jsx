@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Mic } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Mic, Type } from "lucide-react";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { AIInputWithLoading } from "./ui/ai-input-with-loading";
+import { AIVoiceInput } from "./ui/ai-voice-input";
 import { playStartSound, playStopSound } from "@/lib/audioUtils";
 import useVoiceStore from "@/store/voiceStore";
 
@@ -12,10 +14,12 @@ const CommandInput = ({
   isListening,
   transcript,
   startListening,
-  stopListening
+  stopListening,
+  onTextSubmit
 }) => {
 
   const [text, setText] = useState("");
+  const [inputMode, setInputMode] = useState('voice'); // 'voice' or 'text'
   const voiceStore = useVoiceStore();
   const lastInterimRef = useRef("");
 
@@ -23,113 +27,120 @@ const CommandInput = ({
   useEffect(() => {
     if (isListening && transcript) {
       setText(transcript);
+      lastInterimRef.current = transcript;
     }
   }, [isListening, transcript]);
 
   // -------------------------------
-  // Handle speech recognition result
+  // Handle text submission from AI Input
   // -------------------------------
-  const handleResult = ({ finalTranscript, interimTranscript }) => {
-    if (interimTranscript) {
-      lastInterimRef.current = interimTranscript;
-      setText(interimTranscript);
-    }
-
-    if (finalTranscript) {
-      playStopSound();
-      stopListening();
-      onVoiceCommand(finalTranscript.trim());
-    }
-  };
-
-  // -------------------------------
-  // Manual invocation from parent
-  // -------------------------------
-  const handleEnd = (finalTranscript) => {
-    const final = finalTranscript || lastInterimRef.current;
-    if (final?.trim()) {
-      onVoiceCommand(final.trim());
-    }
-  };
-
-  // -------------------------------
-  // Text submission
-  // -------------------------------
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!text.trim()) return;
-
-    onTextCommand(text.trim());
-    setText("");
+  const handleTextSubmit = async (textInput) => {
+    if (!textInput.trim()) return;
+    
+    voiceStore.setState('processing');
+    await onTextSubmit?.(textInput.trim(), 'text');
     voiceStore.close();
   };
 
   // -------------------------------
-  // Handle mic toggle
+  // Handle voice toggle
   // -------------------------------
-  const toggleListening = () => {
+  const handleVoiceToggle = (isRecording) => {
     if (isProcessing) return;
 
-    if (isListening) {
-      playStopSound();
-      stopListening();
-    } else {
+    if (isRecording) {
       playStartSound();
       setText("");
       startListening();
       voiceStore.setState("listening");
+    } else {
+      playStopSound();
+      const final = lastInterimRef.current || transcript;
+      stopListening();
+      
+      if (final?.trim()) {
+        onVoiceCommand(final.trim());
+      }
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
-      <div className="relative flex items-center gap-2 sm:gap-3">
-
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={
-            isListening
-              ? "Listening... Speak clearly!"
-              : "Type or say: '500 for groceries'"
-          }
-          disabled={isProcessing}
-          className="flex-1 h-12 sm:h-14 pl-4 sm:pl-5 pr-20 sm:pr-28 text-base sm:text-lg rounded-full bg-background border-border shadow-sm
-                     focus-visible:ring-primary focus-visible:ring-2 focus-visible:border-transparent transition-all duration-200"
-        />
-
-        <div className="flex items-center gap-1 sm:gap-2">
-
-          {text && !isListening && (
-            <Button
-              type="submit"
-              size="icon"
-              className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-primary hover:bg-primary/90"
-              disabled={isProcessing}
-            >
-              <Send className="h-4 w-4 sm:h-5 sm:w-5" />
-            </Button>
-          )}
-
-          <Button
+    <div className="w-full">
+      {/* Mode Toggle */}
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <div className="flex items-center gap-1 bg-black/40 rounded-lg p-1">
+          <button
+            onClick={() => setInputMode('voice')}
+            className={`p-2 rounded-md transition-all ${
+              inputMode === 'voice'
+                ? 'bg-[#3EA6FF] text-white'
+                : 'text-white/50 hover:text-white/70'
+            }`}
+            title="Voice input"
             type="button"
-            size="icon"
-            onClick={toggleListening}
-            className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full transition-colors ${isListening ? "bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
-              }`}
-            disabled={isProcessing}
           >
-            <Mic className="h-4 w-4 sm:h-5 sm:w-5" />
-          </Button>
-
+            <Mic className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setInputMode('text')}
+            className={`p-2 rounded-md transition-all ${
+              inputMode === 'text'
+                ? 'bg-[#3EA6FF] text-white'
+                : 'text-white/50 hover:text-white/70'
+            }`}
+            title="Text input"
+            type="button"
+          >
+            <Type className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* Helper Text */}
-      <p className="text-xs sm:text-sm text-muted-foreground text-center mt-3 px-4">
-        {isListening ? "Tap mic again to stop" : "Voice or text - your choice!"}
-      </p>
-    </form>
+      {/* Input Area */}
+      <AnimatePresence mode="wait">
+        {inputMode === 'voice' ? (
+          <motion.div
+            key="voice"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.2 }}
+          >
+            <AIVoiceInput
+              onToggle={handleVoiceToggle}
+              isRecording={isListening}
+              visualizerBars={40}
+              className="py-2"
+            />
+            {transcript && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-4 bg-black/40 border border-white/10 rounded-xl"
+              >
+                <p className="text-sm text-white/50 mb-1">Transcript:</p>
+                <p className="text-white">{transcript}</p>
+              </motion.div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="text"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+          >
+            <AIInputWithLoading
+              placeholder="e.g., 500 for groceries, 1200 for dinner"
+              onSubmit={handleTextSubmit}
+              loadingDuration={2000}
+              className="py-2"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
 

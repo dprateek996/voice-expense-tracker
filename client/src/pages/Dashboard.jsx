@@ -8,7 +8,7 @@ import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { expenseApi } from '@/api/expense.api';
 import useExpenseStore from '@/store/expenseStore';
 import useVoiceStore from '@/store/voiceStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { playOpenSound } from '@/lib/audioUtils';
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import ExpenseConfirmation from '@/components/ExpenseConfirmation';
@@ -43,6 +43,37 @@ const Dashboard = () => {
     setDialogOpen(true);
   };
 
+  // ⌨️ KEYBOARD SHORTCUTS
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Cmd/Ctrl + K to open add expense
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (!voiceStore.isOpen) {
+          playOpenSound();
+          open();
+          toast.info('Add Expense opened - Press Esc to close', {
+            duration: 2000,
+            icon: '⌨️',
+          });
+        }
+      }
+      
+      // Esc to close
+      if (e.key === 'Escape') {
+        if (voiceStore.isOpen) {
+          close();
+          if (isListening) stopListening();
+        }
+        if (dialogOpen) setDialogOpen(false);
+        if (confirmationData) setConfirmationData(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [voiceStore.isOpen, open, close, dialogOpen, confirmationData, isListening, stopListening]);
+
   // 🌐 PARSE + SAVE
   const parseAndSaveExpense = async (finalTranscript, source = 'voice') => {
     setDialogOpen(false);
@@ -58,13 +89,13 @@ const Dashboard = () => {
       // Show confirmation card instead of just toast
       setConfirmationData(result.expenses || [result.expense]);
 
-      // Show custom success toast with checkmark animation
+      // Show enhanced success toast with animation
       toast.success(
         <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+          <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
             <svg 
               viewBox="0 0 24 24" 
-              className="w-5 h-5 text-white"
+              className="w-6 h-6 text-white animate-[scale-in_0.3s_ease-out]"
               fill="none" 
               stroke="currentColor" 
               strokeWidth="3"
@@ -75,25 +106,61 @@ const Dashboard = () => {
             </svg>
           </div>
           <div>
-            <p className="font-semibold text-white">Expense Added Successfully!</p>
-            <p className="text-sm text-white/80">₹{totalAmount.toFixed(2)} added to {count > 1 ? `${count} expenses` : firstDesc}</p>
+            <p className="font-bold text-white text-base">Expense Added! ✨</p>
+            <p className="text-sm text-white/90 mt-0.5">
+              ₹{totalAmount.toFixed(2)} • {count > 1 ? `${count} items` : firstDesc}
+            </p>
           </div>
         </div>,
         {
-          duration: 3000,
+          duration: 4000,
           style: {
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            border: 'none',
-            padding: '16px',
-            borderRadius: '12px',
-            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
-          }
+            border: '2px solid rgba(255,255,255,0.2)',
+            padding: '16px 20px',
+            borderRadius: '16px',
+            boxShadow: '0 10px 40px rgba(16, 185, 129, 0.5), 0 0 0 1px rgba(255,255,255,0.1)',
+          },
+          className: 'animate-[slide-in-right_0.3s_ease-out]',
         }
       );
 
       fetchExpenses();
     } catch (error) {
-      toast.error(error.message || "Could not save expense.");
+      // Enhanced error toast
+      toast.error(
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0 w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+            <svg 
+              viewBox="0 0 24 24" 
+              className="w-6 h-6 text-white"
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <div>
+            <p className="font-bold text-white text-base">Failed to Add Expense</p>
+            <p className="text-sm text-white/90 mt-0.5">{error.message || "Please try again"}</p>
+          </div>
+        </div>,
+        {
+          duration: 4000,
+          style: {
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+            border: '2px solid rgba(255,255,255,0.2)',
+            padding: '16px 20px',
+            borderRadius: '16px',
+            boxShadow: '0 10px 40px rgba(239, 68, 68, 0.5)',
+          },
+        }
+      );
     } finally {
       close();
     }
@@ -125,6 +192,7 @@ const Dashboard = () => {
         transcript={isListening ? transcript : ""}
         startListening={startListening}
         stopListening={stopListening}
+        onTextSubmit={parseAndSaveExpense}
       />
 
       <ConfirmationDialog

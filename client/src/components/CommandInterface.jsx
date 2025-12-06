@@ -11,7 +11,8 @@ const CommandInterface = ({
   isListening,
   transcript,
   startListening,
-  stopListening
+  stopListening,
+  onTextSubmit
 }) => {
   const { isOpen, uiState, close, setState } = useVoiceStore();
 
@@ -34,43 +35,66 @@ const CommandInterface = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          className="fixed inset-0 z-50 flex flex-col justify-end bg-white/80 backdrop-blur-xl p-4 sm:p-6"
-          onClick={close}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
+        <>
+          {/* Dark Overlay */}
           <motion.div
-            className="w-full max-w-2xl mx-auto"
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md"
+            onClick={close}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+          
+          {/* Compact Popup Card */}
+          <motion.div
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg mx-4"
             onClick={(e) => e.stopPropagation()}
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", stiffness: 400, damping: 40 }}
+            initial={{ scale: 0.92, opacity: 0, y: 30 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 300, 
+              damping: 30,
+              mass: 0.8
+            }}
           >
-            <div className="flex-1 flex flex-col items-center justify-center pb-8 min-h-[10rem] sm:min-h-[12rem]">
-              {isListening ? (
-                <VoiceWaveform />
-              ) : (
-                <>
-                  {isProcessing && <Loader2 className="animate-spin h-8 w-8 mb-3 text-primary" />}
-                  <p className="text-lg sm:text-xl text-muted-foreground text-center px-4 font-medium">{getHelperText()}</p>
-                </>
-              )}
-            </div>
+            <div className="bg-gradient-to-br from-neutral-900/98 to-black/98 backdrop-blur-2xl border-2 border-white/20 rounded-3xl shadow-[0_20px_70px_rgba(0,0,0,0.9)] p-6 relative overflow-hidden">
+              {/* Subtle glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[#3EA6FF]/5 via-transparent to-transparent rounded-3xl" />
+              <div className="relative z-10">
+              {/* Title */}
+              <h3 className="text-lg font-semibold text-white mb-4">{getHelperText()}</h3>
 
-            <CommandInput
-              onTextCommand={onTextCommand}
-              onVoiceCommand={onVoiceCommand}
-              isProcessing={isProcessing}
-              isListening={isListening}
-              transcript={transcript}
-              startListening={startListening}
-              stopListening={stopListening}
-            />
+              {/* Content Area */}
+              <div className="mb-4">
+                {isListening ? (
+                  <div className="flex items-center justify-center py-8">
+                    <VoiceWaveform />
+                  </div>
+                ) : isProcessing ? (
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Loader2 className="animate-spin h-8 w-8 text-[#3EA6FF]" />
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Command Input */}
+              <CommandInput
+                onTextCommand={onTextCommand}
+                onVoiceCommand={onVoiceCommand}
+                isProcessing={isProcessing}
+                isListening={isListening}
+                transcript={transcript}
+                startListening={startListening}
+                stopListening={stopListening}
+                onTextSubmit={onTextSubmit}
+              />
+              </div>
+            </div>
           </motion.div>
-        </motion.div>
+        </>
       )}
     </AnimatePresence>
   );
