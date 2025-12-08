@@ -1,30 +1,48 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import api from '@/api/axios.config';
 
-function ForgotPassword() {
-  const [email, setEmail] = useState('');
+function ResetPassword() {
+  const [searchParams] = useSearchParams();
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [resetLink, setResetLink] = useState('');
   const navigate = useNavigate();
+  const token = searchParams.get('token');
+
+  useEffect(() => {
+    if (!token) {
+      setError('Invalid reset link. Please request a new password reset.');
+    }
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
     setError('');
-    setResetLink('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await api.post('/auth/forgot-password', { email });
-      setMessage(response.data.message || 'Password reset link sent to your email.');
-      // In development, show the reset link
-      if (response.data.resetUrl) {
-        setResetLink(response.data.resetUrl);
-      }
+      const response = await api.post('/auth/reset-password', {
+        token,
+        newPassword: password
+      });
+      setMessage(response.data.message || 'Password reset successful!');
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to send reset link.');
+      setError(err.response?.data?.error || 'Failed to reset password. The link may have expired.');
     } finally {
       setLoading(false);
     }
@@ -78,14 +96,14 @@ function ForgotPassword() {
             marginBottom: '0.5rem',
             letterSpacing: '-0.5px'
           }}>
-            Forgot Password
+            Reset Password
           </h1>
           <p style={{ 
             color: 'rgba(255, 255, 255, 0.6)', 
             fontSize: 'clamp(0.9rem, 2vw, 1rem)',
             fontWeight: '300'
           }}>
-            Enter your email to receive a password reset link
+            Enter your new password
           </p>
         </div>
         {message && (
@@ -101,20 +119,6 @@ function ForgotPassword() {
             fontWeight: '500'
           }}>
             {message}
-          </div>
-        )}
-        {resetLink && (
-          <div style={{
-            background: 'rgba(62, 166, 255, 0.1)',
-            border: '1px solid rgba(62, 166, 255, 0.3)',
-            color: '#3EA6FF',
-            padding: '0.75rem',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            fontSize: '13px',
-            wordBreak: 'break-all'
-          }}>
-            <strong>Dev Mode:</strong> <a href={resetLink} style={{ color: '#3EA6FF', textDecoration: 'underline' }}>Click here to reset</a>
           </div>
         )}
         {error && (
@@ -133,7 +137,7 @@ function ForgotPassword() {
           </div>
         )}
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '2rem' }}>
+          <div style={{ marginBottom: '1.5rem' }}>
             <label style={{
               display: 'block',
               fontSize: '14px',
@@ -141,13 +145,14 @@ function ForgotPassword() {
               color: 'rgba(255, 255, 255, 0.9)',
               marginBottom: '0.5rem'
             }}>
-              Email
+              New Password
             </label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={!token}
               style={{
                 width: '100%',
                 padding: '0.875rem',
@@ -168,42 +173,81 @@ function ForgotPassword() {
                 e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
                 e.target.style.background = 'rgba(255, 255, 255, 0.08)';
               }}
-              placeholder="you@example.com"
+              placeholder="Enter new password"
+            />
+          </div>
+          <div style={{ marginBottom: '2rem' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: 'rgba(255, 255, 255, 0.9)',
+              marginBottom: '0.5rem'
+            }}>
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              disabled={!token}
+              style={{
+                width: '100%',
+                padding: '0.875rem',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '10px',
+                fontSize: '16px',
+                color: 'white',
+                outline: 'none',
+                transition: 'all 0.2s',
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#3EA6FF';
+                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
+              }}
+              placeholder="Confirm new password"
             />
           </div>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !token}
             style={{
               width: '100%',
               padding: '0.875rem',
-              background: loading ? 'rgba(255, 255, 255, 0.1)' : '#3EA6FF',
+              background: loading || !token ? 'rgba(255, 255, 255, 0.1)' : '#3EA6FF',
               color: 'white',
               border: 'none',
               borderRadius: '10px',
               fontSize: '16px',
               fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
+              cursor: loading || !token ? 'not-allowed' : 'pointer',
               marginBottom: '1.5rem',
               transition: 'all 0.2s',
-              boxShadow: loading ? 'none' : '0 4px 15px rgba(62, 166, 255, 0.3)'
+              boxShadow: loading || !token ? 'none' : '0 4px 15px rgba(62, 166, 255, 0.3)'
             }}
             onMouseEnter={(e) => {
-              if (!loading) {
+              if (!loading && token) {
                 e.target.style.background = '#2d8cdb';
                 e.target.style.transform = 'translateY(-1px)';
                 e.target.style.boxShadow = '0 6px 20px rgba(62, 166, 255, 0.4)';
               }
             }}
             onMouseLeave={(e) => {
-              if (!loading) {
+              if (!loading && token) {
                 e.target.style.background = '#3EA6FF';
                 e.target.style.transform = 'translateY(0)';
                 e.target.style.boxShadow = '0 4px 15px rgba(62, 166, 255, 0.3)';
               }
             }}
           >
-            {loading ? 'Sending...' : 'Send Reset Link'}
+            {loading ? 'Resetting...' : 'Reset Password'}
           </button>
           <div style={{ textAlign: 'center' }}>
             <Link 
@@ -226,4 +270,4 @@ function ForgotPassword() {
   );
 }
 
-export default ForgotPassword;
+export default ResetPassword;

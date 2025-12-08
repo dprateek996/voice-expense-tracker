@@ -159,9 +159,63 @@ const forgotPassword = async (req, res) => {
     });
 
     // In a real app, send email here
-    // For now, just return success
-    res.status(200).json({ message: 'If an account with that email exists, a password reset link has been sent.' });
+    // For development, log the reset link
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    console.log('🔗 Password Reset Link:', resetUrl);
+
+    res.status(200).json({ 
+      message: 'If an account with that email exists, a password reset link has been sent.',
+      // Include token in development for testing
+      ...(process.env.NODE_ENV === 'development' && { resetToken, resetUrl })
+    });
   } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    // Find user with valid token
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiry: {
+          gt: new Date()
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password and clear reset token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null
+      }
+    });
+
+    res.status(200).json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Reset password error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -173,4 +227,5 @@ module.exports = {
   refreshAccessToken,
   getMe,
   forgotPassword,
+  resetPassword,
 };
