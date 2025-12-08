@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Mail, KeyRound } from 'lucide-react';
 import api from '@/api/axios.config';
 
 function ForgotPassword() {
@@ -31,196 +33,134 @@ function ForgotPassword() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-      fontFamily: 'aeonik, -apple-system, BlinkMacSystemFont, sans-serif',
-      padding: '1rem',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'radial-gradient(circle at 50% 50%, rgba(62, 166, 255, 0.1) 0%, transparent 60%)',
-        pointerEvents: 'none'
-      }}></div>
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '20px',
-        padding: 'clamp(2rem, 5vw, 3rem)',
-        maxWidth: '450px',
-        width: '100%',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-        animation: 'fadeIn 0.6s ease-out',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{
-            fontSize: 'clamp(1.75rem, 5vw, 2rem)',
-            fontWeight: '700',
-            color: 'white',
-            marginBottom: '0.5rem',
-            letterSpacing: '-0.5px'
-          }}>
-            Forgot Password
-          </h1>
-          <p style={{ 
-            color: 'rgba(255, 255, 255, 0.6)', 
-            fontSize: 'clamp(0.9rem, 2vw, 1rem)',
-            fontWeight: '300'
-          }}>
-            Enter your email to receive a password reset link
-          </p>
-        </div>
-        {message && (
-          <div style={{
-            background: 'rgba(34,197,94,0.1)',
-            border: '1px solid rgba(34,197,94,0.3)',
-            color: '#4ade80',
-            padding: '0.75rem',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            fontSize: '14px',
-            textAlign: 'center',
-            fontWeight: '500'
-          }}>
-            {message}
+    <div className="min-h-screen w-full flex flex-col bg-black relative overflow-hidden font-sans text-foreground">
+      
+      {/* Modern Gradient Background - Same as Login/Register */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/8 via-indigo-500/5 to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-sky-400/6 via-transparent to-transparent pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-indigo-500/8 via-transparent to-transparent pointer-events-none" />
+      
+      {/* Decorative Blurs */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-cyan-500/8 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-500/8 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDuration: '10s' }} />
+
+      <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md relative"
+        >
+          {/* Card Glow Effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/30 via-sky-500/20 to-indigo-500/30 rounded-[2.5rem] blur-2xl opacity-40" />
+          
+          <div className="relative w-full bg-neutral-900/40 backdrop-blur-3xl border border-white/20 shadow-[0_20px_80px_-20px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.08)_inset] rounded-[2rem] overflow-hidden p-8">
+            {/* Inner Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-gradient-to-b from-sky-400/10 via-cyan-500/5 to-transparent blur-2xl" />
+            {/* Inner Glow */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-gradient-to-b from-sky-400/10 via-cyan-500/5 to-transparent blur-2xl" />
+            
+            <div className="space-y-1 text-center relative z-10 mb-8">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+                className="mx-auto w-16 h-16 flex items-center justify-center mb-6 relative group"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-sky-500/30 rounded-2xl blur-xl animate-pulse" style={{ animationDuration: '3s' }} />
+                <div className="relative w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-sky-500/20 rounded-2xl flex items-center justify-center border border-cyan-400/30 group-hover:border-cyan-400/50 transition-all duration-300">
+                  <KeyRound className="w-8 h-8 text-cyan-400" />
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <h1 className="text-3xl font-bold tracking-tight font-heading text-white mb-2">
+                  Forgot Password
+                </h1>
+                <p className="text-neutral-400 text-base leading-relaxed">
+                  Enter your email to receive a reset link<br/>
+                  <span className="text-sm text-cyan-400/80">We'll help you get back in</span>
+                </p>
+              </motion.div>
+            </div>
+            
+                {message && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-green-500/10 border border-green-500/30 text-green-400 px-4 py-3 rounded-xl mb-6 text-sm text-center font-medium"
+              >
+                {message}
+              </motion.div>
+            )}
+            
+            {resetLink && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 px-4 py-3 rounded-xl mb-6 text-sm break-all"
+              >
+                <strong>Dev Mode:</strong> <a href={resetLink} className="underline hover:text-cyan-300 transition-colors">Click here to reset</a>
+              </motion.div>
+            )}
+            
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl mb-6 text-sm text-center font-medium"
+              >
+                {error}
+              </motion.div>
+            )}
+            
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-neutral-200">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="you@example.com"
+                    className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-neutral-500 focus:outline-none focus:border-cyan-400/50 focus:bg-white/8 transition-all duration-200"
+                  />
+                </div>
+              </div>
+              
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 disabled:from-neutral-700 disabled:to-neutral-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:shadow-[0_0_30px_rgba(34,211,238,0.5)] disabled:shadow-none disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Sending...
+                  </span>
+                ) : (
+                  'Send Reset Link'
+                )}
+              </button>
+              
+              <div className="text-center pt-2">
+                <Link 
+                  to="/login" 
+                  className="text-cyan-400 hover:text-cyan-300 font-semibold transition-colors inline-flex items-center gap-1"
+                >
+                  ← Back to Login
+                </Link>
+              </div>
+            </form>
           </div>
-        )}
-        {resetLink && (
-          <div style={{
-            background: 'rgba(62, 166, 255, 0.1)',
-            border: '1px solid rgba(62, 166, 255, 0.3)',
-            color: '#3EA6FF',
-            padding: '0.75rem',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            fontSize: '13px',
-            wordBreak: 'break-all'
-          }}>
-            <strong>Dev Mode:</strong> <a href={resetLink} style={{ color: '#3EA6FF', textDecoration: 'underline' }}>Click here to reset</a>
-          </div>
-        )}
-        {error && (
-          <div style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: '#fca5a5',
-            padding: '0.75rem',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            fontSize: '14px',
-            textAlign: 'center',
-            fontWeight: '500'
-          }}>
-            {error}
-          </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '2rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'rgba(255, 255, 255, 0.9)',
-              marginBottom: '0.5rem'
-            }}>
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '0.875rem',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '10px',
-                fontSize: '16px',
-                color: 'white',
-                outline: 'none',
-                transition: 'all 0.2s',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#3EA6FF';
-                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
-              }}
-              placeholder="you@example.com"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '0.875rem',
-              background: loading ? 'rgba(255, 255, 255, 0.1)' : '#3EA6FF',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: loading ? 'not-allowed' : 'pointer',
-              marginBottom: '1.5rem',
-              transition: 'all 0.2s',
-              boxShadow: loading ? 'none' : '0 4px 15px rgba(62, 166, 255, 0.3)'
-            }}
-            onMouseEnter={(e) => {
-              if (!loading) {
-                e.target.style.background = '#2d8cdb';
-                e.target.style.transform = 'translateY(-1px)';
-                e.target.style.boxShadow = '0 6px 20px rgba(62, 166, 255, 0.4)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!loading) {
-                e.target.style.background = '#3EA6FF';
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 15px rgba(62, 166, 255, 0.3)';
-              }
-            }}
-          >
-            {loading ? 'Sending...' : 'Send Reset Link'}
-          </button>
-          <div style={{ textAlign: 'center' }}>
-            <Link 
-              to="/login" 
-              style={{ 
-                color: '#3EA6FF', 
-                textDecoration: 'none',
-                fontWeight: '600',
-                transition: 'color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.color = '#5eb8ff'}
-              onMouseLeave={(e) => e.target.style.color = '#3EA6FF'}
-            >
-              ← Back to Login
-            </Link>
-          </div>
-        </form>
+        </motion.div>
       </div>
     </div>
   );
