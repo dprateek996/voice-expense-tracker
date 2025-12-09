@@ -80,7 +80,6 @@ const Login = () => {
                 transition={{ delay: 0.2, type: "spring" }}
                 className="mx-auto w-16 h-16 flex items-center justify-center mb-6 relative group"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/30 to-sky-500/30 rounded-2xl blur-xl animate-pulse" style={{ animationDuration: '3s' }} />
                 <div className="relative w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-sky-500/20 rounded-2xl flex items-center justify-center border border-cyan-400/30 group-hover:border-cyan-400/50 transition-all duration-300">
                   <Mic className="w-8 h-8 text-cyan-400" />
                 </div>
