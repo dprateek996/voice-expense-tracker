@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 import { Spotlight } from "@/components/ui/spotlight-new";
 import Logo from "@/components/Logo";
+import ThemeToggle from "@/components/ThemeToggle";
 
 /* ------------------------------------------------------------------ */
 /*                             NAVBAR                                 */
@@ -32,6 +33,8 @@ const Navbar = () => (
     </div>
 
     <div className="flex items-center gap-4">
+      {/* Theme Toggle */}
+      <ThemeToggle />
       <Link to="/login" className="text-sm font-medium text-neutral-300 hover:text-primary transition-colors hidden sm:block font-sans">
         Sign In
       </Link>
@@ -307,14 +310,14 @@ const InteractiveDemoSection = () => {
                 <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-indigo-500/25 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
 
                 <div className={`relative bg-gradient-to-br from-neutral-800/70 to-neutral-900/70 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] border transition-all duration-300 ${isListening
-                    ? 'border-cyan-400/50 shadow-[0_0_40px_-10px_rgba(34,211,238,0.25)]'
-                    : 'border-white/10 group-hover:border-white/20'
+                  ? 'border-cyan-400/50 shadow-[0_0_40px_-10px_rgba(34,211,238,0.25)]'
+                  : 'border-white/10 group-hover:border-white/20'
                   }`}>
                   <div className="flex items-center gap-4 p-5">
                     <motion.div
                       className={`p-4 rounded-2xl transition-all duration-300 ${isListening
-                          ? 'bg-cyan-500/15 text-cyan-400 shadow-lg shadow-cyan-500/20'
-                          : 'bg-neutral-700/50 text-neutral-400 group-hover:bg-neutral-700/70 group-hover:text-neutral-300'
+                        ? 'bg-cyan-500/15 text-cyan-400 shadow-lg shadow-cyan-500/20'
+                        : 'bg-neutral-700/50 text-neutral-400 group-hover:bg-neutral-700/70 group-hover:text-neutral-300'
                         }`}
                       animate={isListening ? { scale: [1, 1.05, 1] } : {}}
                       transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
