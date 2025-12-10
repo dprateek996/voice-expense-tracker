@@ -54,7 +54,7 @@ const HowItWorks = () => {
 
     return (
         <section className="py-24 bg-neutral-950 relative overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 relative z-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="text-center mb-20">
                     <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 font-heading">
                         How it works

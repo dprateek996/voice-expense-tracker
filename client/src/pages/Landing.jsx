@@ -17,33 +17,38 @@ const Navbar = () => (
     initial={{ y: -20, opacity: 0 }}
     animate={{ y: 0, opacity: 1 }}
     transition={{ duration: 0.5 }}
-    className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-black/50 backdrop-blur-md border-b border-white/10"
+    className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-black/50 backdrop-blur-md border-b border-white/10"
   >
-    <div className="flex items-center gap-2">
-      <div className="p-2 bg-primary/10 rounded-lg">
-        <Mic className="w-6 h-6 text-primary" />
+    <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 items-center">
+      {/* Left: Logo */}
+      <div className="flex items-center gap-2 justify-start">
+        <div className="p-2 bg-primary/10 rounded-lg">
+          <Mic className="w-6 h-6 text-primary" />
+        </div>
+        <span className="text-xl font-bold text-white tracking-tight font-heading">VoEx</span>
       </div>
-      <span className="text-xl font-bold text-white tracking-tight font-heading">VoEx</span>
-    </div>
 
-    <div className="hidden md:flex items-center gap-8 text-sm font-medium text-neutral-300 font-sans">
-      <a href="#" className="hover:text-primary transition-colors">Features</a>
-      <a href="#" className="hover:text-primary transition-colors">How it Works</a>
-      <a href="#" className="hover:text-primary transition-colors">Pricing</a>
-    </div>
+      {/* Center: Links (Hidden on mobile) */}
+      <div className="hidden md:flex items-center justify-center gap-8 text-sm font-medium text-neutral-300 font-sans">
+        <a href="#" className="hover:text-primary transition-colors">Features</a>
+        <a href="#" className="hover:text-primary transition-colors">How it Works</a>
+        <a href="#" className="hover:text-primary transition-colors">Pricing</a>
+      </div>
 
-    <div className="flex items-center gap-4">
-      {/* Theme Toggle */}
-      <ThemeToggle />
-      <Link to="/login" className="text-sm font-medium text-neutral-300 hover:text-primary transition-colors hidden sm:block font-sans">
-        Sign In
-      </Link>
-      <Link to="/register">
-        <Button size="sm" className="rounded-full px-6 bg-primary hover:bg-primary/90 text-white relative overflow-hidden group shadow-lg shadow-primary/40">
-          <span className="relative z-10 font-sans">Get Started</span>
-          <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent z-0" />
-        </Button>
-      </Link>
+      {/* Right: Actions */}
+      <div className="flex items-center gap-4 justify-end">
+        {/* Theme Toggle */}
+        <ThemeToggle />
+        <Link to="/login" className="text-sm font-medium text-neutral-300 hover:text-primary transition-colors hidden sm:block font-sans">
+          Sign In
+        </Link>
+        <Link to="/register">
+          <Button size="sm" className="rounded-full px-6 bg-primary hover:bg-primary/90 text-white relative overflow-hidden group shadow-lg shadow-primary/40">
+            <span className="relative z-10 font-sans">Get Started</span>
+            <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent z-0" />
+          </Button>
+        </Link>
+      </div>
     </div>
   </motion.nav>
 );
@@ -220,7 +225,7 @@ const InteractiveDemoSection = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/8 via-indigo-500/5 to-transparent pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-400/6 via-transparent to-transparent pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 relative z-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -470,7 +475,7 @@ const InteractiveDemoSection = () => {
 
 const Footer = () => (
   <footer className="bg-neutral-950 py-12 border-t border-white/5">
-    <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold">
@@ -506,7 +511,7 @@ const Footer = () => (
 
 const PricingSection = () => (
   <div className="py-20 bg-black/[0.96] border-y border-white/5">
-    <div className="max-w-7xl mx-auto px-4 text-center">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
       <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 font-heading">Simple, transparent pricing</h2>
       <p className="text-neutral-400 mb-12 max-w-2xl mx-auto">Start free, upgrade when you need more</p>
       <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
