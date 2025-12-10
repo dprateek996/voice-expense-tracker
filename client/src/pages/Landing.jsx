@@ -60,7 +60,7 @@ const HeroSection = () => (
   <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-black/[0.96] antialiased bg-grid-white/[0.02]">
     {/* Spotlight Effect */}
     <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
-    
+
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
 
       <motion.div
@@ -144,61 +144,61 @@ const InteractiveDemoSection = () => {
     if (!input) return;
     setIsListening(true);
     setTranscript(input);
-    
+
     setTimeout(() => {
       const amount = input.match(/\d+/)?.[0] || "0";
-      
+
       // Extract vendor from input - better parsing
       let vendor = "Unknown";
       const inputLower = input.toLowerCase();
-      
+
       // Common patterns: "for X at Y", "at Y for X", "for X"
       const atMatch = inputLower.match(/at\s+([^,\.]+)/i);
       const forMatch = inputLower.match(/for\s+([^,\.]+?)(?:\s+at|$)/i);
-      
+
       if (atMatch) {
         vendor = atMatch[1].trim();
       } else if (forMatch) {
         vendor = forMatch[1].replace(/\d+/g, '').trim();
       }
-      
+
       // Smart categorization based on keywords
       let category = "Shopping";
-      
-      if (inputLower.includes("food") || inputLower.includes("lunch") || inputLower.includes("dinner") || 
-          inputLower.includes("breakfast") || inputLower.includes("pizza") || inputLower.includes("restaurant") ||
-          inputLower.includes("cafe") || inputLower.includes("coffee") || inputLower.includes("pasta") ||
-          inputLower.includes("burger") || inputLower.includes("meal")) {
+
+      if (inputLower.includes("food") || inputLower.includes("lunch") || inputLower.includes("dinner") ||
+        inputLower.includes("breakfast") || inputLower.includes("pizza") || inputLower.includes("restaurant") ||
+        inputLower.includes("cafe") || inputLower.includes("coffee") || inputLower.includes("pasta") ||
+        inputLower.includes("burger") || inputLower.includes("meal")) {
         category = "Food & Dining";
-      } else if (inputLower.includes("grocery") || inputLower.includes("groceries") || 
-                 inputLower.includes("walmart") || inputLower.includes("supermarket") ||
-                 inputLower.includes("vegetables") || inputLower.includes("fruits")) {
+      } else if (inputLower.includes("grocery") || inputLower.includes("groceries") ||
+        inputLower.includes("walmart") || inputLower.includes("supermarket") ||
+        inputLower.includes("vegetables") || inputLower.includes("fruits")) {
         category = "Groceries";
       } else if (inputLower.includes("uber") || inputLower.includes("cab") || inputLower.includes("taxi") ||
-                 inputLower.includes("transport") || inputLower.includes("bus") || inputLower.includes("metro") ||
-                 inputLower.includes("train") || inputLower.includes("flight") || inputLower.includes("gas") ||
-                 inputLower.includes("petrol") || inputLower.includes("fuel")) {
+        inputLower.includes("transport") || inputLower.includes("bus") || inputLower.includes("metro") ||
+        inputLower.includes("train") || inputLower.includes("flight") || inputLower.includes("gas") ||
+        inputLower.includes("petrol") || inputLower.includes("fuel")) {
         category = "Transport";
       } else if (inputLower.includes("movie") || inputLower.includes("cinema") || inputLower.includes("concert") ||
-                 inputLower.includes("game") || inputLower.includes("entertainment") || inputLower.includes("netflix") ||
-                 inputLower.includes("spotify") || inputLower.includes("subscription")) {
+        inputLower.includes("game") || inputLower.includes("entertainment") || inputLower.includes("netflix") ||
+        inputLower.includes("spotify") || inputLower.includes("subscription")) {
         category = "Entertainment";
       } else if (inputLower.includes("medicine") || inputLower.includes("doctor") || inputLower.includes("hospital") ||
-                 inputLower.includes("pharmacy") || inputLower.includes("health") || inputLower.includes("medical")) {
+        inputLower.includes("pharmacy") || inputLower.includes("health") || inputLower.includes("medical")) {
         category = "Healthcare";
       } else if (inputLower.includes("bill") || inputLower.includes("electricity") || inputLower.includes("water") ||
-                 inputLower.includes("rent") || inputLower.includes("internet") || inputLower.includes("phone")) {
+        inputLower.includes("rent") || inputLower.includes("internet") || inputLower.includes("phone")) {
         category = "Bills & Utilities";
       } else if (inputLower.includes("cloth") || inputLower.includes("shirt") || inputLower.includes("shoes") ||
-                 inputLower.includes("dress") || inputLower.includes("fashion") || inputLower.includes("apparel")) {
+        inputLower.includes("dress") || inputLower.includes("fashion") || inputLower.includes("apparel")) {
         category = "Shopping";
       }
-      
+
       // Capitalize vendor properly
       vendor = vendor.split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
-      
+
       setResult({ amount, category, vendor });
       setIsListening(false);
     }, 1200);
@@ -216,7 +216,7 @@ const InteractiveDemoSection = () => {
       {/* Subtle gradient background - More unique */}
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/8 via-indigo-500/5 to-transparent pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-400/6 via-transparent to-transparent pointer-events-none" />
-      
+
       <div className="max-w-7xl mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <motion.div
@@ -228,8 +228,8 @@ const InteractiveDemoSection = () => {
             <MousePointerClick className="w-4 h-4 text-cyan-400" />
             <span className="text-sm text-cyan-400 font-medium">Interactive Demo</span>
           </motion.div>
-          
-          <motion.h2 
+
+          <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -238,7 +238,7 @@ const InteractiveDemoSection = () => {
           >
             Try it yourself
           </motion.h2>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -250,7 +250,7 @@ const InteractiveDemoSection = () => {
         </div>
 
         {/* Main Demo Card with Gradient */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
@@ -259,13 +259,13 @@ const InteractiveDemoSection = () => {
         >
           {/* Gradient Card Background - More unique and subtle */}
           <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 via-indigo-500/15 to-sky-500/20 rounded-[3.5rem] blur-2xl opacity-30" />
-          
+
           <div className="relative bg-gradient-to-br from-neutral-900/95 via-neutral-900/90 to-neutral-950/95 backdrop-blur-3xl rounded-[3rem] shadow-[0_20px_80px_-20px_rgba(0,0,0,0.8)] border border-white/10 p-10 md:p-14 overflow-hidden">
             {/* Subtle inner glow - More unique colors */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-40 bg-gradient-to-b from-sky-400/8 via-cyan-500/4 to-transparent blur-3xl" />
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-500/8 rounded-full blur-3xl" />
             <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-cyan-500/8 rounded-full blur-3xl" />
-            
+
             <div className="relative z-10">
               {/* Transcript Display */}
               <div className="min-h-[100px] flex items-center justify-center mb-10">
@@ -305,19 +305,17 @@ const InteractiveDemoSection = () => {
               <div className="relative group mb-8">
                 {/* Glow effect on focus/hover - More unique */}
                 <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/25 via-sky-500/20 to-indigo-500/25 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl" />
-                
-                <div className={`relative bg-gradient-to-br from-neutral-800/70 to-neutral-900/70 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] border transition-all duration-300 ${
-                  isListening 
-                    ? 'border-cyan-400/50 shadow-[0_0_40px_-10px_rgba(34,211,238,0.25)]' 
+
+                <div className={`relative bg-gradient-to-br from-neutral-800/70 to-neutral-900/70 backdrop-blur-2xl rounded-[2rem] shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] border transition-all duration-300 ${isListening
+                    ? 'border-cyan-400/50 shadow-[0_0_40px_-10px_rgba(34,211,238,0.25)]'
                     : 'border-white/10 group-hover:border-white/20'
-                }`}>
+                  }`}>
                   <div className="flex items-center gap-4 p-5">
-                    <motion.div 
-                      className={`p-4 rounded-2xl transition-all duration-300 ${
-                        isListening 
-                          ? 'bg-cyan-500/15 text-cyan-400 shadow-lg shadow-cyan-500/20' 
+                    <motion.div
+                      className={`p-4 rounded-2xl transition-all duration-300 ${isListening
+                          ? 'bg-cyan-500/15 text-cyan-400 shadow-lg shadow-cyan-500/20'
                           : 'bg-neutral-700/50 text-neutral-400 group-hover:bg-neutral-700/70 group-hover:text-neutral-300'
-                      }`}
+                        }`}
                       animate={isListening ? { scale: [1, 1.05, 1] } : {}}
                       transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                     >
@@ -332,8 +330,8 @@ const InteractiveDemoSection = () => {
                       onKeyDown={(e) => e.key === 'Enter' && !isListening && input && handleSimulate()}
                       disabled={isListening}
                     />
-                    <Button 
-                      onClick={handleSimulate} 
+                    <Button
+                      onClick={handleSimulate}
                       disabled={!input || isListening}
                       className="rounded-2xl px-8 py-3 bg-gradient-to-r from-cyan-500 to-sky-500 hover:from-cyan-400 hover:to-sky-400 text-white font-semibold shadow-lg shadow-cyan-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98]"
                     >
@@ -363,11 +361,11 @@ const InteractiveDemoSection = () => {
                     <div className="relative group">
                       {/* Success glow - Enhanced */}
                       <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500/30 via-primary/20 to-emerald-500/30 rounded-[2rem] blur-xl opacity-70" />
-                      
+
                       <div className="relative p-8 bg-gradient-to-br from-neutral-800/80 to-neutral-900/80 backdrop-blur-xl rounded-[2rem] text-left text-white shadow-[0_8px_32px_-8px_rgba(0,0,0,0.4)] border border-emerald-500/30">
                         <div className="flex items-center justify-between mb-8">
                           <div className="flex items-center gap-3">
-                            <motion.div 
+                            <motion.div
                               initial={{ scale: 0 }}
                               animate={{ scale: 1 }}
                               transition={{ type: "spring", delay: 0.2 }}
@@ -389,9 +387,9 @@ const InteractiveDemoSection = () => {
                             Try Again
                           </Button>
                         </div>
-                        
+
                         <div className="grid grid-cols-3 gap-8">
-                          <motion.div 
+                          <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
@@ -400,8 +398,8 @@ const InteractiveDemoSection = () => {
                             <div className="text-xs text-neutral-400 uppercase tracking-wider font-semibold">Amount</div>
                             <div className="text-4xl font-bold text-white tracking-tight">₹{result.amount}</div>
                           </motion.div>
-                          
-                          <motion.div 
+
+                          <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4 }}
@@ -412,8 +410,8 @@ const InteractiveDemoSection = () => {
                               {result.category}
                             </div>
                           </motion.div>
-                          
-                          <motion.div 
+
+                          <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5 }}
@@ -431,7 +429,7 @@ const InteractiveDemoSection = () => {
 
               {/* Example Prompts */}
               {!result && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
@@ -542,33 +540,7 @@ const PricingSection = () => (
   </div>
 );
 
-/* ------------------------------------------------------------------ */
-/*                       HOW IT WORKS                                 */
-/* ------------------------------------------------------------------ */
-
-const HowItWorksSection = () => (
-  <div className="py-20 bg-neutral-950 border-t border-white/5">
-    <div className="max-w-7xl mx-auto px-4 text-center">
-      <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 font-heading">How it works</h2>
-      <p className="text-neutral-400 mb-12 max-w-2xl mx-auto">Three simple steps to effortless expense tracking</p>
-      <div className="grid md:grid-cols-3 gap-8">
-        {[
-          { title: "Speak", description: "Just say your expense naturally - no complex commands needed.", icon: Mic },
-          { title: "AI Magic", description: "Our AI instantly extracts amount, category, and details.", icon: Sparkles },
-          { title: "Track", description: "View insights and analytics on your beautiful dashboard.", icon: BarChart3 }
-        ].map((item, index) => (
-          <div key={index} className="p-8 rounded-2xl bg-neutral-900/50 backdrop-blur-xl border border-white/10 flex flex-col items-center text-center hover:border-primary/50 hover:shadow-2xl hover:shadow-primary/10 transition-all duration-300 group">
-            <div className="p-4 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full mb-6 text-primary group-hover:scale-110 transition-transform duration-300">
-              <item.icon className="w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
-            <p className="text-neutral-400 leading-relaxed">{item.description}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-);
+import HowItWorks from '../components/HowItWorks';
 
 /* ------------------------------------------------------------------ */
 /*                         MAIN LANDING                               */
@@ -581,7 +553,7 @@ const Landing = () => {
       <HeroSection />
       <InteractiveDemoSection />
       <PricingSection />
-      <HowItWorksSection />
+      <HowItWorks />
       <Footer />
     </div>
   );

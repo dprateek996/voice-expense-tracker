@@ -13,6 +13,7 @@ import Categories from './pages/Categories';
 import Settings from './pages/Settings';
 import ProtectedRoute from './components/ProtectedRoute';
 import useThemeStore from './store/themeStore';
+import ThemeDemo from './pages/ThemeDemo';
 
 function App() {
   const theme = useThemeStore((state) => state.theme);
@@ -42,6 +43,7 @@ function App() {
           </Route>
           {/* Temporary route for testing Settings page */}
           <Route path="/test-settings" element={<Settings />} />
+          <Route path="/theme-demo" element={<ThemeDemo />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
