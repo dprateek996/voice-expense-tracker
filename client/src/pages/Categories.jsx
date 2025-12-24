@@ -2,17 +2,26 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import useExpenseStore from "@/store/expenseStore";
-import { Card, CardContent } from "@/components/ui/card";
-import { WobbleCard } from "@/components/ui/wobble-card";
+import { Utensils, Car, ShoppingCart, Home, Music, Coffee, Landmark, Pill } from "lucide-react";
 
 const CATEGORY_COLORS = {
-  food: "#FF6B6B",
-  travel: "#FFA726",
-  bills: "#FFD93D",
-  shopping: "#6BCF7F",
-  entertainment: "#4ECDC4",
-  medicine: "#5DADE2",
-  other: "#95A5A6"
+  food: "#ef4444",
+  travel: "#f97316",
+  bills: "#eab308",
+  shopping: "#22c55e",
+  entertainment: "#06b6d4",
+  medicine: "#3b82f6",
+  other: "#6b7280"
+};
+
+const CATEGORY_ICONS = {
+  food: Utensils,
+  travel: Car,
+  bills: Home,
+  shopping: ShoppingCart,
+  entertainment: Music,
+  medicine: Pill,
+  other: Landmark
 };
 
 const Categories = () => {
@@ -46,165 +55,153 @@ const Categories = () => {
   const totalSpent = categoryData.reduce((sum, cat) => sum + (cat.value || 0), 0);
   const budgetUsagePercent = budget > 0 ? Math.round((totalSpent / budget) * 100) : 0;
 
-  const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-    if (percent < 0.05) return null;
-    
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        className="font-bold text-sm"
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-card border border-border rounded-xl shadow-lg p-3">
+          <p className="font-semibold capitalize">{data.name}</p>
+          <p className="text-sm text-muted-foreground">
+            ₹{data.value.toLocaleString("en-IN")} ({data.percentage}%)
+          </p>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="max-w-6xl mx-auto w-full py-8 px-6">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        className="mb-8"
       >
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground">Categories</h1>
-          <p className="text-muted-foreground mt-1">
-            Track your spending by category
-          </p>
-        </div>
+        <p className="text-muted-foreground text-sm mb-1">
+          Track spending by category
+        </p>
+        <h1 className="text-3xl font-semibold text-foreground">Categories</h1>
+      </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Pie Chart Card */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card className="bg-card border-border shadow-2xl dark:border-border/50">
-              <CardContent className="p-8 flex items-center justify-center">
-                <div className="relative w-full max-w-md aspect-square">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <defs>
-                        {categoryData.map((entry, index) => (
-                          <linearGradient key={`gradient-${index}`} id={`gradient-${entry.category}`} x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stopColor={entry.color} stopOpacity={1} />
-                            <stop offset="100%" stopColor={entry.color} stopOpacity={0.8} />
-                          </linearGradient>
-                        ))}
-                      </defs>
-                      <Pie
-                        data={categoryData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={renderCustomLabel}
-                        outerRadius="80%"
-                        innerRadius="0%"
-                        dataKey="value"
-                        stroke="rgba(255,255,255,0.1)"
-                        strokeWidth={2}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-card border border-border rounded-2xl p-6"
+        >
+          <h2 className="text-lg font-semibold text-foreground mb-4">Spending Distribution</h2>
+
+          {categoryData.length === 0 ? (
+            <div className="h-64 flex items-center justify-center text-muted-foreground">
+              No expense data available
+            </div>
+          ) : (
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+          <div className="flex flex-wrap gap-3 mt-4 justify-center">
+            {categoryData.map((item, i) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="capitalize text-muted-foreground">{item.name}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="space-y-4"
+        >
+          <div className="bg-card border border-border rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-foreground">Budget Usage</h3>
+              <span className="text-2xl font-bold text-foreground">
+                {budgetUsagePercent}%
+              </span>
+            </div>
+            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+              <motion.div
+                className="h-full rounded-full"
+                style={{
+                  backgroundColor: budgetUsagePercent > 80 ? "#ef4444" : budgetUsagePercent > 50 ? "#f59e0b" : "#22c55e"
+                }}
+                initial={{ width: 0 }}
+                animate={{ width: `${Math.min(budgetUsagePercent, 100)}%` }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+              />
+            </div>
+            <div className="flex justify-between mt-2 text-sm text-muted-foreground">
+              <span>₹{totalSpent.toLocaleString("en-IN")}</span>
+              <span>₹{budget.toLocaleString("en-IN")}</span>
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-2xl overflow-hidden">
+            {categoryData.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                No categories yet
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {categoryData.map((category, index) => {
+                  const IconComponent = CATEGORY_ICONS[category.category] || Landmark;
+                  return (
+                    <motion.div
+                      key={category.category}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 + index * 0.05 }}
+                      className="flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors"
+                    >
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center"
+                        style={{ backgroundColor: `${category.color}20` }}
                       >
-                        {categoryData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
-                            fill={`url(#gradient-${entry.category})`}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
-                          borderRadius: '12px',
-                          color: 'white',
-                          padding: '12px'
-                        }}
-                        formatter={(value, name, props) => [
-                          `₹${value.toFixed(2)} (${props.payload.percentage}%)`,
-                          props.payload.name
-                        ]}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Category List */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-4"
-          >
-            {/* Budget Card */}
-            <Card className="bg-card border-border shadow-lg">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-foreground">Budget Usage</h3>
-                  <span className="text-2xl font-bold text-foreground">{budgetUsagePercent}%</span>
-                </div>
-                <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min(budgetUsagePercent, 100)}%` }}
-                    transition={{ duration: 1, ease: "easeOut" }}
-                  />
-                </div>
-                <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-                  <span>₹{totalSpent.toFixed(2)}</span>
-                  <span>₹{budget.toFixed(2)}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Category Items */}
-            <div className="grid grid-cols-1 gap-3">
-              {categoryData.map((category, index) => (
-                <motion.div
-                  key={category.category}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + index * 0.05 }}
-                >
-                  <WobbleCard containerClassName="min-h-[90px]">
-                    <div className="flex items-center gap-4 -mt-8">
-                      <div 
-                        className="w-12 h-12 rounded-lg flex items-center justify-center shadow-md"
-                        style={{ backgroundColor: category.color }}
-                      >
-                        <span className="text-white text-lg font-bold">
-                          {category.percentage}%
-                        </span>
+                        <IconComponent className="w-5 h-5" style={{ color: category.color }} />
                       </div>
                       <div className="flex-1">
-                        <h4 className="font-semibold text-foreground capitalize">{category.name}</h4>
-                        <p className="text-sm text-muted-foreground">{category.count} transactions</p>
+                        <h4 className="font-medium text-foreground capitalize">{category.name}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {category.count} transaction{category.count !== 1 ? "s" : ""}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-lg font-bold text-foreground">₹{category.value.toFixed(2)}</p>
+                        <p className="font-semibold text-foreground">
+                          ₹{category.value.toLocaleString("en-IN")}
+                        </p>
+                        <p className="text-sm text-muted-foreground">{category.percentage}%</p>
                       </div>
-                    </div>
-                  </WobbleCard>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 };

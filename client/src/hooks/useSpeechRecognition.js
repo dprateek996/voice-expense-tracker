@@ -5,7 +5,6 @@ const useSpeechRecognition = ({ onResult, onEnd }) => {
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef(null);
 
-  // Use refs for callbacks to avoid effect re-execution
   const onResultRef = useRef(onResult);
   const onEndRef = useRef(onEnd);
 
@@ -57,10 +56,6 @@ const useSpeechRecognition = ({ onResult, onEnd }) => {
     recognition.onend = () => {
       console.log('Speech recognition ended.');
       setIsListening(false);
-      // Only call onEnd if we have a transcript (prevents empty submissions on error/cancel)
-      // We need to access the latest transcript state, but inside this closure it might be stale.
-      // However, since we are not using continuous mode, the last onresult should have set it.
-      // Better approach: pass the final result directly if available, or use a ref to track it.
     };
 
     recognition.onerror = (event) => {
@@ -88,24 +83,17 @@ const useSpeechRecognition = ({ onResult, onEnd }) => {
   const stopListening = () => {
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
-      // Manually trigger onEnd with current transcript when stopped by user
       if (onEndRef.current) {
-        // We pass the current transcript state. 
-        // Note: This might be slightly out of sync if called immediately after a result, 
-        // but for user-initiated stop, it's usually fine.
-        // A better way is to track the latest transcript in a ref.
         onEndRef.current(transcript);
       }
     }
   };
 
-  // Update the transcript ref whenever state changes so stopListening can access it
   const transcriptRef = useRef('');
   useEffect(() => {
     transcriptRef.current = transcript;
   }, [transcript]);
 
-  // Override stopListening to use the ref
   const stopListeningWithResult = () => {
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();

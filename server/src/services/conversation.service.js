@@ -1,4 +1,3 @@
-// src/services/conversation.service.js
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
@@ -10,8 +9,6 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const sendMessageToAI = async (userMessage, conversationHistory) => {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-    // Build conversation context
     const contextMessages = conversationHistory
       .slice(-10) // Last 10 messages for context
       .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
@@ -40,8 +37,6 @@ Respond naturally and helpfully. If you have enough information to create an exp
     const result = await model.generateContent(systemPrompt);
     const response = await result.response;
     const text = response.text();
-
-    // Check if AI wants to create an expense
     const shouldCreateExpense = text.includes('[CREATE_EXPENSE]');
     const cleanText = text.replace('[CREATE_EXPENSE]', '').trim();
 
@@ -51,8 +46,6 @@ Respond naturally and helpfully. If you have enough information to create an exp
     };
   } catch (error) {
     console.error('AI conversation error:', error);
-
-    // Fallback response
     return {
       text: "I'm having trouble processing that right now. Could you try again?",
       shouldCreateExpense: false,
@@ -66,8 +59,6 @@ Respond naturally and helpfully. If you have enough information to create an exp
 const extractExpenseFromConversation = async (conversationHistory) => {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-    // Get last few messages for context
     const recentMessages = conversationHistory
       .slice(-8)
       .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
@@ -91,16 +82,12 @@ Return ONLY the JSON object, no markdown, no explanations.`;
     const result = await model.generateContent(extractionPrompt);
     const response = await result.response;
     const responseText = response.text();
-
-    // Clean and parse JSON
     const cleanedJson = responseText
       .replace(/```json/g, '')
       .replace(/```/g, '')
       .trim();
 
     const expenseData = JSON.parse(cleanedJson);
-
-    // Validate and set defaults
     if (!expenseData.amount || expenseData.amount <= 0) {
       return null; // Can't create expense without valid amount
     }
@@ -124,7 +111,6 @@ Return ONLY the JSON object, no markdown, no explanations.`;
  * Check if conversation has enough info to create expense
  */
 const shouldCreateExpense = (conversationHistory) => {
-  // Look for patterns indicating complete expense info
   const lastMessages = conversationHistory.slice(-5);
   const userMessages = lastMessages
     .filter(msg => msg.role === 'user')

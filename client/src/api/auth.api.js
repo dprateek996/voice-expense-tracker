@@ -20,7 +20,6 @@ export async function getMe() {
   return res.data;
 }
 
-// Add alias to satisfy consumers expecting fetchMe
 export const fetchMe = getMe;
 
 export async function refreshToken() {
@@ -28,7 +27,6 @@ export async function refreshToken() {
   return res.data;
 }
 
-// default export (object) for any default imports (legacy)
 export default {
   registerUser,
   loginUser,

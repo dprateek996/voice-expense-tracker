@@ -21,7 +21,6 @@ export function AIVoiceInput({
     setIsClient(true);
   }, []);
 
-  // Sync with external recording state
   useEffect(() => {
     setSubmitted(isRecording);
   }, [isRecording]);

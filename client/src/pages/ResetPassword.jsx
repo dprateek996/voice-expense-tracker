@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
 import api from '@/api/axios.config';
+import ThemeToggle from '@/components/ThemeToggle';
 
 function ResetPassword() {
   const [searchParams] = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,222 +54,141 @@ function ResetPassword() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-      fontFamily: 'aeonik, -apple-system, BlinkMacSystemFont, sans-serif',
-      padding: '1rem',
-      position: 'relative',
-      overflow: 'hidden'
-    }}>
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'radial-gradient(circle at 50% 50%, rgba(62, 166, 255, 0.1) 0%, transparent 60%)',
-        pointerEvents: 'none'
-      }}></div>
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '20px',
-        padding: 'clamp(2rem, 5vw, 3rem)',
-        maxWidth: '450px',
-        width: '100%',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-        animation: 'fadeIn 0.6s ease-out',
-        position: 'relative',
-        zIndex: 1
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h1 style={{
-            fontSize: 'clamp(1.75rem, 5vw, 2rem)',
-            fontWeight: '700',
-            color: 'white',
-            marginBottom: '0.5rem',
-            letterSpacing: '-0.5px'
-          }}>
-            Reset Password
-          </h1>
-          <p style={{ 
-            color: 'rgba(255, 255, 255, 0.6)', 
-            fontSize: 'clamp(0.9rem, 2vw, 1rem)',
-            fontWeight: '300'
-          }}>
-            Enter your new password
-          </p>
-        </div>
-        {message && (
-          <div style={{
-            background: 'rgba(34,197,94,0.1)',
-            border: '1px solid rgba(34,197,94,0.3)',
-            color: '#4ade80',
-            padding: '0.75rem',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            fontSize: '14px',
-            textAlign: 'center',
-            fontWeight: '500'
-          }}>
-            {message}
+    <div className="min-h-screen w-full flex flex-col bg-background relative overflow-x-hidden font-sans text-foreground">
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
+
+      <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md relative"
+        >
+          <div className="relative w-full bg-card border border-border shadow-xl rounded-2xl overflow-hidden p-8">
+            <div className="space-y-1 text-center relative z-10 mb-8">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, type: "spring" }}
+                className="mx-auto w-16 h-16 flex items-center justify-center mb-6 relative group"
+              >
+                <div className="relative w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/30 group-hover:border-primary/50 transition-all duration-300">
+                  <KeyRound className="w-8 h-8 text-primary" />
+                </div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">
+                  Reset Password
+                </h1>
+                <p className="text-muted-foreground text-base leading-relaxed">
+                  Enter your new password below
+                </p>
+              </motion.div>
+            </div>
+
+            {message && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400 px-4 py-3 rounded-xl mb-6 text-sm text-center font-medium"
+              >
+                {message}
+              </motion.div>
+            )}
+
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm text-center font-medium"
+              >
+                {error}
+              </motion.div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-foreground">
+                  New Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={!token}
+                    placeholder="Enter new password"
+                    className="w-full pl-11 pr-11 py-3 bg-muted/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-foreground">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    disabled={!token}
+                    placeholder="Confirm new password"
+                    className="w-full pl-11 pr-11 py-3 bg-muted/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || !token}
+                className="w-full py-3 px-4 bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground font-semibold rounded-xl transition-all duration-200 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    Resetting...
+                  </span>
+                ) : (
+                  'Reset Password'
+                )}
+              </button>
+
+              <div className="text-center pt-2">
+                <Link
+                  to="/login"
+                  className="text-primary hover:text-primary/80 font-semibold transition-colors inline-flex items-center gap-1"
+                >
+                  ← Back to Login
+                </Link>
+              </div>
+            </form>
           </div>
-        )}
-        {error && (
-          <div style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            color: '#fca5a5',
-            padding: '0.75rem',
-            borderRadius: '10px',
-            marginBottom: '1.5rem',
-            fontSize: '14px',
-            textAlign: 'center',
-            fontWeight: '500'
-          }}>
-            {error}
-          </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'rgba(255, 255, 255, 0.9)',
-              marginBottom: '0.5rem'
-            }}>
-              New Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={!token}
-              style={{
-                width: '100%',
-                padding: '0.875rem',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '10px',
-                fontSize: '16px',
-                color: 'white',
-                outline: 'none',
-                transition: 'all 0.2s',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#3EA6FF';
-                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
-              }}
-              placeholder="Enter new password"
-            />
-          </div>
-          <div style={{ marginBottom: '2rem' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
-              color: 'rgba(255, 255, 255, 0.9)',
-              marginBottom: '0.5rem'
-            }}>
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              disabled={!token}
-              style={{
-                width: '100%',
-                padding: '0.875rem',
-                background: 'rgba(255, 255, 255, 0.08)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '10px',
-                fontSize: '16px',
-                color: 'white',
-                outline: 'none',
-                transition: 'all 0.2s',
-                boxSizing: 'border-box'
-              }}
-              onFocus={(e) => {
-                e.target.style.borderColor = '#3EA6FF';
-                e.target.style.background = 'rgba(255, 255, 255, 0.1)';
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
-              }}
-              placeholder="Confirm new password"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={loading || !token}
-            style={{
-              width: '100%',
-              padding: '0.875rem',
-              background: loading || !token ? 'rgba(255, 255, 255, 0.1)' : '#3EA6FF',
-              color: 'white',
-              border: 'none',
-              borderRadius: '10px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: loading || !token ? 'not-allowed' : 'pointer',
-              marginBottom: '1.5rem',
-              transition: 'all 0.2s',
-              boxShadow: loading || !token ? 'none' : '0 4px 15px rgba(62, 166, 255, 0.3)'
-            }}
-            onMouseEnter={(e) => {
-              if (!loading && token) {
-                e.target.style.background = '#2d8cdb';
-                e.target.style.transform = 'translateY(-1px)';
-                e.target.style.boxShadow = '0 6px 20px rgba(62, 166, 255, 0.4)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!loading && token) {
-                e.target.style.background = '#3EA6FF';
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 15px rgba(62, 166, 255, 0.3)';
-              }
-            }}
-          >
-            {loading ? 'Resetting...' : 'Reset Password'}
-          </button>
-          <div style={{ textAlign: 'center' }}>
-            <Link 
-              to="/login" 
-              style={{ 
-                color: '#3EA6FF', 
-                textDecoration: 'none',
-                fontWeight: '600',
-                transition: 'color 0.2s'
-              }}
-              onMouseEnter={(e) => e.target.style.color = '#5eb8ff'}
-              onMouseLeave={(e) => e.target.style.color = '#3EA6FF'}
-            >
-              ← Back to Login
-            </Link>
-          </div>
-        </form>
+        </motion.div>
       </div>
     </div>
   );

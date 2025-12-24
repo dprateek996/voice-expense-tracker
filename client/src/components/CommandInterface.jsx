@@ -1,9 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { Mic, MicOff, Send, X, Loader2 } from 'lucide-react';
 import useVoiceStore from '@/store/voiceStore';
-import VoiceWaveform from './VoiceWaveform';
-import { useEffect } from 'react';
-import CommandInput from './CommandInput';
+import { useEffect, useState, useRef } from 'react';
+import { playStartSound, playStopSound } from "@/lib/audioUtils";
 
 const CommandInterface = ({
   onTextCommand,
@@ -15,20 +14,73 @@ const CommandInterface = ({
   onTextSubmit
 }) => {
   const { isOpen, uiState, close, setState } = useVoiceStore();
+  const [text, setText] = useState('');
+  const inputRef = useRef(null);
+  const lastTranscriptRef = useRef('');
 
-  // sync UI state
   useEffect(() => {
     if (isListening) setState("listening");
     else if (uiState === "listening") setState("idle");
   }, [isListening]);
 
+  useEffect(() => {
+    if (isListening && transcript) {
+      setText(transcript);
+      lastTranscriptRef.current = transcript;
+    }
+  }, [isListening, transcript]);
+
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setText('');
+      lastTranscriptRef.current = '';
+    }
+  }, [isOpen]);
+
   const isProcessing = uiState === "refining" || uiState === "processing";
 
-  const getHelperText = () => {
-    switch (uiState) {
-      case "refining": return "Checking that for you...";
-      case "processing": return "Adding to your ledger...";
-      default: return "What did you spend on?";
+  const handleSubmit = async () => {
+    const inputText = text.trim();
+    if (!inputText || isProcessing) return;
+
+    setState('processing');
+    await onTextSubmit?.(inputText, 'text');
+    setText('');
+    close();
+  };
+
+  const handleMicClick = () => {
+    if (isProcessing) return;
+
+    if (isListening) {
+      playStopSound();
+      const finalText = lastTranscriptRef.current || transcript;
+      stopListening();
+
+      if (finalText?.trim()) {
+        onVoiceCommand(finalText.trim());
+      }
+    } else {
+      playStartSound();
+      setText('');
+      startListening();
+      setState("listening");
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+    if (e.key === 'Escape') {
+      close();
     }
   };
 
@@ -36,61 +88,104 @@ const CommandInterface = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Dark Overlay */}
           <motion.div
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md"
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
             onClick={close}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           />
-          
-          {/* Compact Popup Card */}
           <motion.div
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg mx-4"
-            onClick={(e) => e.stopPropagation()}
-            initial={{ scale: 0.92, opacity: 0, y: 30 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 300, 
-              damping: 30,
-              mass: 0.8
-            }}
+            className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-6"
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
-            <div className="bg-gradient-to-br from-neutral-900/98 to-black/98 backdrop-blur-2xl border-2 border-white/20 rounded-3xl shadow-[0_20px_70px_rgba(0,0,0,0.9)] p-6 relative overflow-hidden">
-              {/* Subtle glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-[#3EA6FF]/5 via-transparent to-transparent rounded-3xl" />
-              <div className="relative z-10">
-              {/* Title */}
-              <h3 className="text-lg font-semibold text-white mb-4">{getHelperText()}</h3>
-
-              {/* Content Area */}
-              <div className="mb-4">
-                {isListening ? (
-                  <div className="flex items-center justify-center py-8">
-                    <VoiceWaveform />
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-card border border-border rounded-2xl shadow-2xl overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`} />
+                    <span className="text-sm font-medium text-foreground">
+                      {isListening ? 'Listening...' : isProcessing ? 'Processing...' : 'Add Expense'}
+                    </span>
                   </div>
-                ) : isProcessing ? (
-                  <div className="flex flex-col items-center justify-center py-8">
-                    <Loader2 className="animate-spin h-8 w-8 text-[#3EA6FF]" />
+                  <button
+                    onClick={close}
+                    className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                {isListening && (
+                  <div className="px-4 py-3 bg-primary/5 border-b border-border">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
+                        <span className="w-1 h-3 bg-primary rounded-full animate-[wave_0.5s_ease-in-out_infinite]" style={{ animationDelay: '0ms' }} />
+                        <span className="w-1 h-4 bg-primary rounded-full animate-[wave_0.5s_ease-in-out_infinite]" style={{ animationDelay: '100ms' }} />
+                        <span className="w-1 h-5 bg-primary rounded-full animate-[wave_0.5s_ease-in-out_infinite]" style={{ animationDelay: '200ms' }} />
+                        <span className="w-1 h-4 bg-primary rounded-full animate-[wave_0.5s_ease-in-out_infinite]" style={{ animationDelay: '300ms' }} />
+                        <span className="w-1 h-3 bg-primary rounded-full animate-[wave_0.5s_ease-in-out_infinite]" style={{ animationDelay: '400ms' }} />
+                      </div>
+                      <p className="text-sm text-foreground">
+                        {transcript || 'Speak your expense...'}
+                      </p>
+                    </div>
+                    <style>{`
+                      @keyframes wave {
+                        0%, 100% { transform: scaleY(1); }
+                        50% { transform: scaleY(1.8); }
+                      }
+                    `}</style>
                   </div>
-                ) : null}
-              </div>
-
-              {/* Command Input */}
-              <CommandInput
-                onTextCommand={onTextCommand}
-                onVoiceCommand={onVoiceCommand}
-                isProcessing={isProcessing}
-                isListening={isListening}
-                transcript={transcript}
-                startListening={startListening}
-                stopListening={stopListening}
-                onTextSubmit={onTextSubmit}
-              />
+                )}
+                <div className="flex items-end gap-2 p-3">
+                  <div className="flex-1 relative">
+                    <textarea
+                      ref={inputRef}
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="e.g., ₹500 for groceries, ₹200 for coffee..."
+                      disabled={isProcessing}
+                      rows={1}
+                      className="w-full px-4 py-3 bg-muted/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all disabled:opacity-50 text-sm"
+                      style={{ minHeight: '48px', maxHeight: '120px' }}
+                    />
+                  </div>
+                  <button
+                    onClick={handleMicClick}
+                    disabled={isProcessing}
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${isListening
+                      ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600'
+                      : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    {isListening ? (
+                      <MicOff className="w-5 h-5" />
+                    ) : (
+                      <Mic className="w-5 h-5" />
+                    )}
+                  </button>
+                  <button
+                    onClick={handleSubmit}
+                    disabled={!text.trim() || isProcessing}
+                    className="w-12 h-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+                <div className="px-4 pb-3">
+                  <p className="text-xs text-muted-foreground text-center">
+                    Type or speak your expense • Press <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px]">Enter</kbd> to submit • <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px]">Esc</kbd> to close
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>

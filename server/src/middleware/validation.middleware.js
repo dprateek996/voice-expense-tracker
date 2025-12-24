@@ -1,6 +1,4 @@
 const { body, validationResult } = require('express-validator');
-
-// Middleware to handle validation errors
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -11,8 +9,6 @@ const handleValidationErrors = (req, res, next) => {
   }
   next();
 };
-
-// Validation rules for user registration
 const validateRegistration = [
   body('email')
     .isEmail()
@@ -31,8 +27,6 @@ const validateRegistration = [
     .withMessage('Name can only contain letters and spaces'),
   handleValidationErrors
 ];
-
-// Validation rules for user login
 const validateLogin = [
   body('email')
     .isEmail()
@@ -43,8 +37,6 @@ const validateLogin = [
     .withMessage('Password is required'),
   handleValidationErrors
 ];
-
-// Validation rules for expense creation
 const validateExpense = [
   body('transcript')
     .trim()

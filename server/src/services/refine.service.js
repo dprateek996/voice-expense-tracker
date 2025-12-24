@@ -47,7 +47,6 @@ const refineTranscript = async (transcript) => {
     return JSON.parse(result.response.text());
   } catch (err) {
     console.error("Refinement AI error:", err);
-    // Provide a safe fallback if the AI fails
     return {
       corrected: transcript,
       confidence: 0.5,

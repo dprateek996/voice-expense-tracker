@@ -1,4 +1,3 @@
-// src/utils/password.util.js
 
 const bcrypt = require('bcryptjs');
 

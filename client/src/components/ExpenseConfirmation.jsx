@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { useEffect } from 'react';
 
 const ExpenseConfirmation = ({ expenses, onDismiss }) => {
-    // Auto-dismiss after 5 seconds
     useEffect(() => {
         const timer = setTimeout(onDismiss, 5000);
         return () => clearTimeout(timer);

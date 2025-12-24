@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-
 const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -18,7 +17,6 @@ const useAuthStore = create(
     }),
     {
       name: 'auth-session-storage', // unique name for localStorage key
-      // We only want to store the user object, auth status, and token
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,

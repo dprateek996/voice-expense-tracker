@@ -49,8 +49,6 @@ function LoadingAnimation({ onComplete }) {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-
-      {/* AI Voice Orb Container */}
       <div style={{ 
         position: 'relative',
         width: 'clamp(200px, 40vw, 280px)',
@@ -60,7 +58,6 @@ function LoadingAnimation({ onComplete }) {
         justifyContent: 'center',
         marginBottom: '3rem'
       }}>
-        {/* Base Glow Layer */}
         <div style={{
           position: 'absolute',
           width: '100%',
@@ -70,8 +67,6 @@ function LoadingAnimation({ onComplete }) {
           filter: 'blur(30px)',
           animation: 'breathe 3s ease-in-out infinite'
         }}></div>
-
-        {/* Middle Glow Layer */}
         <div style={{
           position: 'absolute',
           width: '85%',
@@ -81,8 +76,6 @@ function LoadingAnimation({ onComplete }) {
           filter: 'blur(20px)',
           animation: 'breathe 2s ease-in-out infinite'
         }}></div>
-
-        {/* Expanding Wave Rings */}
         {[0, 1, 2].map((i) => (
           <div
             key={i}
@@ -96,8 +89,6 @@ function LoadingAnimation({ onComplete }) {
             }}
           ></div>
         ))}
-
-        {/* Main Orb */}
         <div style={{
           position: 'relative',
           width: '60%',
@@ -115,7 +106,6 @@ function LoadingAnimation({ onComplete }) {
           animation: 'pulse 2s ease-in-out infinite',
           zIndex: 2
         }}>
-          {/* Inner Shine */}
           <div style={{
             position: 'absolute',
             top: '20%',
@@ -126,16 +116,12 @@ function LoadingAnimation({ onComplete }) {
             background: 'radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%)',
             filter: 'blur(10px)'
           }}></div>
-
-          {/* Microphone Icon */}
           <div style={{
             fontSize: 'clamp(2rem, 8vw, 3rem)',
             color: 'white',
             filter: 'drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3))'
           }}>🎤</div>
         </div>
-
-        {/* Rotating Accent Ring */}
         <div style={{
           position: 'absolute',
           width: '75%',
@@ -147,8 +133,6 @@ function LoadingAnimation({ onComplete }) {
           animation: 'rotateRing 3s linear infinite'
         }}></div>
       </div>
-
-      {/* Text Content */}
       <h1 style={{
         fontSize: 'clamp(2rem, 6vw, 3.5rem)',
         fontWeight: '700',

@@ -32,7 +32,6 @@ const ExpenseList = ({ token }) => {
 
   useEffect(() => {
     fetchExpenses();
-    // eslint-disable-next-line
   }, [token]);
 
   const handleDelete = async (id) => {
@@ -47,7 +46,6 @@ const ExpenseList = ({ token }) => {
   if (loading) return <div className="text-primary-700">Loading...</div>;
   if (error) return <div className="text-red-600">{error}</div>;
 
-  // Defensive: ensure expenses is always an array
   const expenseArray = Array.isArray(expenses) ? expenses : [];
   return (
     <div className="bg-primary-50 p-4 rounded-lg shadow-md mt-4">
@@ -57,7 +55,6 @@ const ExpenseList = ({ token }) => {
           <li key={exp.id} className="py-2 flex justify-between items-center">
             <div>
               <span className="font-semibold text-primary-800">₹{exp.amount}</span>
-              {/* Category Badge */}
               <span
                 className={`ml-2 px-2 py-1 rounded-full text-xs font-bold inline-block align-middle ${CATEGORY_COLORS[exp.category] || CATEGORY_COLORS['Others']}`}
               >

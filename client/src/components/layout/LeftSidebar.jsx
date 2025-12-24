@@ -32,9 +32,9 @@ const navItems = [
 
 const LeftSidebar = () => {
   return (
-  <aside className="w-64 h-full bg-[#001B2E] border-r border-primary-100/20 flex flex-col justify-between py-6 px-4 text-[#294C60] font-sans">
+    <aside className="w-64 h-full bg-[#050505] border-r border-white/5 flex flex-col justify-between py-6 px-4 font-sans">
       <nav className="flex-1 px-4 py-6">
-        <ul className="space-y-2">
+        <ul className="space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -44,11 +44,11 @@ const LeftSidebar = () => {
                   end={item.path === '/dashboard'}
                   className={({ isActive }) =>
                     cn(
-                        'flex items-center gap-3 px-4 py-3 rounded-lg transition-all group',
-                        'hover:bg-[#AEC3B0]/10 hover:text-[#AEC3B0]',
-                        isActive
-                          ? 'bg-[#AEC3B0] text-[#AEC3B0] font-semibold shadow-lg'
-                          : 'text-[#AEC3B0]'
+                      'flex items-center gap-3 px-4 py-3 rounded-xl transition-all',
+                      'hover:bg-white/[0.03]',
+                      isActive
+                        ? 'bg-white/[0.05] text-white font-medium'
+                        : 'text-white/50'
                     )
                   }
                 >
@@ -56,8 +56,8 @@ const LeftSidebar = () => {
                     <>
                       <Icon
                         className={cn(
-                          'w-5 h-5 transition-transform group-hover:scale-110',
-                          isActive && 'drop-shadow-lg'
+                          'w-5 h-5',
+                          isActive && 'text-cyan-400'
                         )}
                       />
                       <span>{item.name}</span>
@@ -69,12 +69,10 @@ const LeftSidebar = () => {
           })}
         </ul>
       </nav>
-
-      {/* Footer */}
-      <div className="px-4 py-4 border-t border-primary-400/10">
-        <div className="glass p-3 rounded-lg">
-          <p className="text-xs text-muted-foreground">
-            Powered by <span className="text-gradient font-semibold">Gemini AI</span>
+      <div className="px-4 py-4 border-t border-white/5">
+        <div className="p-3">
+          <p className="text-[10px] text-white/30 uppercase tracking-widest">
+            Powered by <span className="text-cyan-400/70">Gemini</span>
           </p>
         </div>
       </div>

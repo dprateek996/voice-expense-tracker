@@ -1,4 +1,3 @@
-// A simple utility to play sounds without needing audio files.
 const playTone = (frequency = 440, duration = 100, volume = 0.1) => {
   try {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();

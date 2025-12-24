@@ -7,7 +7,6 @@ const useThemeStore = create(
       theme: 'light', // 'light' or 'dark'
       setTheme: (theme) => {
         set({ theme });
-        // Apply theme to document
         if (theme === 'dark') {
           document.documentElement.classList.add('dark');
         } else {
@@ -30,7 +29,6 @@ const useThemeStore = create(
   )
 );
 
-// Initialize theme on load
 const initTheme = () => {
   const stored = localStorage.getItem('theme-storage');
   if (stored) {

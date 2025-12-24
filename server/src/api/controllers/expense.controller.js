@@ -14,52 +14,58 @@ const addExpenseFromVoice = async (req, res) => {
 
   try {
     const parsedData = await parseExpenseWithGemini(transcript);
-    console.log('🤖 [API] Gemini Parsed Data:', parsedData);
+    console.log('🤖 [API] Gemini Parsed Data:', JSON.stringify(parsedData, null, 2));
 
-    // **THE DEFINITIVE FIX**: This rule is now much stricter.
-    // It rejects the request if the AI marks it as unclear, if the amount is missing, OR if the amount is zero.
-    // Now handles array of expenses
     const expensesToCreate = Array.isArray(parsedData) ? parsedData : [parsedData];
     const createdExpenses = [];
 
     for (const expense of expensesToCreate) {
-      // Relaxed validation: Accept if amount is valid, even if marked unclear (we trust the amount)
+      console.log('📦 [API] Processing expense:', expense);
+
+      if (!expense || typeof expense !== 'object') {
+        console.warn('⚠️ [API] Invalid expense object:', expense);
+        continue;
+      }
+
       if (!expense.amount || expense.amount <= 0 || isNaN(expense.amount)) {
-        console.warn('⚠️ [API] Expense rejected: Invalid amount', expense);
-        continue; // Skip invalid expenses in the batch
+        console.warn('⚠️ [API] Expense rejected: Invalid amount', expense.amount);
+        continue;
       }
 
       const newExpense = await prisma.expense.create({
         data: {
           userId: userId,
           amount: expense.amount,
-          category: expense.category,
-          description: expense.description,
-          location: expense.location,
+          category: expense.category || 'Other',
+          description: expense.description || transcript.substring(0, 50),
+          location: expense.location || null,
           ...(expense.date && { date: new Date(expense.date) }),
           is_unclear: false,
           source: 'voice',
           parsed_by: 'gemini-2.0-flash',
         }
       });
+      console.log('✅ [API] Created expense:', newExpense.id);
       createdExpenses.push(newExpense);
     }
 
     if (createdExpenses.length === 0) {
+      console.log('❌ [API] No valid expenses created from:', transcript);
       return res.status(400).json({
         error: "Could not understand a valid expense from the transcript.",
         is_unclear: true,
+        parsed: parsedData
       });
     }
 
     res.status(201).json({
       message: 'Expenses added successfully',
-      expenses: createdExpenses, // Return array
+      expenses: createdExpenses,
       count: createdExpenses.length
     });
 
   } catch (error) {
-    console.error('Error in addExpenseFromVoice:', error);
+    console.error('❌ [API] Error in addExpenseFromVoice:', error);
     res.status(500).json({ error: 'Internal server error while processing expense.' });
   }
 };

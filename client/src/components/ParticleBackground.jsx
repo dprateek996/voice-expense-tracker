@@ -11,14 +11,12 @@ const ParticleBackground = () => {
     let animationFrameId;
     let particles = [];
 
-    // Set canvas size
     const setCanvasSize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
     setCanvasSize();
 
-    // Particle class
     class Particle {
       constructor() {
         this.x = Math.random() * canvas.width;
@@ -33,7 +31,6 @@ const ParticleBackground = () => {
         this.x += this.speedX;
         this.y += this.speedY;
 
-        // Wrap around screen
         if (this.x > canvas.width) this.x = 0;
         if (this.x < 0) this.x = canvas.width;
         if (this.y > canvas.height) this.y = 0;
@@ -48,7 +45,6 @@ const ParticleBackground = () => {
       }
     }
 
-    // Create particles
     const createParticles = () => {
       const particleCount = Math.floor((canvas.width * canvas.height) / 8000);
       particles = [];
@@ -58,7 +54,6 @@ const ParticleBackground = () => {
     };
     createParticles();
 
-    // Animation loop
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -67,7 +62,6 @@ const ParticleBackground = () => {
         particle.draw();
       });
 
-      // Draw connections
       particles.forEach((particle, i) => {
         particles.slice(i + 1).forEach(otherParticle => {
           const dx = particle.x - otherParticle.x;
@@ -89,14 +83,12 @@ const ParticleBackground = () => {
     };
     animate();
 
-    // Handle resize
     const handleResize = () => {
       setCanvasSize();
       createParticles();
     };
     window.addEventListener('resize', handleResize);
 
-    // Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);

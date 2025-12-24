@@ -2,7 +2,6 @@ import { Outlet } from 'react-router-dom';
 import { toast } from 'sonner';
 import Sidebar from '@/components/layout/Sidebar';
 import TopNav from '@/components/layout/TopNav';
-import VoiceOrb from '@/components/VoiceOrb';
 import CommandInterface from '@/components/CommandInterface';
 import { ConfirmationDialog } from '@/components/ConfirmationDialog';
 import { expenseApi } from '@/api/expense.api';
@@ -22,7 +21,6 @@ const Dashboard = () => {
   const [transcriptToConfirm, setTranscriptToConfirm] = useState("");
   const [confirmationData, setConfirmationData] = useState(null);
 
-  // 🎤 GLOBAL SPEECH RECOGNITION
   const { isListening, transcript, startListening, stopListening } = useSpeechRecognition({
     onResult: () => { },
     onEnd: (transcript) => {
@@ -30,12 +28,10 @@ const Dashboard = () => {
     },
   });
 
-  // ✏️ TEXT INPUT HANDLER
   const handleTextCommand = (commandText) => {
     parseAndSaveExpense(commandText, 'text');
   };
 
-  // 🎤 VOICE INPUT — CONFIRMATION POPUP
   const handleVoiceCommand = (spokenTranscript) => {
     close();
     setTranscriptToConfirm(spokenTranscript);
@@ -43,10 +39,8 @@ const Dashboard = () => {
     setDialogOpen(true);
   };
 
-  // ⌨️ KEYBOARD SHORTCUTS
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Cmd/Ctrl + K to open add expense
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         if (!voiceStore.isOpen) {
@@ -58,8 +52,7 @@ const Dashboard = () => {
           });
         }
       }
-      
-      // Esc to close
+
       if (e.key === 'Escape') {
         if (voiceStore.isOpen) {
           close();
@@ -74,7 +67,6 @@ const Dashboard = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [voiceStore.isOpen, open, close, dialogOpen, confirmationData, isListening, stopListening]);
 
-  // 🌐 PARSE + SAVE
   const parseAndSaveExpense = async (finalTranscript, source = 'voice') => {
     setDialogOpen(false);
     setState('processing');
@@ -86,18 +78,16 @@ const Dashboard = () => {
         ? result.expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0)
         : (result.expense.amount || 0);
 
-      // Show confirmation card instead of just toast
       setConfirmationData(result.expenses || [result.expense]);
 
-      // Show enhanced success toast with animation
       toast.success(
         <div className="flex items-center gap-3">
           <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
-            <svg 
-              viewBox="0 0 24 24" 
+            <svg
+              viewBox="0 0 24 24"
               className="w-6 h-6 text-white animate-[scale-in_0.3s_ease-out]"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -127,15 +117,14 @@ const Dashboard = () => {
 
       fetchExpenses();
     } catch (error) {
-      // Enhanced error toast
       toast.error(
         <div className="flex items-center gap-3">
           <div className="flex-shrink-0 w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
-            <svg 
-              viewBox="0 0 24 24" 
+            <svg
+              viewBox="0 0 24 24"
               className="w-6 h-6 text-white"
-              fill="none" 
-              stroke="currentColor" 
+              fill="none"
+              stroke="currentColor"
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -167,24 +156,16 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-black relative">
-      {/* Gradient Background Overlays */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/[0.08] rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
-        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-sky-500/[0.08] rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '10s' }} />
-      </div>
-
+    <div className="flex min-h-screen w-full bg-background">
       <Sidebar />
 
-      <div className="flex flex-col flex-1 relative z-10">
+      <div className="flex flex-col flex-1">
         <TopNav />
 
-        <main className="flex flex-col flex-1 gap-4 p-4 sm:p-6 md:p-8">
+        <main className="flex-1 overflow-auto">
           <Outlet />
         </main>
       </div>
-
-      {/* COMMAND INTERFACE RECEIVES THE REQUIRED PROPS */}
       <CommandInterface
         onTextCommand={handleTextCommand}
         onVoiceCommand={handleVoiceCommand}

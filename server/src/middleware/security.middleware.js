@@ -1,7 +1,5 @@
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-
-// Rate limiting for authentication routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // Limit each IP to 5 requests per windowMs for auth routes
@@ -11,8 +9,6 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-
-// Rate limiting for general API routes
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // Limit each IP to 100 requests per windowMs
@@ -22,8 +18,6 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-
-// Security headers middleware
 const securityHeaders = helmet({
   contentSecurityPolicy: {
     directives: {

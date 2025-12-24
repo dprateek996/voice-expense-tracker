@@ -15,14 +15,12 @@ const Logo = ({ size = "md", showText = true, textClassName = "text-xl font-bold
 
   return (
     <div className={`flex items-center space-x-2 ${sizeClasses[size] || sizeClasses.md}`}>
-      {/* Logo Icon */}
       <svg
         viewBox="0 0 100 100"
         className="w-full h-full"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        {/* Microphone base */}
         <rect
           x="40"
           y="70"
@@ -32,8 +30,6 @@ const Logo = ({ size = "md", showText = true, textClassName = "text-xl font-bold
           fill="currentColor"
           className="text-slate-800 dark:text-slate-300"
         />
-
-        {/* Microphone stem */}
         <rect
           x="47"
           y="50"
@@ -43,8 +39,6 @@ const Logo = ({ size = "md", showText = true, textClassName = "text-xl font-bold
           fill="currentColor"
           className="text-slate-700 dark:text-slate-400"
         />
-
-        {/* Microphone head */}
         <circle
           cx="50"
           cy="40"
@@ -52,8 +46,6 @@ const Logo = ({ size = "md", showText = true, textClassName = "text-xl font-bold
           fill="currentColor"
           className="text-slate-900 dark:text-slate-100"
         />
-
-        {/* Sound waves */}
         <path
           d="M25 40 Q30 35 35 40 Q30 45 25 40"
           stroke="currentColor"
@@ -75,8 +67,6 @@ const Logo = ({ size = "md", showText = true, textClassName = "text-xl font-bold
           fill="none"
           className="text-primary"
         />
-
-        {/* Rupee symbol */}
         <text
           x="50"
           y="42"
@@ -87,8 +77,6 @@ const Logo = ({ size = "md", showText = true, textClassName = "text-xl font-bold
         >
           ₹
         </text>
-
-        {/* Small accent dot */}
         <circle
           cx="75"
           cy="25"
@@ -97,8 +85,6 @@ const Logo = ({ size = "md", showText = true, textClassName = "text-xl font-bold
           className="text-primary"
         />
       </svg>
-
-      {/* Logo Text */}
       {showText && (
         <span className={`${textSizeClasses[size] || textSizeClasses.md} text-slate-900 dark:text-slate-100`}>
           VoiceExpense

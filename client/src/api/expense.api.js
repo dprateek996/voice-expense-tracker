@@ -1,4 +1,3 @@
-// /client/src/api/expense.api.js
 import apiClient from './axios.config';
 
 const expenseApi = {
@@ -23,3 +22,4 @@ const expenseApi = {
 
 export { expenseApi };
 export default expenseApi;
+

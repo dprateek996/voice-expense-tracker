@@ -1,27 +1,17 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Search, ArrowUpDown, Calendar, Tag, DollarSign, MapPin } from "lucide-react";
+import { Search, ArrowUpDown, Calendar, Trash2, MoreHorizontal } from "lucide-react";
 import useExpenseStore from "@/store/expenseStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const History = () => {
-  const { expenses } = useExpenseStore();
+  const { expenses, deleteExpense } = useExpenseStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: "date", direction: "desc" });
 
-  // Filter and Sort Logic
   const filteredExpenses = useMemo(() => {
     let data = [...expenses];
 
@@ -29,8 +19,8 @@ const History = () => {
       const lowerTerm = searchTerm.toLowerCase();
       data = data.filter(
         (expense) =>
-          expense.description.toLowerCase().includes(lowerTerm) ||
-          expense.category.toLowerCase().includes(lowerTerm) ||
+          expense.description?.toLowerCase().includes(lowerTerm) ||
+          expense.category?.toLowerCase().includes(lowerTerm) ||
           (expense.amount || 0).toString().includes(lowerTerm)
       );
     }
@@ -55,113 +45,132 @@ const History = () => {
     }));
   };
 
-  return (
-    <div className="space-y-6 p-4 md:p-0 max-w-7xl mx-auto w-full">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
-              Transaction History
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              View and manage your past expenses
-            </p>
-          </div>
+  const handleDelete = async (id) => {
+    try {
+      await deleteExpense(id);
+      toast.success("Expense deleted");
+    } catch (error) {
+      toast.error("Failed to delete expense");
+    }
+  };
 
+  return (
+    <div className="max-w-6xl mx-auto w-full py-8 px-6">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8"
+      >
+        <p className="text-muted-foreground text-sm mb-1">
+          View and manage your expenses
+        </p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <h1 className="text-3xl font-semibold text-foreground">
+            Transaction History
+          </h1>
           <div className="relative w-full md:w-72">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search transactions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-background/50 backdrop-blur-sm border-primary/20 focus:border-primary transition-all duration-300"
+              className="pl-10 rounded-xl"
             />
           </div>
         </div>
-
-        <Card className="border-primary/10 bg-card/50 backdrop-blur-xl shadow-2xl">
-          <CardContent className="p-0">
-            <div className="rounded-md border border-primary/10 overflow-hidden">
-              <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow>
-                    <TableHead className="w-[180px]">
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleSort("date")}
-                        className="hover:bg-transparent hover:text-primary p-0 font-semibold"
-                      >
-                        Date
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-right">
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleSort("amount")}
-                        className="hover:bg-transparent hover:text-primary p-0 font-semibold ml-auto"
-                      >
-                        Amount
-                        <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </Button>
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredExpenses.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                        No transactions found.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredExpenses.map((expense, index) => (
-                      <motion.tr
-                        key={expense.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="group hover:bg-muted/50 transition-colors border-b border-primary/5 last:border-0"
-                      >
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors">
-                            <Calendar className="h-4 w-4 opacity-70" />
-                            {format(new Date(expense.date), "MMM d, yyyy")}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">{expense.description}</div>
-                          {expense.location && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                              <MapPin className="h-3 w-3" />
-                              {expense.location}
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 transition-colors">
-                            {expense.category}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span className="font-bold text-foreground">
-                            ₹{(expense.amount || 0).toFixed(2)}
-                          </span>
-                        </TableCell>
-                      </motion.tr>
-                    ))
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-card border border-border rounded-2xl overflow-hidden"
+      >
+        <div className="grid grid-cols-12 gap-4 px-5 py-4 bg-muted/50 border-b border-border">
+          <div className="col-span-2">
+            <button
+              onClick={() => handleSort("date")}
+              className="flex items-center gap-1 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors"
+            >
+              Date
+              <ArrowUpDown className="h-3 w-3" />
+            </button>
+          </div>
+          <div className="col-span-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Description
+          </div>
+          <div className="col-span-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Category
+          </div>
+          <div className="col-span-2 text-right">
+            <button
+              onClick={() => handleSort("amount")}
+              className="flex items-center gap-1 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors ml-auto"
+            >
+              Amount
+              <ArrowUpDown className="h-3 w-3" />
+            </button>
+          </div>
+          <div className="col-span-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Actions
+          </div>
+        </div>
+        {filteredExpenses.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <Calendar className="w-12 h-12 mb-4 opacity-30" />
+            <p className="text-sm">No transactions found</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {filteredExpenses.map((expense, index) => (
+              <motion.div
+                key={expense.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.02 }}
+                className="grid grid-cols-12 gap-4 px-5 py-4 hover:bg-muted/30 transition-colors items-center"
+              >
+                <div className="col-span-2 text-sm text-muted-foreground">
+                  {format(new Date(expense.date), "MMM d, yyyy")}
+                </div>
+                <div className="col-span-4">
+                  <p className="font-medium text-foreground truncate">
+                    {expense.description || "Expense"}
+                  </p>
+                  {expense.location && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {expense.location}
+                    </p>
                   )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+                <div className="col-span-2">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-muted text-muted-foreground capitalize">
+                    {expense.category || "Other"}
+                  </span>
+                </div>
+                <div className="col-span-2 text-right font-semibold text-foreground">
+                  ₹{(expense.amount || 0).toLocaleString("en-IN")}
+                </div>
+                <div className="col-span-2 flex justify-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-red-500"
+                    onClick={() => handleDelete(expense.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+        {filteredExpenses.length > 0 && (
+          <div className="px-5 py-4 border-t border-border bg-muted/30">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredExpenses.length} transaction{filteredExpenses.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+        )}
       </motion.div>
     </div>
   );

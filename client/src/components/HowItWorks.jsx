@@ -3,15 +3,6 @@ import { motion } from 'framer-motion';
 import { Mic, Sparkles, Check, BarChart3 } from 'lucide-react';
 
 const HowItWorks = () => {
-    // Defines the steps and their precise positions on the 1000x400 SVG grid
-    // Path: M 50,200 C 50,200 250,50 400,100 C 550,150 650,350 800,300 C 950,250 950,200 950,200
-    // Modified path to have 4 distinct "stops" or align with the flow nicely.
-
-    // Let's us a simple wave: Start (Left) -> Up -> Down -> End (Right)
-    // Step 1: Start (Left)
-    // Step 2: Peak (Top)
-    // Step 3: Valley (Bottom)
-    // Step 4: End (Right)
 
     const steps = [
         {
@@ -63,11 +54,7 @@ const HowItWorks = () => {
                         From voice to expense log in seconds.
                     </p>
                 </div>
-
-                {/* Container preserving aspect ratio for the SVG path */}
                 <div className="relative w-full aspect-[2.5/1] md:aspect-[3/1] lg:aspect-[3/1] max-w-5xl mx-auto">
-
-                    {/* SVG Layer */}
                     <div className="absolute inset-0 pointer-events-none">
                         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 400">
                             <defs>
@@ -77,8 +64,6 @@ const HowItWorks = () => {
                                     <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
                                 </linearGradient>
                             </defs>
-
-                            {/* Guide Path (Dashed/Faint) */}
                             <path
                                 d="M 50,200 C 150,200 200,50 350,50 C 500,50 500,350 650,350 C 800,350 850,200 950,200"
                                 fill="none"
@@ -87,8 +72,6 @@ const HowItWorks = () => {
                                 strokeDasharray="8 8"
                                 strokeLinecap="round"
                             />
-
-                            {/* Animated Beam/Arrow */}
                             <motion.path
                                 d="M 50,200 C 150,200 200,50 350,50 C 500,50 500,350 650,350 C 800,350 850,200 950,200"
                                 fill="none"
@@ -109,8 +92,6 @@ const HowItWorks = () => {
                             />
                         </svg>
                     </div>
-
-                    {/* Steps Layer - Absolutely Positioned */}
                     {steps.map((step, index) => (
                         <div
                             key={step.id}
@@ -121,7 +102,6 @@ const HowItWorks = () => {
                                 width: '200px' // Fixed width for text centering
                             }}
                         >
-                            {/* Icon Circle */}
                             <motion.div
                                 initial={{ scale: 0, opacity: 0 }}
                                 animate={{ scale: 1, opacity: 1 }}
@@ -131,14 +111,10 @@ const HowItWorks = () => {
                                 <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-neutral-900 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:border-primary/50 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.2)] transition-all duration-300">
                                     <step.icon className="w-6 h-6 md:w-7 md:h-7 text-white group-hover:text-primary transition-colors" />
                                 </div>
-
-                                {/* Step Number Badge */}
                                 <div className="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-primary text-black text-xs font-bold flex items-center justify-center border-2 border-black z-20">
                                     {step.id}
                                 </div>
                             </motion.div>
-
-                            {/* Text Content - Positioned based on available space */}
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}

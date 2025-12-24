@@ -11,15 +11,11 @@ const ProtectedRoute = ({ children }) => {
   useEffect(() => {
     const verifyUserSession = async () => {
       try {
-        // This now runs on every single application load to verify the cookie/token.
-        // It is the single source of truth for authentication.
         const data = await fetchMe();
-        // If successful, ensure store is synced (optional but good)
         if (data.user && token) {
           login(data.user, token);
         }
       } catch (error) {
-        // The fetchMe function already handles logging the user out of the store on failure.
         console.error("Session verification failed. User is not logged in.");
         logout(); // Explicitly logout on failure
       } finally {
@@ -33,14 +29,11 @@ const ProtectedRoute = ({ children }) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
-        {/* Replace with a spinner component later */}
         <div className="text-xl font-semibold">Verifying Session...</div>
       </div>
     );
   }
 
-  // TEMPORARY: Allow access to settings page without authentication for testing
-  // TODO: Remove this bypass once authentication is properly set up
   if (location.pathname.includes('/settings')) {
     return children;
   }

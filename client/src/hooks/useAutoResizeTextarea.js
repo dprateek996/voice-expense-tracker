@@ -13,10 +13,8 @@ export function useAutoResizeTextarea({ minHeight, maxHeight }) {
         return;
       }
 
-      // Temporarily shrink to get the right scrollHeight
       textarea.style.height = `${minHeight}px`;
 
-      // Calculate new height
       const newHeight = Math.max(
         minHeight,
         Math.min(
@@ -31,14 +29,12 @@ export function useAutoResizeTextarea({ minHeight, maxHeight }) {
   );
 
   useEffect(() => {
-    // Set initial height
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = `${minHeight}px`;
     }
   }, [minHeight]);
 
-  // Adjust height on window resize
   useEffect(() => {
     const handleResize = () => adjustHeight();
     window.addEventListener("resize", handleResize);

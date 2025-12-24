@@ -7,7 +7,6 @@ import VoiceResponsePanel from './VoiceResponsePanel';
 import { useState, useEffect } from 'react';
 import { playClickSound } from '@/lib/playClickSound';
 
-
 const VoiceOrb = ({ onVoiceExpense }) => {
   const { isListening, isProcessing, currentTranscript } = useConversationStore();
   const { isSupported, startListening, stopListening } = useSpeechRecognition();
@@ -22,8 +21,6 @@ const VoiceOrb = ({ onVoiceExpense }) => {
       startListening();
     }
   };
-
-  // Simulate response after voice input (replace with actual API call)
   const handleVoiceResult = async (transcript) => {
     if (!transcript) return;
     setVoiceResponseType('info');
@@ -42,14 +39,10 @@ const VoiceOrb = ({ onVoiceExpense }) => {
       setVoiceResponse('Failed to process voice input.');
     }
   };
-
-
-  // Listen for transcript change and show response when finalized
   useEffect(() => {
     if (!isListening && currentTranscript) {
       handleVoiceResult(currentTranscript);
     }
-    // eslint-disable-next-line
   }, [isListening, currentTranscript]);
 
   const getOrbState = () => {
@@ -62,9 +55,7 @@ const VoiceOrb = ({ onVoiceExpense }) => {
 
   return (
     <div className="flex flex-col items-center justify-center py-12">
-      {/* Voice Orb */}
       <div className="relative flex items-center justify-center">
-        {/* Animated rings for listening state */}
         {isListening && (
           <>
             <motion.div
@@ -107,8 +98,6 @@ const VoiceOrb = ({ onVoiceExpense }) => {
             />
           </>
         )}
-
-        {/* Glow layers */}
         <div
           className={cn(
             'absolute w-56 h-56 rounded-full transition-all duration-500',
@@ -120,8 +109,6 @@ const VoiceOrb = ({ onVoiceExpense }) => {
             background: 'radial-gradient(circle, rgba(77, 212, 193, 0.4) 0%, rgba(42, 157, 143, 0.1) 70%, transparent 100%)',
           }}
         />
-
-        {/* Main Orb */}
         <motion.button
           onClick={handleOrbClick}
           disabled={!isSupported || isProcessing}
@@ -136,12 +123,9 @@ const VoiceOrb = ({ onVoiceExpense }) => {
           )}
           whileTap={{ scale: 0.95 }}
         >
-          {/* Rotating accent ring */}
           {orbState === 'listening' && (
             <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-primary-400/60 animate-rotate-ring" />
           )}
-
-          {/* Icon */}
           <div className="text-dark-500">
             {isProcessing ? (
               <Loader2 className="w-16 h-16 animate-spin" />
@@ -153,8 +137,6 @@ const VoiceOrb = ({ onVoiceExpense }) => {
           </div>
         </motion.button>
       </div>
-
-      {/* Status Text */}
       <div className="mt-8 text-center space-y-2">
         <motion.h2
           className="text-2xl font-bold text-gradient"
@@ -165,8 +147,6 @@ const VoiceOrb = ({ onVoiceExpense }) => {
           {orbState === 'processing' && 'Processing...'}
           {orbState === 'idle' && 'Click to Speak'}
         </motion.h2>
-
-        {/* Live Transcript */}
         {isListening && currentTranscript && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -176,23 +156,17 @@ const VoiceOrb = ({ onVoiceExpense }) => {
             <p className="text-foreground text-sm">{currentTranscript}</p>
           </motion.div>
         )}
-
-        {/* Helper Text */}
         {!isListening && !isProcessing && (
           <p className="text-muted-foreground text-sm max-w-md">
             Try: "Add 200 rupees for groceries" or "Show my expenses this week"
           </p>
         )}
-
-        {/* Browser Support Warning */}
         {!isSupported && (
           <p className="text-red-400 text-sm">
             ⚠️ Voice recognition not supported in this browser
           </p>
         )}
       </div>
-
-      {/* Voice Response Panel */}
       <VoiceResponsePanel
         response={voiceResponse}
         type={voiceResponseType}

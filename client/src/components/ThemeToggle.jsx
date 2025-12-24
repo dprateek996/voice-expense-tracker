@@ -4,47 +4,34 @@ import { Moon, Sun, Star } from 'lucide-react';
 import useThemeStore from '../store/themeStore';
 
 const ThemeToggle = () => {
-    // Integrate with global store instead of local state
     const { theme, setTheme } = useThemeStore();
     const isDark = theme === 'dark';
 
-    // We track the rotation value (0 to 180)
     const rotation = useMotionValue(isDark ? 0 : 180);
     const smoothRotation = useSpring(rotation, { damping: 20, stiffness: 300 });
 
-    // Map rotation to properties
-    // 0 = Dark, 180 = Light
-
-    // Background color of the knob
     const bg = useTransform(smoothRotation, [0, 180], ["#171717", "#ffffff"]);
     const border = useTransform(smoothRotation, [0, 180], ["rgba(255,255,255,0.1)", "rgba(0,0,0,0.1)"]);
 
-    // Icons Y displacement - Stronger arc for "Rise/Set" feeling
-    // 0 deg (Dark): Moon is center (0), Sun is below (40).
     const moonY = useTransform(smoothRotation, [0, 90, 180], [0, 30, 40]);
     const sunY = useTransform(smoothRotation, [0, 90, 180], [40, 30, 0]);
 
-    // Icons Opacity
     const moonOpacity = useTransform(smoothRotation, [0, 50], [1, 0]);
     const sunOpacity = useTransform(smoothRotation, [130, 180], [0, 1]);
 
-    // Counter-rotate to keep icons upright
     const counterRotate = useTransform(smoothRotation, v => -v);
 
     useEffect(() => {
-        // Initialize rotation state from store
         rotation.set(isDark ? 0 : 180);
     }, [isDark, rotation]);
 
     const handlePan = (event, info) => {
         const current = rotation.get();
-        // Drag logic: dragging right/down adds to rotation
         const delta = info.delta.x + info.delta.y;
         const sensitivity = 1;
         const newRot = Math.max(0, Math.min(180, current + delta * sensitivity));
         rotation.set(newRot);
 
-        // Threshold check for theme switching
         if (newRot > 90 && isDark) {
             setTheme('light');
         } else if (newRot <= 90 && !isDark) {
@@ -57,7 +44,6 @@ const ThemeToggle = () => {
         const target = current > 90 ? 180 : 0;
         animate(rotation, target, { type: "spring", stiffness: 200, damping: 15 });
 
-        // Sync final state
         if (target === 180 && isDark) {
             setTheme('light');
         } else if (target === 0 && !isDark) {
@@ -74,7 +60,6 @@ const ThemeToggle = () => {
 
     return (
         <div className="relative group">
-            {/* Glow effect */}
             <motion.div
                 className="absolute inset-0 rounded-full blur-lg opacity-50"
                 style={{
@@ -94,7 +79,6 @@ const ThemeToggle = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
             >
-                {/* Moon Group */}
                 <motion.div
                     className="absolute inset-0 flex items-center justify-center"
                     style={{ opacity: moonOpacity, rotate: counterRotate }}
@@ -110,7 +94,6 @@ const ThemeToggle = () => {
                         </motion.div>
                     </motion.div>
                 </motion.div>
-                {/* Sun Group */}
                 <motion.div
                     className="absolute inset-0 flex items-center justify-center"
                     style={{ opacity: sunOpacity, rotate: counterRotate }}
@@ -119,7 +102,6 @@ const ThemeToggle = () => {
                         <Sun className="w-5 h-5 text-amber-500 fill-amber-500/10 stroke-[2px]" />
                     </motion.div>
                 </motion.div>
-                {/* Shine/Gloss Reflection */}
                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
 
             </motion.div>

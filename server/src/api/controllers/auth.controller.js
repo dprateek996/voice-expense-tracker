@@ -56,7 +56,6 @@ async function login(req, res) {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Missing email or password' });
 
-    // Find user by email
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
@@ -79,7 +78,6 @@ async function login(req, res) {
     return res.status(500).json({ error: 'Server error' });
   }
 }
-
 
 async function logout(req, res) {
   try {
@@ -144,28 +142,22 @@ const forgotPassword = async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      // Don't reveal if email exists or not for security
       return res.status(200).json({ message: 'If an account with that email exists, a password reset link has been sent.' });
     }
 
-    // Generate reset token
     const resetToken = crypto.randomBytes(32).toString('hex');
     const resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Save to database
     await prisma.user.update({
       where: { id: user.id },
       data: { resetToken, resetTokenExpiry },
     });
 
-    // In a real app, send email here
-    // For development, log the reset link
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
     console.log('🔗 Password Reset Link:', resetUrl);
 
     res.status(200).json({ 
       message: 'If an account with that email exists, a password reset link has been sent.',
-      // Include token in development for testing
       ...(process.env.NODE_ENV === 'development' && { resetToken, resetUrl })
     });
   } catch (error) {
@@ -186,7 +178,6 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
     }
 
-    // Find user with valid token
     const user = await prisma.user.findFirst({
       where: {
         resetToken: token,
@@ -200,10 +191,8 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'Invalid or expired reset token' });
     }
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    // Update password and clear reset token
     await prisma.user.update({
       where: { id: user.id },
       data: {

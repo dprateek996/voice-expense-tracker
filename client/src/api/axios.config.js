@@ -9,7 +9,6 @@ const api = axios.create({
   timeout: 15000,
 });
 
-// Inject token from store
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) {

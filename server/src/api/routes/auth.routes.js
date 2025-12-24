@@ -10,8 +10,6 @@ const {
   resetPassword
 } = require('../controllers/auth.controller');
 const { protect } = require('../../middleware/auth.middleware');
-
-// AUTH ROUTES (must match frontend exactly)
 router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', logout);
