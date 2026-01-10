@@ -22,6 +22,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'https://voex.prateekdwivedi.me',
+  'https://voice-expense-tracker-lilac.vercel.app',
   process.env.CLIENT_ORIGIN
 ].filter(Boolean);
 
