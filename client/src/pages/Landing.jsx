@@ -5,6 +5,8 @@ import { Mic, ArrowRight, Check, Sparkles, BarChart3, Linkedin, Github, Mail, Lo
 import { Button } from '@/components/ui/button';
 import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
 import ThemeToggle from "@/components/ThemeToggle";
+import { Spotlight } from "@/components/ui/spotlight";
+import { cn } from "@/lib/utils";
 
 /* ------------------------------------------------------------------ */
 /*                             NAVBAR                                 */
@@ -55,62 +57,75 @@ const heroItems = [
   { title: "H&M", amount: "₹1200", icon: "/icons/tag.png" },
 ];
 
-const HeroSection = () => (
-  <div className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-background">
-    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none" />
-
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative"
-      >
-        <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-          </span>
-          New: Receipt Scanning
-        </span>
-
-        <h1 className="text-4xl md:text-6xl font-bold text-foreground tracking-tight mb-6 leading-tight">
-          Track expenses <br />
-          <span className="text-muted-foreground">
-            with your voice.
-          </span>
-        </h1>
-
-        <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
-          No more spreadsheets or manual typing. Add expenses instantly.
-        </p>
-
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link to="/register">
-            <Button size="lg" className="rounded-full px-8 h-14 text-lg">
-              Start for free <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
-          <p className="text-xs text-muted-foreground mt-4 sm:mt-0">No credit card required</p>
-          <Link to="/demo">
-            <Button variant="outline" size="lg" className="rounded-full px-8 h-14 text-lg">
-              View Demo
-            </Button>
-          </Link>
-        </div>
-      </motion.div>
-    </div>
-    <div className="mt-20 relative">
-      <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background z-10 pointer-events-none" />
-      <InfiniteMovingCards
-        items={heroItems}
-        direction="right"
-        speed="slow"
-        className="py-4"
+const HeroSection = () => {
+  return (
+    <div className="relative flex w-full overflow-hidden bg-background pt-32 pb-20 lg:pt-48 lg:pb-32">
+      {/* Grid Background */}
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 [background-size:40px_40px] select-none opacity-[0.015] dark:opacity-[0.03]",
+          "[background-image:linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)]"
+        )}
       />
+
+      {/* Spotlight Effect */}
+      <Spotlight className="-top-40 left-0 md:-top-20 md:left-60 opacity-0 dark:opacity-100" fill="white" />
+
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="relative"
+        >
+          <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            </span>
+            New: Receipt Scanning
+          </span>
+
+          <h1 className="text-4xl md:text-6xl font-bold text-foreground tracking-tight mb-6 leading-tight">
+            Track expenses <br />
+            <span className="text-muted-foreground">
+              with your voice.
+            </span>
+          </h1>
+
+          <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
+            No more spreadsheets or manual typing. Add expenses instantly.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link to="/register">
+              <Button size="lg" className="rounded-full px-8 h-14 text-lg">
+                Start for free <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+            <p className="text-xs text-muted-foreground mt-4 sm:mt-0">No credit card required</p>
+            <Link to="/demo">
+              <Button variant="outline" size="lg" className="rounded-full px-8 h-14 text-lg">
+                View Demo
+              </Button>
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+      <div className="absolute bottom-0 left-0 right-0">
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background z-10 pointer-events-none" />
+        <InfiniteMovingCards
+          items={heroItems}
+          direction="right"
+          speed="slow"
+          className="py-4"
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 /* ------------------------------------------------------------------ */
 /*                       INTERACTIVE DEMO                             */
@@ -401,46 +416,7 @@ const FeaturesSection = () => {
   );
 };
 
-/* ------------------------------------------------------------------ */
-/*                          PRICING SECTION                           */
-/* ------------------------------------------------------------------ */
 
-const PricingSection = () => (
-  <div id="pricing" className="py-24 bg-muted/30 border-y border-border">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">Simple, transparent pricing</h2>
-      <p className="text-muted-foreground mb-12 max-w-2xl mx-auto">Start free, upgrade when you need more</p>
-
-      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-        <div className="bg-card border border-border rounded-2xl p-8 hover:shadow-lg transition-shadow">
-          <h3 className="text-xl font-bold text-foreground mb-2">Free Forever</h3>
-          <div className="text-4xl font-bold text-foreground mb-6">₹0<span className="text-lg text-muted-foreground font-normal">/mo</span></div>
-          <ul className="space-y-3 text-left mb-8">
-            {['Voice expense logging', 'Basic analytics', 'Export to CSV', '50 expenses/month'].map((feature, i) => (
-              <li key={i} className="flex items-center gap-2 text-muted-foreground">
-                <Check className="w-4 h-4 text-primary" /> {feature}
-              </li>
-            ))}
-          </ul>
-          <Button variant="outline" className="w-full rounded-full">Get Started</Button>
-        </div>
-        <div className="bg-card border-2 border-primary rounded-2xl p-8 relative shadow-lg">
-          <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-2xl">POPULAR</div>
-          <h3 className="text-xl font-bold text-foreground mb-2">Pro</h3>
-          <div className="text-4xl font-bold text-foreground mb-6">₹199<span className="text-lg text-muted-foreground font-normal">/mo</span></div>
-          <ul className="space-y-3 text-left mb-8">
-            {['Unlimited voice logging', 'Receipt scanning (AI)', 'Advanced insights', 'Priority support'].map((feature, i) => (
-              <li key={i} className="flex items-center gap-2 text-foreground">
-                <Check className="w-4 h-4 text-primary" /> {feature}
-              </li>
-            ))}
-          </ul>
-          <Button className="w-full rounded-full">Start Free Trial</Button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 /* ------------------------------------------------------------------ */
 /*                             FOOTER                                 */
@@ -456,7 +432,7 @@ const Footer = () => (
           </div>
           <span className="text-sm font-bold text-foreground tracking-tight">VoEx</span>
         </div>
-        <p className="text-xs text-muted-foreground">Voice-powered expense tracking</p>
+        <p className="text-xs text-muted-foreground">Voice powered expense tracking</p>
       </div>
 
       <p className="text-sm text-muted-foreground">
@@ -489,7 +465,7 @@ const Landing = () => {
       <HeroSection />
       <FeaturesSection />
       <InteractiveDemoSection />
-      <PricingSection />
+
       <Footer />
     </div>
   );
