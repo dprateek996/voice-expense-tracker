@@ -10,6 +10,13 @@ const ProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     const verifyUserSession = async () => {
+      // Skip verification if already authenticated (e.g., just logged in)
+      if (isAuthenticated && token) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Only verify if we're not authenticated but might have a session
       try {
         const data = await fetchMe();
         if (data.user && token) {
