@@ -17,9 +17,29 @@ const prisma = new PrismaClient();
 app.use(express.json());
 app.use(cookieParser());
 
-// Allow Vite dev server origin + credentials
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
-app.use(cors({ origin: CLIENT_ORIGIN, credentials: true }));
+// Allow multiple origins for development and production
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://voex.prateekdwivedi.me',
+  process.env.CLIENT_ORIGIN
+].filter(Boolean);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 
 // Mount routers with stable API namespaces
 app.use('/api/auth', authRoutes);      // <-- was '/api' before — matches frontend /api/auth/login
