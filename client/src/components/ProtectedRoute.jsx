@@ -11,21 +11,27 @@ const ProtectedRoute = ({ children }) => {
   useEffect(() => {
     const verifyUserSession = async () => {
       // Skip verification if already authenticated (e.g., just logged in)
-      if (isAuthenticated && token) {
+      if (isAuthenticated) {
         setIsLoading(false);
         return;
       }
 
-      // Only verify if we're not authenticated but might have a session
-      try {
-        const data = await fetchMe();
-        if (data.user && token) {
-          login(data.user, token);
+      // Only verify session if we have a token but aren't authenticated yet
+      // This handles page refreshes where localStorage has auth data
+      if (!isAuthenticated && token) {
+        try {
+          const data = await fetchMe();
+          if (data.user) {
+            login(data.user, token);
+          }
+        } catch (error) {
+          console.error("Session verification failed. User is not logged in.");
+          logout(); // Explicitly logout on failure
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Session verification failed. User is not logged in.");
-        logout(); // Explicitly logout on failure
-      } finally {
+      } else {
+        // No token and not authenticated - just finish loading
         setIsLoading(false);
       }
     };
