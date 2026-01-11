@@ -41,7 +41,10 @@ async function register(req, res) {
     res.cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: ACCESS_TOKEN_MAX_AGE_MS });
     res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: REFRESH_TOKEN_MAX_AGE_MS });
 
-    return res.status(201).json({ user: { id: user.id, email: user.email, name: user.name } });
+    return res.status(201).json({
+      user: { id: user.id, email: user.email, name: user.name },
+      token: accessToken
+    });
   } catch (err) {
     console.error('Register error:', err);
     if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
@@ -69,7 +72,10 @@ async function login(req, res) {
     res.cookie('accessToken', accessToken, { ...COOKIE_OPTIONS, maxAge: ACCESS_TOKEN_MAX_AGE_MS });
     res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTIONS, maxAge: REFRESH_TOKEN_MAX_AGE_MS });
 
-    return res.json({ user: { id: user.id, email: user.email, name: user.name } });
+    return res.json({
+      user: { id: user.id, email: user.email, name: user.name },
+      token: accessToken
+    });
   } catch (err) {
     console.error('Login error:', err);
     if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
@@ -156,7 +162,7 @@ const forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
     console.log('🔗 Password Reset Link:', resetUrl);
 
-    res.status(200).json({ 
+    res.status(200).json({
       message: 'If an account with that email exists, a password reset link has been sent.',
       ...(process.env.NODE_ENV === 'development' && { resetToken, resetUrl })
     });
@@ -169,7 +175,7 @@ const forgotPassword = async (req, res) => {
 const resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
-    
+
     if (!token || !newPassword) {
       return res.status(400).json({ error: 'Token and new password are required' });
     }
