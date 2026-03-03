@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { Mail, KeyRound } from 'lucide-react';
 import api from '@/api/axios.config';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -38,7 +38,7 @@ function ForgotPassword() {
       </div>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -46,7 +46,7 @@ function ForgotPassword() {
         >
           <div className="relative w-full bg-card border border-border shadow-xl rounded-2xl overflow-hidden p-8">
             <div className="space-y-1 text-center relative z-10 mb-8">
-              <motion.div
+              <Motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, type: "spring" }}
@@ -55,8 +55,8 @@ function ForgotPassword() {
                 <div className="relative w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/30 group-hover:border-primary/50 transition-all duration-300">
                   <KeyRound className="w-8 h-8 text-primary" />
                 </div>
-              </motion.div>
-              <motion.div
+              </Motion.div>
+              <Motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -68,37 +68,37 @@ function ForgotPassword() {
                   Enter your email to receive a reset link<br />
                   <span className="text-sm text-primary">We'll help you get back in</span>
                 </p>
-              </motion.div>
+              </Motion.div>
             </div>
 
             {message && (
-              <motion.div
+              <Motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400 px-4 py-3 rounded-xl mb-6 text-sm text-center font-medium"
               >
                 {message}
-              </motion.div>
+              </Motion.div>
             )}
 
             {resetLink && (
-              <motion.div
+              <Motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-primary/10 border border-primary/30 text-primary px-4 py-3 rounded-xl mb-6 text-sm break-all"
               >
                 <strong>Dev Mode:</strong> <a href={resetLink} className="underline hover:opacity-80 transition-opacity">Click here to reset</a>
-              </motion.div>
+              </Motion.div>
             )}
 
             {error && (
-              <motion.div
+              <Motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm text-center font-medium"
               >
                 {error}
-              </motion.div>
+              </Motion.div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -144,7 +144,7 @@ function ForgotPassword() {
               </div>
             </form>
           </div>
-        </motion.div>
+        </Motion.div>
       </div>
     </div>
   );

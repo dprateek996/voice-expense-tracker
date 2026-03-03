@@ -72,7 +72,7 @@ const LeftSidebar = () => {
       <div className="px-4 py-4 border-t border-white/5">
         <div className="p-3">
           <p className="text-[10px] text-white/30 uppercase tracking-widest">
-            Powered by <span className="text-cyan-400/70">Gemini</span>
+            Powered by <span className="text-cyan-400/70">Sarvam</span>
           </p>
         </div>
       </div>

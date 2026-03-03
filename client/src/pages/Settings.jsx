@@ -112,10 +112,10 @@ const Settings = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <p className="text-muted-foreground text-sm mb-1">
+        <p className="text-muted-foreground text-sm mb-1 font-medium">
           Manage your account
         </p>
-        <h1 className="text-3xl font-semibold text-foreground">Settings</h1>
+        <h1 className="text-3xl md:text-4xl font-bold font-heading text-foreground tracking-tight">Settings</h1>
       </motion.div>
 
       <div className="space-y-4">

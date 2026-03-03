@@ -42,3 +42,8 @@ coverage/
 temp/
 tmp/
 .vercel
+
+# Agent skills & design system
+.agents/
+.agent/
+design-system/

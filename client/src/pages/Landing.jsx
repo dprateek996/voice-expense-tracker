@@ -1,472 +1,378 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, ArrowRight, Check, Sparkles, BarChart3, Linkedin, Github, Mail, Loader, MousePointerClick } from 'lucide-react';
+import { motion as Motion } from 'framer-motion';
+import { ArrowRight, Github, Mic, Twitter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { InfiniteMovingCards } from "@/components/ui/infinite-moving-cards";
-import ThemeToggle from "@/components/ThemeToggle";
-import { Spotlight } from "@/components/ui/spotlight";
-import { cn } from "@/lib/utils";
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { InfiniteMovingCards } from '@/components/ui/infinite-moving-cards';
+import ThemeToggle from '@/components/ThemeToggle';
+import './Landing.css';
 
-/* ------------------------------------------------------------------ */
-/*                             NAVBAR                                 */
-/* ------------------------------------------------------------------ */
-
-const Navbar = () => (
-  <motion.nav
-    initial={{ y: -20, opacity: 0 }}
-    animate={{ y: 0, opacity: 1 }}
-    transition={{ duration: 0.5 }}
-    className="fixed top-0 left-0 right-0 z-50 px-6 py-4 bg-background/80 backdrop-blur-md border-b border-border"
-  >
-    <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-3 items-center">
-      <div className="flex items-center gap-2 justify-start">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <Mic className="w-6 h-6 text-primary" />
-        </div>
-        <span className="text-xl font-bold text-foreground tracking-tight">VoEx</span>
-      </div>
-      <div className="hidden md:flex items-center justify-center gap-8 text-sm font-medium text-muted-foreground">
-        <a href="#features" className="hover:text-primary transition-colors">Features</a>
-        <a href="#demo" className="hover:text-primary transition-colors">How it Works</a>
-        <a href="#pricing" className="hover:text-primary transition-colors">Pricing</a>
-      </div>
-      <div className="flex items-center gap-4 justify-end">
-        <ThemeToggle />
-        <Link to="/login" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors hidden sm:block">
-          Sign In
-        </Link>
-        <Link to="/register">
-          <Button size="sm" className="rounded-full px-6">
-            Get Started
-          </Button>
-        </Link>
-      </div>
-    </div>
-  </motion.nav>
-);
-
-/* ------------------------------------------------------------------ */
-/*                          HERO SECTION                              */
-/* ------------------------------------------------------------------ */
-const heroItems = [
-  { title: "Domino's", amount: "₹445", icon: "/icons/pizza.png" },
-  { title: "Uber Ride", amount: "₹168", icon: "/icons/car.png" },
-  { title: "Spotify", amount: "₹119", icon: "/icons/spotify.png" },
-  { title: "Shopping", amount: "₹2000", icon: "/icons/cart.png" },
-  { title: "H&M", amount: "₹1200", icon: "/icons/tag.png" },
+const navLinks = [
+  { label: 'How it works', href: '#features' },
+  { label: 'Try it', href: '#try-it' },
+  { label: 'Support', href: '#footer' },
 ];
 
-const HeroSection = () => {
-  return (
-    <div className="relative flex w-full overflow-hidden bg-background pt-32 pb-20 lg:pt-48 lg:pb-32">
-      {/* Grid Background */}
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-0 [background-size:40px_40px] select-none opacity-[0.015] dark:opacity-[0.03]",
-          "[background-image:linear-gradient(to_right,currentColor_1px,transparent_1px),linear-gradient(to_bottom,currentColor_1px,transparent_1px)]"
-        )}
-      />
+const tickerItems = [
+  { title: "Domino's", amount: 'Rs 445', icon: '/icons/pizza.png' },
+  { title: 'Uber Ride', amount: 'Rs 168', icon: '/icons/car.png' },
+  { title: 'Spotify', amount: 'Rs 119', icon: '/icons/spotify.png' },
+  { title: 'Shopping', amount: 'Rs 2000', icon: '/icons/cart.png' },
+  { title: 'H&M', amount: 'Rs 1200', icon: '/icons/tag.png' },
+];
 
-      {/* Spotlight Effect */}
-      <Spotlight className="-top-40 left-0 md:-top-20 md:left-60 opacity-0 dark:opacity-100" fill="white" />
+const featureCards = [
+  { title: 'Simple expense logging', text: 'Log expenses naturally in a single line' },
+  { title: 'Auto categorization', text: 'Auto-detect amount and category instantly' },
+  { title: 'Edit before saving', text: 'Review and edit every entry before saving' },
+];
 
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 pointer-events-none" />
+const quickInputs = ['Rs 300 for cab', '150 for cofee', '1000 gpay'];
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center w-full">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="relative"
-        >
-          <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-8">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span>
-            New: Receipt Scanning
-          </span>
+const flowSteps = [
+  { title: 'Speak or type expense', text: 'Use natural language and keep it short.' },
+  { title: 'Parse amount and category', text: 'VoEx extracts key details immediately.' },
+  { title: 'Confirm and save', text: 'Review the result before adding it to your ledger.' },
+];
 
-          <h1 className="text-4xl md:text-6xl font-bold text-foreground tracking-tight mb-6 leading-tight">
-            Track expenses <br />
-            <span className="text-muted-foreground">
-              with your voice.
-            </span>
-          </h1>
+const faqItems = [
+  {
+    question: 'Do I need an account to try this?',
+    answer: 'No. You can test parsing instantly.',
+  },
+  {
+    question: 'Is my voice data stored?',
+    answer: 'Not in this demo flow.',
+  },
+  {
+    question: 'How accurate is categorization?',
+    answer: 'Most common entries are auto-classified; you can edit before saving.',
+  },
+];
 
-          <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">
-            No more spreadsheets or manual typing. Add expenses instantly.
-          </p>
+const toTitleCase = (value) => value
+  .split(' ')
+  .filter(Boolean)
+  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+  .join(' ');
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/register">
-              <Button size="lg" className="rounded-full px-8 h-14 text-lg">
-                Start for free <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <p className="text-xs text-muted-foreground mt-4 sm:mt-0">No credit card required</p>
-            <Link to="/demo">
-              <Button variant="outline" size="lg" className="rounded-full px-8 h-14 text-lg">
-                View Demo
-              </Button>
-            </Link>
-          </div>
-        </motion.div>
-      </div>
-      <div className="absolute bottom-0 left-0 right-0">
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background z-10 pointer-events-none" />
-        <InfiniteMovingCards
-          items={heroItems}
-          direction="right"
-          speed="slow"
-          className="py-4"
-        />
-      </div>
-    </div>
-  );
-};
+const formatInr = (value) => new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  maximumFractionDigits: 0,
+}).format(value || 0);
 
-/* ------------------------------------------------------------------ */
-/*                       INTERACTIVE DEMO                             */
-/* ------------------------------------------------------------------ */
+const parseVoiceInput = (value) => {
+  const text = value.trim();
+  const normalized = text.toLowerCase();
+  const amountMatch = normalized.match(/(?:rs\.?\s*)?(\d+(?:\.\d{1,2})?)/i);
+  const amount = amountMatch ? Number.parseFloat(amountMatch[1]) : 0;
 
-const InteractiveDemoSection = () => {
-  const [input, setInput] = React.useState("");
-  const [result, setResult] = useState(null);
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
+  let merchant = 'General Expense';
+  let category = 'General';
 
-  const handleSimulate = () => {
-    if (!input) return;
-    setIsListening(true);
-    setTranscript(input);
-
-    setTimeout(() => {
-      const amount = input.match(/\d+/)?.[0] || "0";
-      let vendor = "Unknown";
-      const inputLower = input.toLowerCase();
-
-      const atMatch = inputLower.match(/at\s+([^,.]+)/i);
-      const forMatch = inputLower.match(/for\s+([^,.]+?)(?:\s+at|$)/i);
-
-      if (atMatch) {
-        vendor = atMatch[1].trim();
-      } else if (forMatch) {
-        vendor = forMatch[1].replace(/\d+/g, '').trim();
-      }
-
-      let category = "Shopping";
-      if (inputLower.includes("food") || inputLower.includes("lunch") || inputLower.includes("dinner") ||
-        inputLower.includes("breakfast") || inputLower.includes("pizza") || inputLower.includes("restaurant") ||
-        inputLower.includes("cafe") || inputLower.includes("coffee")) {
-        category = "Food & Dining";
-      } else if (inputLower.includes("grocery") || inputLower.includes("groceries") || inputLower.includes("walmart")) {
-        category = "Groceries";
-      } else if (inputLower.includes("uber") || inputLower.includes("cab") || inputLower.includes("taxi") ||
-        inputLower.includes("transport") || inputLower.includes("bus") || inputLower.includes("metro")) {
-        category = "Transport";
-      } else if (inputLower.includes("movie") || inputLower.includes("netflix") || inputLower.includes("spotify")) {
-        category = "Entertainment";
-      }
-
-      vendor = vendor.split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-
-      setResult({ amount, category, vendor });
-      setIsListening(false);
-    }, 1200);
-  };
-
-  const resetDemo = () => {
-    setResult(null);
-    setInput("");
-    setTranscript("");
-    setIsListening(false);
-  };
-
-  return (
-    <div id="demo" className="py-32 bg-muted/30 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-6"
-          >
-            <MousePointerClick className="w-4 h-4 text-primary" />
-            <span className="text-sm text-primary font-medium">Interactive Demo</span>
-          </motion.div>
-
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-bold text-foreground mb-6 tracking-tight"
-          >
-            Try it yourself
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="text-lg text-muted-foreground max-w-2xl mx-auto"
-          >
-            Experience the magic of voice-powered expense tracking in action
-          </motion.p>
-        </div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="relative max-w-3xl mx-auto"
-        >
-          <div className="bg-card border border-border rounded-3xl p-8 md:p-12 shadow-lg">
-            <div className="min-h-[80px] flex items-center justify-center mb-8">
-              <AnimatePresence mode="wait">
-                {isListening && (
-                  <motion.div
-                    key="listening"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="text-center"
-                  >
-                    <p className="text-2xl font-semibold text-foreground mb-2">{transcript}</p>
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader className="w-4 h-4 text-primary animate-spin" />
-                      <p className="text-sm text-muted-foreground">Processing...</p>
-                    </div>
-                  </motion.div>
-                )}
-                {!isListening && !result && (
-                  <motion.div
-                    key="prompt"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    className="text-center"
-                  >
-                    <p className="text-xl text-muted-foreground">Type an expense below and click Start</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            <div className="relative mb-8">
-              <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-2xl border border-border">
-                <div className={`p-3 rounded-xl ${isListening ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                  <Mic className="w-5 h-5" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Try: 500 for groceries at walmart"
-                  className="flex-1 bg-transparent border-none focus:outline-none text-foreground placeholder:text-muted-foreground"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !isListening && input && handleSimulate()}
-                  disabled={isListening}
-                />
-                <Button
-                  onClick={handleSimulate}
-                  disabled={!input || isListening}
-                  className="rounded-xl px-6"
-                >
-                  {isListening ? (
-                    <span className="flex items-center gap-2">
-                      <Loader className="w-4 h-4 animate-spin" />
-                      Processing
-                    </span>
-                  ) : (
-                    'Start'
-                  )}
-                </Button>
-              </div>
-            </div>
-            <AnimatePresence>
-              {result && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="p-6 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                          <Check className="w-5 h-5 text-emerald-500" />
-                        </div>
-                        <div>
-                          <span className="font-semibold text-foreground">Expense Logged!</span>
-                          <p className="text-xs text-muted-foreground">Successfully saved</p>
-                        </div>
-                      </div>
-                      <Button onClick={resetDemo} variant="ghost" size="sm">
-                        Try Again
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-6">
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Amount</p>
-                        <p className="text-2xl font-bold text-foreground">₹{result.amount}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Category</p>
-                        <span className="inline-block px-3 py-1 bg-primary/10 text-primary text-sm font-medium rounded-lg">
-                          {result.category}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Vendor</p>
-                        <p className="text-sm font-medium text-foreground">{result.vendor}</p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {!result && (
-              <div className="mt-8 text-center">
-                <p className="text-sm text-muted-foreground mb-4">Try these examples:</p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  {[
-                    "500 for groceries at walmart",
-                    "150 for lunch at pizza hut",
-                    "50 for uber to office"
-                  ].map((example) => (
-                    <button
-                      key={example}
-                      onClick={() => setInput(example)}
-                      className="px-4 py-2 text-sm text-muted-foreground bg-muted hover:bg-muted/80 border border-border rounded-xl transition-colors"
-                    >
-                      {example}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
-      </div>
-    </div>
-  );
-};
-
-/* ------------------------------------------------------------------ */
-/*                          FEATURES SECTION                          */
-/* ------------------------------------------------------------------ */
-
-const FeaturesSection = () => {
-  const features = [
-    {
-      icon: <Mic className="w-6 h-6" />,
-      title: "Voice Input",
-      description: "Simply speak your expense and we'll log it automatically"
-    },
-    {
-      icon: <Sparkles className="w-6 h-6" />,
-      title: "AI Categorization",
-      description: "Smart categorization using advanced machine learning"
-    },
-    {
-      icon: <BarChart3 className="w-6 h-6" />,
-      title: "Analytics",
-      description: "Beautiful charts and insights into your spending"
+  if (normalized.includes('cab') || normalized.includes('uber') || normalized.includes('taxi')) {
+    merchant = 'Cab Ride';
+    category = 'Transport';
+  } else if (normalized.includes('cofee') || normalized.includes('coffee')) {
+    merchant = 'Coffee';
+    category = 'Food & Dining';
+  } else if (normalized.includes('gpay')) {
+    merchant = 'GPay Transfer';
+    category = 'Transfer';
+  } else {
+    const forMatch = text.match(/for\s+([^,.]+)/i);
+    if (forMatch?.[1]) {
+      merchant = toTitleCase(forMatch[1]);
     }
+  }
+
+  return {
+    amount,
+    merchant,
+    category,
+    status: amount > 0 ? 'Ready to save' : 'Needs amount',
+  };
+};
+
+const Landing = () => {
+  const [input, setInput] = useState(quickInputs[0]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isMicOn, setIsMicOn] = useState(false);
+  const [result, setResult] = useState(() => parseVoiceInput(quickInputs[0]));
+  const timerRef = useRef(null);
+
+  useEffect(() => () => {
+    if (timerRef.current) {
+      window.clearTimeout(timerRef.current);
+    }
+  }, []);
+
+  const runParser = () => {
+    if (!input.trim()) return;
+
+    setIsProcessing(true);
+    if (timerRef.current) {
+      window.clearTimeout(timerRef.current);
+    }
+
+    timerRef.current = window.setTimeout(() => {
+      setResult(parseVoiceInput(input));
+      setIsProcessing(false);
+    }, 700);
+  };
+
+  const handleMicClick = () => {
+    setIsMicOn((prev) => !prev);
+  };
+
+  const parsedFields = [
+    { label: 'Amount', value: formatInr(result.amount) },
+    { label: 'Merchant', value: result.merchant },
+    { label: 'Category', value: result.category },
+    { label: 'Status', value: result.status },
   ];
 
   return (
-    <div id="features" className="py-24 bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Everything you need
-          </h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            Powerful features to help you track and manage your expenses effortlessly
-          </p>
-        </div>
+    <div className="landing-minimal">
+      <header className="landing-header">
+        <div className="landing-shell landing-header-row">
+          <Link to="/" className="landing-brand" aria-label="VoEx home">
+            <span className="landing-brand-icon">
+              <Mic className="h-4 w-4" />
+            </span>
+            <span className="landing-brand-name">VoEx</span>
+          </Link>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {features.map((feature, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-card border border-border rounded-2xl p-6 hover:shadow-lg transition-shadow"
-            >
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
-                {feature.icon}
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
-              <p className="text-muted-foreground">{feature.description}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
+          <nav className="landing-nav" aria-label="Primary navigation">
+            {navLinks.map((link) => (
+              <a key={link.label} href={link.href}>{link.label}</a>
+            ))}
+          </nav>
 
-
-
-/* ------------------------------------------------------------------ */
-/*                             FOOTER                                 */
-/* ------------------------------------------------------------------ */
-
-const Footer = () => (
-  <footer className="bg-card py-12 border-t border-border">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-      <div className="flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold">
-            <span className="text-xs">V</span>
+          <div className="landing-header-actions">
+            <div className="landing-theme-toggle-wrap">
+              <ThemeToggle />
+            </div>
+            <Button variant="ghost" size="sm" asChild className="landing-signin-btn">
+              <Link to="/login">Sign in</Link>
+            </Button>
+            <Button size="sm" asChild className="landing-header-start-btn">
+              <Link to="/register">Get started</Link>
+            </Button>
           </div>
-          <span className="text-sm font-bold text-foreground tracking-tight">VoEx</span>
         </div>
-        <p className="text-xs text-muted-foreground">Voice powered expense tracking</p>
-      </div>
+      </header>
 
-      <p className="text-sm text-muted-foreground">
-        © {new Date().getFullYear()} Voice Expense Tracker. All rights reserved.
-      </p>
+      <main>
+        <section className="landing-hero" id="top">
+          <div className="landing-shell landing-hero-grid">
+            <Motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.42, ease: 'easeOut' }}
+              className="landing-hero-copy"
+            >
+              <p className="landing-kicker">Voice-first expense tracking</p>
+              <h1>Track expenses. Just say it.</h1>
+              <p className="landing-subtext">
+                Log spending in seconds with clean voice input and instant categorization.
+              </p>
 
-      <div className="flex gap-6 items-center">
-        <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-          <Github className="w-5 h-5" />
-        </a>
-        <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-          <Linkedin className="w-5 h-5" />
-        </a>
-        <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-          <Mail className="w-5 h-5" />
-        </a>
-      </div>
-    </div>
-  </footer>
-);
+              <div className="landing-hero-actions">
+                <Button size="lg" asChild className="landing-hero-primary-btn">
+                  <a href="#try-it">
+                    Try it live
+                    <ArrowRight className="h-4 w-4" />
+                  </a>
+                </Button>
 
-/* ------------------------------------------------------------------ */
-/*                         MAIN LANDING                               */
-/* ------------------------------------------------------------------ */
+                <Button variant="link" size="lg" asChild className="landing-hero-secondary-btn">
+                  <a href="#features">See how it works</a>
+                </Button>
+              </div>
+            </Motion.div>
+          </div>
+        </section>
 
-const Landing = () => {
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <HeroSection />
-      <FeaturesSection />
-      <InteractiveDemoSection />
+        <div className="landing-shell">
+          <Separator className="landing-section-divider" />
+        </div>
 
-      <Footer />
+        <section className="landing-ticker" id="ticker">
+          <div className="landing-shell">
+            <InfiniteMovingCards
+              items={tickerItems}
+              direction="right"
+              speed="normal"
+              className="landing-ticker-scroller"
+            />
+          </div>
+        </section>
+
+        <section className="landing-facts" id="features" aria-label="Features">
+          <div className="landing-shell">
+            <p className="landing-features-kicker">Features</p>
+            <div className="landing-facts-grid">
+              {featureCards.map((feature) => (
+                <Card key={feature.title} className="landing-fact-card">
+                  <CardContent className="landing-fact-content">
+                    <h3>{feature.title}</h3>
+                    <p>{feature.text}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="landing-mid-cta" aria-label="Quick actions">
+          <div className="landing-shell">
+            <div className="landing-mid-cta-row">
+              <Button size="lg" asChild className="landing-hero-primary-btn landing-mid-primary-btn">
+                <a href="#try-it">
+                  Try it live
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        <section className="landing-try" id="try-it">
+          <div className="landing-shell">
+            <Card className="landing-try-card">
+              <CardContent className="landing-try-grid">
+                <div className="landing-try-copy-block">
+                  <h2 className="landing-section-title">Try it yourself</h2>
+                  <p className="landing-try-copy">
+                    Type an expense phrase and see how quickly it becomes clean, structured data.
+                  </p>
+
+                  <ol className="landing-flow-list">
+                    {flowSteps.map((step, index) => (
+                      <li key={step.title}>
+                        <span>{`0${index + 1}`}</span>
+                        <div>
+                          <p>{step.title}</p>
+                          <small>{step.text}</small>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+
+                <div className="landing-try-panel-wrap">
+                  <Card className="landing-try-panel">
+                    <CardContent className="landing-try-panel-content">
+                      <div className="landing-try-panel-head">
+                        <label htmlFor="voice-input">Expense input</label>
+                        <Badge variant="outline" className="landing-no-login">No login required</Badge>
+                      </div>
+
+                      <div className="landing-input-row">
+                        <textarea
+                          id="voice-input"
+                          value={input}
+                          onChange={(event) => setInput(event.target.value)}
+                          rows={3}
+                          placeholder="Type your expense command..."
+                        />
+                        <button
+                          type="button"
+                          className={`landing-mic-btn ${isMicOn ? 'is-active' : ''}`}
+                          onClick={handleMicClick}
+                          aria-label="Toggle microphone"
+                        >
+                          <Mic className="h-4 w-4" />
+                        </button>
+                      </div>
+
+                      <div className="landing-presets" role="list" aria-label="Preset inputs">
+                        {quickInputs.map((item) => (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => setInput(item)}
+                            className="landing-preset-btn"
+                          >
+                            <Badge variant="outline" className="landing-preset-chip">{item}</Badge>
+                          </button>
+                        ))}
+                      </div>
+
+                      <Button type="button" className="landing-parse-btn" onClick={runParser}>
+                        {isProcessing ? 'Parsing...' : 'Parse expense'}
+                      </Button>
+
+                      <div className="landing-result" aria-live="polite">
+                        {isProcessing ? (
+                          <p className="landing-processing">Processing your command...</p>
+                        ) : (
+                          <div className="landing-result-grid">
+                            {parsedFields.map((field) => (
+                              <Card key={field.label} className="landing-result-item">
+                                <CardContent className="landing-result-item-content">
+                                  <span>{field.label}</span>
+                                  <strong>{field.value}</strong>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section className="landing-faq" aria-label="Frequently asked questions">
+          <div className="landing-shell">
+            <h2 className="landing-section-title">FAQ</h2>
+            <div className="landing-faq-list">
+              {faqItems.map((item) => (
+                <Card key={item.question} className="landing-faq-item">
+                  <CardContent className="landing-faq-content">
+                    <h3>{item.question}</h3>
+                    <p>{item.answer}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="landing-footer" id="footer">
+        <div className="landing-shell">
+          <Separator className="landing-footer-separator" />
+          <div className="landing-footer-row">
+            <div>
+              <p className="landing-footer-brand">VOEX</p>
+              <p className="landing-footer-copy">Simple voice-first expense tracking.</p>
+            </div>
+
+            <div className="landing-footer-links">
+              <p>Info</p>
+              <a href="#">Contact Us</a>
+              <a href="#">Privacy Policy</a>
+              <a href="#">Trademark</a>
+            </div>
+
+            <div className="landing-footer-links">
+              <p>Social</p>
+              <a href="#" aria-label="GitHub"><Github className="h-4 w-4" /> GitHub</a>
+              <a href="#" aria-label="Twitter"><Twitter className="h-4 w-4" /> Twitter</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

@@ -1,6 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
-const prisma = new PrismaClient();
+const prisma = require('../../../prisma.config');
 const {
   signAccessToken,
   signRefreshToken,
@@ -17,11 +17,25 @@ const COOKIE_OPTIONS = {
   path: '/',
 };
 
+const isDbUnavailableError = (err) => (
+  err?.name === 'PrismaClientInitializationError'
+  || err?.name === 'PrismaClientKnownRequestError'
+  || (typeof err?.message === 'string' && err.message.includes("Can't reach database server"))
+);
+
+const sendDbUnavailable = (res) => res.status(503).json({
+  error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.',
+  error_code: 'DB_UNAVAILABLE',
+});
+
 async function register(req, res) {
   try {
     const { email, password, name } = req.body;
     if (!email || !password) {
       return res.status(400).json({ error: 'Missing email or password' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -47,8 +61,8 @@ async function register(req, res) {
     });
   } catch (err) {
     console.error('Register error:', err);
-    if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
-      return res.status(503).json({ error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.' });
+    if (isDbUnavailableError(err)) {
+      return sendDbUnavailable(res);
     }
     return res.status(500).json({ error: 'Server error' });
   }
@@ -78,8 +92,8 @@ async function login(req, res) {
     });
   } catch (err) {
     console.error('Login error:', err);
-    if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
-      return res.status(503).json({ error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.' });
+    if (isDbUnavailableError(err)) {
+      return sendDbUnavailable(res);
     }
     return res.status(500).json({ error: 'Server error' });
   }
@@ -92,8 +106,8 @@ async function logout(req, res) {
     return res.json({ message: 'Logged out' });
   } catch (err) {
     console.error('Logout error:', err);
-    if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
-      return res.status(503).json({ error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.' });
+    if (isDbUnavailableError(err)) {
+      return sendDbUnavailable(res);
     }
     return res.status(500).json({ error: 'Server error' });
   }
@@ -116,8 +130,8 @@ async function refreshAccessToken(req, res) {
     return res.json({ accessToken: newAccess });
   } catch (err) {
     console.error('Refresh error:', err);
-    if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
-      return res.status(503).json({ error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.' });
+    if (isDbUnavailableError(err)) {
+      return sendDbUnavailable(res);
     }
     return res.status(500).json({ error: 'Server error' });
   }
@@ -132,8 +146,8 @@ async function getMe(req, res) {
     return res.json({ user: { id: user.id, email: user.email, name: user.name } });
   } catch (err) {
     console.error('getMe error:', err);
-    if (err?.name === 'PrismaClientInitializationError' || (err?.message && err.message.includes("Can't reach database server"))) {
-      return res.status(503).json({ error: 'Database unavailable. Ensure the database server is running and DATABASE_URL is set.' });
+    if (isDbUnavailableError(err)) {
+      return sendDbUnavailable(res);
     }
     return res.status(500).json({ error: 'Server error' });
   }
@@ -159,7 +173,8 @@ const forgotPassword = async (req, res) => {
       data: { resetToken, resetTokenExpiry },
     });
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || process.env.CLIENT_ORIGIN || 'http://localhost:5173';
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
     console.log('🔗 Password Reset Link:', resetUrl);
 
     res.status(200).json({
@@ -168,6 +183,9 @@ const forgotPassword = async (req, res) => {
     });
   } catch (error) {
     console.error('Forgot password error:', error);
+    if (isDbUnavailableError(error)) {
+      return sendDbUnavailable(res);
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -180,8 +198,8 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'Token and new password are required' });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    if (newPassword.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
     }
 
     const user = await prisma.user.findFirst({
@@ -211,6 +229,9 @@ const resetPassword = async (req, res) => {
     res.status(200).json({ message: 'Password has been reset successfully' });
   } catch (error) {
     console.error('Reset password error:', error);
+    if (isDbUnavailableError(error)) {
+      return sendDbUnavailable(res);
+    }
     res.status(500).json({ error: 'Internal server error' });
   }
 };

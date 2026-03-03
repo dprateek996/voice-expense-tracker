@@ -10,8 +10,10 @@ const {
   resetPassword
 } = require('../controllers/auth.controller');
 const { protect } = require('../../middleware/auth.middleware');
-router.post('/register', register);
-router.post('/login', login);
+const { validateRegistration, validateLogin } = require('../../middleware/validation.middleware');
+
+router.post('/register', validateRegistration, register);
+router.post('/login', validateLogin, login);
 router.post('/logout', logout);
 router.get('/me', protect, getMe);
 router.post('/refresh', refreshAccessToken);

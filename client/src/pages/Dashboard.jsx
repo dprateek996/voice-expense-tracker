@@ -15,7 +15,7 @@ import ExpenseConfirmation from '@/components/ExpenseConfirmation';
 const Dashboard = () => {
   const fetchExpenses = useExpenseStore((state) => state.fetchExpenses);
   const voiceStore = useVoiceStore();
-  const { open, close, setState, uiState } = voiceStore;
+  const { open, close, setState } = voiceStore;
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [transcriptToConfirm, setTranscriptToConfirm] = useState("");
@@ -23,14 +23,34 @@ const Dashboard = () => {
 
   const { isListening, transcript, startListening, stopListening } = useSpeechRecognition({
     onResult: () => { },
-    onEnd: (transcript) => {
-      if (transcript) handleVoiceCommand(transcript);
+    onError: ({ message }) => {
+      toast.error(message || 'Voice capture failed. Please try again.');
+      close();
+    },
+    onEnd: async ({ transcript: browserTranscript, audioBlob }) => {
+      const fallbackTranscript = String(browserTranscript || '').trim();
+      if (!audioBlob && !fallbackTranscript) return;
+
+      let finalTranscript = fallbackTranscript;
+      if (audioBlob) {
+        try {
+          setState('processing');
+          const sttResult = await expenseApi.transcribeAudio(audioBlob, fallbackTranscript, 'unknown');
+          if (sttResult?.transcript?.trim()) {
+            finalTranscript = sttResult.transcript.trim();
+          }
+        } catch {
+          if (!fallbackTranscript) {
+            toast.error('Could not transcribe voice. Please try again.');
+            close();
+            return;
+          }
+        }
+      }
+
+      if (finalTranscript) handleVoiceCommand(finalTranscript);
     },
   });
-
-  const handleTextCommand = (commandText) => {
-    parseAndSaveExpense(commandText, 'text');
-  };
 
   const handleVoiceCommand = (spokenTranscript) => {
     close();
@@ -67,7 +87,7 @@ const Dashboard = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [voiceStore.isOpen, open, close, dialogOpen, confirmationData, isListening, stopListening]);
 
-  const parseAndSaveExpense = async (finalTranscript, source = 'voice') => {
+  const parseAndSaveExpense = async (finalTranscript) => {
     setDialogOpen(false);
     setState('processing');
     try {
@@ -167,8 +187,6 @@ const Dashboard = () => {
         </main>
       </div>
       <CommandInterface
-        onTextCommand={handleTextCommand}
-        onVoiceCommand={handleVoiceCommand}
         isListening={isListening}
         transcript={isListening ? transcript : ""}
         startListening={startListening}

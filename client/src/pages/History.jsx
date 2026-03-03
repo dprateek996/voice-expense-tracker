@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
-import { Search, ArrowUpDown, Calendar, Trash2, MoreHorizontal } from "lucide-react";
+import { Search, ArrowUpDown, Calendar, Trash2 } from "lucide-react";
 import useExpenseStore from "@/store/expenseStore";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -61,11 +61,11 @@ const History = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <p className="text-muted-foreground text-sm mb-1">
+        <p className="text-muted-foreground text-sm mb-1 font-medium">
           View and manage your expenses
         </p>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-3xl font-semibold text-foreground">
+          <h1 className="text-3xl md:text-4xl font-bold font-heading text-foreground tracking-tight">
             Transaction History
           </h1>
           <div className="relative w-full md:w-72">
@@ -74,7 +74,7 @@ const History = () => {
               placeholder="Search transactions..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 rounded-xl"
+              className="pl-10 rounded-xl bg-background border-border/50 focus:border-primary/50 transition-colors"
             />
           </div>
         </div>

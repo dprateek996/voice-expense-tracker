@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  AreaChart, Area, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip
 } from 'recharts';
 import { Download, Wallet, Receipt, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
@@ -10,7 +10,17 @@ import useExpenseStore from '@/store/expenseStore';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-const CATEGORY_COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4', '#3b82f6'];
+// Trust & Authority Palette Colors for Charts
+const CATEGORY_COLORS = [
+  'hsl(199, 89%, 48%)', // Primary Blue
+  'hsl(40, 96%, 40%)',  // Accent Gold
+  'hsl(224, 64%, 33%)', // Secondary Navy
+  '#10b981',            // Emerald (Success)
+  '#f59e0b',            // Amber (Warning)
+  '#ef4444',            // Red (Danger)
+  '#8b5cf6',            // Violet
+  '#ec4899',            // Pink
+];
 
 const Analytics = () => {
   const { expenses, fetchExpenses } = useExpenseStore();
@@ -166,12 +176,12 @@ const Analytics = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-8"
       >
-        <p className="text-muted-foreground text-sm mb-1">Insights into your spending</p>
+        <p className="text-muted-foreground text-sm mb-1 font-medium">Insights into your spending</p>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-3xl font-semibold text-foreground">Analytics</h1>
+          <h1 className="text-3xl md:text-4xl font-bold font-heading text-foreground tracking-tight">Analytics</h1>
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-full">
+            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-full border border-border/50">
               {[
                 { key: 'week', label: '7 Days' },
                 { key: 'month', label: 'Month' },
@@ -183,7 +193,7 @@ const Analytics = () => {
                   className={cn(
                     "px-4 py-2 text-sm font-medium rounded-full transition-all",
                     dateRange === tab.key
-                      ? "bg-foreground text-background"
+                      ? "bg-foreground text-background shadow-sm"
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -192,7 +202,7 @@ const Analytics = () => {
               ))}
             </div>
 
-            <Button variant="outline" size="icon" onClick={exportToCSV} title="Export CSV">
+            <Button variant="outline" size="icon" onClick={exportToCSV} title="Export CSV" className="rounded-full w-10 h-10 border-border/50">
               <Download className="w-4 h-4" />
             </Button>
           </div>

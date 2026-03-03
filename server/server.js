@@ -10,9 +10,38 @@ const app = express();
 
 const authRoutes = require('./src/api/routes/auth.routes');
 const expenseRoutes = require('./src/api/routes/expense.routes');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-// ... require other routes if needed
+const refineRoutes = require('./src/api/routes/refine.routes');
+const conversationRoutes = require('./src/api/routes/conversation.routes');
+const prisma = require('./prisma.config');
+
+let isDbConnected = false;
+let dbLastError = null;
+let isConnecting = false;
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const ensureDbConnection = async () => {
+  if (isConnecting || isDbConnected) return;
+  isConnecting = true;
+
+  const retryMs = Number(process.env.DB_RETRY_MS || 5000);
+  while (!isDbConnected) {
+    try {
+      await prisma.$connect();
+      isDbConnected = true;
+      dbLastError = null;
+      console.log('Prisma connected to DB');
+      break;
+    } catch (err) {
+      dbLastError = err;
+      console.error('Prisma connection failed:', err?.message || err);
+      console.error(`Retrying DB connection in ${retryMs}ms...`);
+      await wait(retryMs);
+    }
+  }
+
+  isConnecting = false;
+};
 
 app.use(express.json());
 app.use(cookieParser());
@@ -49,21 +78,45 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+app.use((req, res, next) => {
+  if (!req.path.startsWith('/api')) return next();
+  if (req.path === '/api/db-check') return next();
+
+  if (!isDbConnected) {
+    return res.status(503).json({
+      error: 'Database unavailable. Retrying connection in background.',
+      error_code: 'DB_UNAVAILABLE',
+      details: dbLastError?.message || 'Connection not established yet.',
+    });
+  }
+  return next();
+});
+
 // Mount routers with stable API namespaces
 app.use('/api/auth', authRoutes);      // <-- was '/api' before — matches frontend /api/auth/login
 app.use('/api/expense', expenseRoutes); // keep expense route
-
-// If you have a general API prefix, keep any other API mounts here...
-// Example: app.use('/api/conversation', conversationRoutes);
+app.use('/api/refine', refineRoutes);
+app.use('/api/conversation', conversationRoutes);
 
 // DB-check endpoint useful during startup/debug
 app.get('/api/db-check', async (req, res) => {
+  if (!isDbConnected) {
+    return res.status(503).json({
+      status: 'error',
+      db: 'unavailable',
+      details: dbLastError?.message || 'Connection not established yet.',
+    });
+  }
   try {
     // quick lightweight query
     await prisma.$queryRaw`SELECT 1`;
     return res.json({ status: 'ok', db: 'connected' });
   } catch (err) {
     console.error('DB check failed:', err?.message || err);
+    isDbConnected = false;
+    ensureDbConnection().catch((error) => {
+      console.error('DB reconnect loop failed to start:', error?.message || error);
+    });
     return res.status(503).json({ status: 'error', db: 'unavailable' });
   }
 });
@@ -99,15 +152,6 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5001;
 
 async function start() {
-  try {
-    await prisma.$connect();
-    console.log('Prisma connected to DB');
-  } catch (err) {
-    console.error('Prisma connection failed at startup:', err?.message || err);
-    console.error('Make sure your database is running and DATABASE_URL is set in server/.env');
-    process.exit(1);
-  }
-
   const server = app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
@@ -116,6 +160,10 @@ async function start() {
     }
     console.error('Server error:', err);
     process.exit(1);
+  });
+
+  ensureDbConnection().catch((err) => {
+    console.error('Failed to initialize DB retry loop:', err?.message || err);
   });
 }
 

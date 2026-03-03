@@ -1,12 +1,10 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion as Motion } from 'framer-motion';
 import { Mic, MicOff, Send, X, Loader2 } from 'lucide-react';
 import useVoiceStore from '@/store/voiceStore';
 import { useEffect, useState, useRef } from 'react';
 import { playStartSound, playStopSound } from "@/lib/audioUtils";
 
 const CommandInterface = ({
-  onTextCommand,
-  onVoiceCommand,
   isListening,
   transcript,
   startListening,
@@ -21,7 +19,7 @@ const CommandInterface = ({
   useEffect(() => {
     if (isListening) setState("listening");
     else if (uiState === "listening") setState("idle");
-  }, [isListening]);
+  }, [isListening, setState, uiState]);
 
   useEffect(() => {
     if (isListening && transcript) {
@@ -60,12 +58,7 @@ const CommandInterface = ({
 
     if (isListening) {
       playStopSound();
-      const finalText = lastTranscriptRef.current || transcript;
       stopListening();
-
-      if (finalText?.trim()) {
-        onVoiceCommand(finalText.trim());
-      }
     } else {
       playStartSound();
       setText('');
@@ -88,7 +81,7 @@ const CommandInterface = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div
+          <Motion.div
             className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
             onClick={close}
             initial={{ opacity: 0 }}
@@ -96,7 +89,7 @@ const CommandInterface = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           />
-          <motion.div
+          <Motion.div
             className="fixed bottom-0 left-0 right-0 z-50 p-4 pb-6"
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -188,7 +181,7 @@ const CommandInterface = ({
                 </div>
               </div>
             </div>
-          </motion.div>
+          </Motion.div>
         </>
       )}
     </AnimatePresence>

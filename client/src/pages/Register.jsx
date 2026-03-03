@@ -11,13 +11,19 @@ import { toast } from 'sonner';
 import { registerUser } from '@/api/auth.api';
 import useAuthStore from '@/store/authStore';
 import { Loader2, Mic, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import ThemeToggle from '@/components/ThemeToggle';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+      'Password must include uppercase, lowercase and number'
+    ),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
@@ -46,8 +52,8 @@ const Register = () => {
   const calculatePasswordStrength = (pass) => {
     if (!pass) return 0;
     let strength = 0;
-    if (pass.length >= 6) strength += 25;
-    if (pass.length >= 8) strength += 25;
+    if (pass.length >= 8) strength += 35;
+    if (pass.length >= 12) strength += 15;
     if (/[a-z]/.test(pass) && /[A-Z]/.test(pass)) strength += 25;
     if (/\d/.test(pass)) strength += 15;
     if (/[^a-zA-Z0-9]/.test(pass)) strength += 10;
@@ -75,7 +81,7 @@ const Register = () => {
       </div>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -83,7 +89,7 @@ const Register = () => {
         >
           <Card className="relative w-full bg-card border border-border shadow-xl rounded-2xl overflow-hidden">
             <CardHeader className="space-y-1 text-center relative z-10 pt-10 pb-6">
-              <motion.div
+              <Motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2, type: "spring" }}
@@ -92,8 +98,8 @@ const Register = () => {
                 <div className="relative w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/30 group-hover:border-primary/50 transition-all duration-300">
                   <Mic className="w-8 h-8 text-primary" />
                 </div>
-              </motion.div>
-              <motion.div
+              </Motion.div>
+              <Motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
@@ -103,11 +109,11 @@ const Register = () => {
                   Smart expense tracking, powered by AI<br />
                   <span className="text-sm text-primary">Sign up in seconds</span>
                 </CardDescription>
-              </motion.div>
+              </Motion.div>
             </CardHeader>
             <form onSubmit={handleSubmit(onSubmit)}>
               <CardContent className="space-y-4 px-8 relative z-10">
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 }}
@@ -124,17 +130,17 @@ const Register = () => {
                     />
                   </div>
                   {errors.name && (
-                    <motion.p
+                    <Motion.p
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="text-sm text-red-500 flex items-center gap-1"
                     >
                       {errors.name.message}
-                    </motion.p>
+                    </Motion.p>
                   )}
-                </motion.div>
+                </Motion.div>
 
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.45 }}
@@ -152,17 +158,17 @@ const Register = () => {
                     />
                   </div>
                   {errors.email && (
-                    <motion.p
+                    <Motion.p
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="text-sm text-red-500 flex items-center gap-1"
                     >
                       {errors.email.message}
-                    </motion.p>
+                    </Motion.p>
                   )}
-                </motion.div>
+                </Motion.div>
 
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.5 }}
@@ -191,13 +197,13 @@ const Register = () => {
                     </button>
                   </div>
                   {password && (
-                    <motion.div
+                    <Motion.div
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       className="space-y-1"
                     >
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                        <motion.div
+                        <Motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${passwordStrength}%` }}
                           className={`h-full transition-all duration-300 ${passwordStrength < 40 ? 'bg-red-500' :
@@ -211,20 +217,20 @@ const Register = () => {
                           passwordStrength < 70 ? 'Good password' :
                             'Strong password'}
                       </p>
-                    </motion.div>
+                    </Motion.div>
                   )}
                   {errors.password && (
-                    <motion.p
+                    <Motion.p
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="text-sm text-red-500 flex items-center gap-1"
                     >
                       {errors.password.message}
-                    </motion.p>
+                    </Motion.p>
                   )}
-                </motion.div>
+                </Motion.div>
 
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.55 }}
@@ -249,18 +255,18 @@ const Register = () => {
                     </button>
                   </div>
                   {errors.confirmPassword && (
-                    <motion.p
+                    <Motion.p
                       initial={{ opacity: 0, y: -5 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="text-sm text-red-500 flex items-center gap-1"
                     >
                       {errors.confirmPassword.message}
-                    </motion.p>
+                    </Motion.p>
                   )}
-                </motion.div>
+                </Motion.div>
               </CardContent>
               <CardFooter className="flex flex-col space-y-5 px-8 pb-10 pt-6 relative z-10">
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
@@ -274,9 +280,9 @@ const Register = () => {
                     {isLoading && <Loader2 className="mr-2 h-5 w-5 animate-spin" />}
                     Create Account
                   </Button>
-                </motion.div>
+                </Motion.div>
 
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.7 }}
@@ -286,11 +292,11 @@ const Register = () => {
                   <Link to="/login" className="font-semibold text-primary hover:text-primary/80 transition-colors hover:underline underline-offset-4">
                     Sign In
                   </Link>
-                </motion.div>
+                </Motion.div>
               </CardFooter>
             </form>
           </Card>
-        </motion.div>
+        </Motion.div>
       </div>
     </div>
   );

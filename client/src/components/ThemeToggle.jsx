@@ -1,111 +1,142 @@
-import React, { useEffect, useState } from 'react';
-import { motion, useMotionValue, useTransform, useSpring, animate } from 'framer-motion';
-import { Moon, Sun, Star } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { motion as Motion, useReducedMotion } from 'framer-motion';
+import { Moon, Sun } from 'lucide-react';
 import useThemeStore from '../store/themeStore';
 
 const ThemeToggle = () => {
-    const { theme, setTheme } = useThemeStore();
-    const isDark = theme === 'dark';
+  const { theme, setTheme } = useThemeStore();
+  const isDark = theme === 'dark';
+  const reduceMotion = useReducedMotion();
+  const timerRefs = useRef([]);
+  const [transition, setTransition] = useState(null);
 
-    const rotation = useMotionValue(isDark ? 0 : 180);
-    const smoothRotation = useSpring(rotation, { damping: 20, stiffness: 300 });
+  const isAnimating = transition !== null;
+  const targetTheme = transition?.to ?? theme;
 
-    const bg = useTransform(smoothRotation, [0, 180], ["#171717", "#ffffff"]);
-    const border = useTransform(smoothRotation, [0, 180], ["rgba(255,255,255,0.1)", "rgba(0,0,0,0.1)"]);
+  const motionConfig = useMemo(() => ({
+    durationMs: reduceMotion ? 180 : 560,
+    flipDelayMs: reduceMotion ? 75 : 280,
+    travel: reduceMotion ? 9 : 16,
+    transition: reduceMotion
+      ? { duration: 0.16, ease: 'linear' }
+      : { duration: 0.56, ease: [0.22, 1, 0.36, 1] },
+  }), [reduceMotion]);
 
-    const moonY = useTransform(smoothRotation, [0, 90, 180], [0, 30, 40]);
-    const sunY = useTransform(smoothRotation, [0, 90, 180], [40, 30, 0]);
+  useEffect(() => () => {
+    timerRefs.current.forEach((timerId) => window.clearTimeout(timerId));
+    timerRefs.current = [];
+  }, []);
 
-    const moonOpacity = useTransform(smoothRotation, [0, 50], [1, 0]);
-    const sunOpacity = useTransform(smoothRotation, [130, 180], [0, 1]);
+  const schedule = (callback, delay) => {
+    const timerId = window.setTimeout(callback, delay);
+    timerRefs.current.push(timerId);
+  };
 
-    const counterRotate = useTransform(smoothRotation, v => -v);
+  const startTransition = () => {
+    if (isAnimating) return;
 
-    useEffect(() => {
-        rotation.set(isDark ? 0 : 180);
-    }, [isDark, rotation]);
+    const nextTheme = isDark ? 'light' : 'dark';
+    setTransition({ from: theme, to: nextTheme });
 
-    const handlePan = (event, info) => {
-        const current = rotation.get();
-        const delta = info.delta.x + info.delta.y;
-        const sensitivity = 1;
-        const newRot = Math.max(0, Math.min(180, current + delta * sensitivity));
-        rotation.set(newRot);
+    schedule(() => {
+      setTheme(nextTheme);
+    }, motionConfig.flipDelayMs);
 
-        if (newRot > 90 && isDark) {
-            setTheme('light');
-        } else if (newRot <= 90 && !isDark) {
-            setTheme('dark');
-        }
-    };
+    schedule(() => {
+      setTransition(null);
+      timerRefs.current = [];
+    }, motionConfig.durationMs);
+  };
 
-    const handlePanEnd = () => {
-        const current = rotation.get();
-        const target = current > 90 ? 180 : 0;
-        animate(rotation, target, { type: "spring", stiffness: 200, damping: 15 });
+  const sunPose = (() => {
+    if (!isAnimating) {
+      return isDark
+        ? { y: motionConfig.travel, opacity: 0, scale: 0.94, rotate: -6 }
+        : { y: 0, opacity: 1, scale: 1, rotate: 0 };
+    }
+    return transition.to === 'dark'
+      ? { y: motionConfig.travel, opacity: 0, scale: 0.94, rotate: -6 }
+      : { y: 0, opacity: 1, scale: 1, rotate: 0 };
+  })();
 
-        if (target === 180 && isDark) {
-            setTheme('light');
-        } else if (target === 0 && !isDark) {
-            setTheme('dark');
-        }
-    };
+  const moonPose = (() => {
+    if (!isAnimating) {
+      return isDark
+        ? { y: 0, opacity: 1, scale: 1, rotate: 0 }
+        : { y: motionConfig.travel, opacity: 0, scale: 0.94, rotate: 6 };
+    }
+    return transition.to === 'dark'
+      ? { y: 0, opacity: 1, scale: 1, rotate: 0 }
+      : { y: motionConfig.travel, opacity: 0, scale: 0.94, rotate: 6 };
+  })();
 
-    const handleClick = () => {
-        const target = isDark ? 180 : 0;
+  return (
+    <button
+      type="button"
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-live="polite"
+      onClick={startTransition}
+      disabled={isAnimating}
+      className="relative inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-black/12 bg-white text-slate-900 shadow-[0_6px_18px_rgba(16,24,40,0.16)] transition-transform duration-200 ease-out hover:scale-[1.03] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/45 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-default dark:border-white/20 dark:bg-[#0f141a] dark:text-slate-100 dark:focus-visible:ring-slate-200/45 dark:focus-visible:ring-offset-[#0b1015]"
+    >
+      <span className="pointer-events-none absolute inset-[1px] overflow-hidden rounded-full">
+        <Motion.span
+          className="absolute inset-0"
+          animate={{ opacity: targetTheme === 'light' ? 1 : 0 }}
+          transition={motionConfig.transition}
+          style={{
+            background:
+              'radial-gradient(circle at 50% 14%, rgba(255,255,255,0.95) 0%, rgba(232,238,246,0.95) 64%, rgba(217,225,236,0.96) 100%)',
+          }}
+        />
+        <Motion.span
+          className="absolute inset-0"
+          animate={{ opacity: targetTheme === 'dark' ? 1 : 0 }}
+          transition={motionConfig.transition}
+          style={{
+            background:
+              'radial-gradient(circle at 50% 16%, rgba(55,65,81,0.6) 0%, rgba(22,30,41,0.96) 68%, rgba(13,18,26,0.98) 100%)',
+          }}
+        />
+        <Motion.span
+          className="absolute left-1/2 top-[57%] h-px w-[68%] -translate-x-1/2 rounded-full"
+          animate={{ opacity: isAnimating ? 0.72 : 0.5 }}
+          transition={motionConfig.transition}
+          style={{
+            backgroundColor:
+              targetTheme === 'dark' ? 'rgba(203,213,225,0.45)' : 'rgba(71,85,105,0.26)',
+          }}
+        />
+        <Motion.span
+          className="absolute inset-x-0 bottom-0 h-[52%]"
+          animate={{ opacity: targetTheme === 'dark' ? 1 : 0.86 }}
+          transition={motionConfig.transition}
+          style={{
+            background:
+              'linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(15,23,42,0.08) 45%, rgba(15,23,42,0.18) 100%)',
+          }}
+        />
+      </span>
 
-        animate(rotation, target, { type: "spring", stiffness: 200, damping: 15 });
-        setTheme(isDark ? 'light' : 'dark');
-    };
+      <Motion.span
+        className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center"
+        animate={sunPose}
+        transition={motionConfig.transition}
+        style={{ color: targetTheme === 'dark' ? '#e2e8f0' : '#111827' }}
+      >
+        <Sun className="h-4 w-4" strokeWidth={1.95} />
+      </Motion.span>
 
-    return (
-        <div className="relative group">
-            <motion.div
-                className="absolute inset-0 rounded-full blur-lg opacity-50"
-                style={{
-                    background: useTransform(smoothRotation, [0, 180], ["rgba(99, 102, 241, 0.4)", "rgba(245, 158, 11, 0.4)"])
-                }}
-            />
-            <motion.div
-                className="w-10 h-10 rounded-full cursor-grab active:cursor-grabbing shadow-[0_4px_16px_rgba(0,0,0,0.12)] border flex items-center justify-center relative overflow-hidden z-10"
-                style={{
-                    rotate: smoothRotation,
-                    backgroundColor: bg,
-                    borderColor: border,
-                }}
-                onPan={handlePan}
-                onPanEnd={handlePanEnd}
-                onClick={handleClick}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-            >
-                <motion.div
-                    className="absolute inset-0 flex items-center justify-center"
-                    style={{ opacity: moonOpacity, rotate: counterRotate }}
-                >
-                    <motion.div style={{ y: moonY }} className="relative">
-                        <Moon className="w-5 h-5 text-indigo-400 fill-indigo-400/10 stroke-[1.5px]" />
-                        <motion.div
-                            className="absolute -top-0.5 -right-1 text-indigo-200"
-                            animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-                            transition={{ duration: 2, repeat: Infinity }}
-                        >
-                            <Star size={6} fill="currentColor" className="border-none" />
-                        </motion.div>
-                    </motion.div>
-                </motion.div>
-                <motion.div
-                    className="absolute inset-0 flex items-center justify-center"
-                    style={{ opacity: sunOpacity, rotate: counterRotate }}
-                >
-                    <motion.div style={{ y: sunY }}>
-                        <Sun className="w-5 h-5 text-amber-500 fill-amber-500/10 stroke-[2px]" />
-                    </motion.div>
-                </motion.div>
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent pointer-events-none" />
-
-            </motion.div>
-        </div>
-    );
+      <Motion.span
+        className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center"
+        animate={moonPose}
+        transition={motionConfig.transition}
+        style={{ color: targetTheme === 'dark' ? '#e2e8f0' : '#0f172a' }}
+      >
+        <Moon className="h-4 w-4" strokeWidth={1.95} />
+      </Motion.span>
+    </button>
+  );
 };
+
 export default ThemeToggle;

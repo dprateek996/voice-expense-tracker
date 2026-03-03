@@ -1,4 +1,4 @@
-import { User, Settings, LogOut, Moon, Sun } from 'lucide-react';
+import { User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,13 +9,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import useAuthStore from '@/store/authStore';
-import useThemeStore from '@/store/themeStore';
 import { MobileNav } from './Sidebar';
 import { useNavigate } from 'react-router-dom';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const TopNav = () => {
   const { user, logout } = useAuthStore();
-  const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
   const displayName = user?.name || "User";
 
@@ -30,19 +29,7 @@ const TopNav = () => {
       <MobileNav />
       <div className="hidden md:block" />
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="h-9 w-9 rounded-lg"
-          title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-        >
-          {theme === 'dark' ? (
-            <Sun className="h-4 w-4 text-amber-500" />
-          ) : (
-            <Moon className="h-4 w-4 text-muted-foreground" />
-          )}
-        </Button>
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">

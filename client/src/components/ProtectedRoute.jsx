@@ -9,35 +9,36 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation();
 
   useEffect(() => {
+    let isMounted = true;
+
     const verifyUserSession = async () => {
-      // Skip verification if already authenticated (e.g., just logged in)
       if (isAuthenticated) {
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
         return;
       }
 
-      // Only verify session if we have a token but aren't authenticated yet
-      // This handles page refreshes where localStorage has auth data
-      if (!isAuthenticated && token) {
+      if (token) {
         try {
           const data = await fetchMe();
-          if (data.user) {
+          if (isMounted && data.user) {
             login(data.user, token);
           }
-        } catch (error) {
+        } catch {
           console.error("Session verification failed. User is not logged in.");
-          logout(); // Explicitly logout on failure
+          if (isMounted) logout();
         } finally {
-          setIsLoading(false);
+          if (isMounted) setIsLoading(false);
         }
       } else {
-        // No token and not authenticated - just finish loading
-        setIsLoading(false);
+        if (isMounted) setIsLoading(false);
       }
     };
 
     verifyUserSession();
-  }, []); // The empty dependency array ensures this runs only ONCE on mount.
+    return () => {
+      isMounted = false;
+    };
+  }, [isAuthenticated, token, login, logout]);
 
   if (isLoading) {
     return (
@@ -47,12 +48,8 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (location.pathname.includes('/settings')) {
-    return children;
-  }
-
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   return children;
