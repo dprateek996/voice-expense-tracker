@@ -7,7 +7,9 @@ const {
   getMe,
   refreshAccessToken,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  updateProfile,
+  deleteAccount
 } = require('../controllers/auth.controller');
 const { protect } = require('../../middleware/auth.middleware');
 const { validateRegistration, validateLogin } = require('../../middleware/validation.middleware');
@@ -19,5 +21,7 @@ router.get('/me', protect, getMe);
 router.post('/refresh', refreshAccessToken);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
+router.put('/profile', protect, updateProfile);
+router.delete('/account', protect, deleteAccount);
 
 module.exports = router;

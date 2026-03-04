@@ -16,7 +16,7 @@ function LoadingAnimation({ onComplete }) {
       left: 0,
       right: 0,
       bottom: 0,
-      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+      background: 'linear-gradient(135deg, hsl(var(--surface-3)) 0%, hsl(var(--bg)) 100%)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -94,7 +94,7 @@ function LoadingAnimation({ onComplete }) {
           width: '60%',
           height: '60%',
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #2a9d8f 0%, #1e6f65 100%)',
+          background: 'linear-gradient(135deg, hsl(var(--chart-2)) 0%, hsl(var(--chart-1)) 100%)',
           boxShadow: `
             inset -10px -10px 30px rgba(0, 0, 0, 0.3),
             inset 10px 10px 20px rgba(255, 255, 255, 0.1),

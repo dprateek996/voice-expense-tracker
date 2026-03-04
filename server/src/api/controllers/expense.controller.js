@@ -6,6 +6,31 @@ const {
 
 const MAX_AUDIO_SIZE_BYTES = 8 * 1024 * 1024;
 
+const sanitizeText = (value) => String(value || '')
+  .replace(/<[^>]*>/g, '')
+  .replace(/[<>]/g, '')
+  .trim();
+
+const normalizeDraftExpense = (draft, transcriptFallback = '') => {
+  if (!draft || typeof draft !== 'object') return null;
+
+  const amount = Number(draft.amount);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+
+  const description = String(draft.description || transcriptFallback || 'Expense').trim().slice(0, 120);
+  const category = String(draft.category || 'Other').trim() || 'Other';
+
+  return {
+    amount,
+    category,
+    description,
+    location: draft.location ? String(draft.location).slice(0, 100) : null,
+    date: draft.date || null,
+    subcategory: draft.subcategory ? String(draft.subcategory).slice(0, 80) : 'Misc',
+    is_unclear: false,
+  };
+};
+
 const extractAudioPayload = async (req) => {
   const contentType = req.headers['content-type'] || '';
   const isMultipart = contentType.includes('multipart/form-data');
@@ -53,7 +78,11 @@ const extractAudioPayload = async (req) => {
 };
 
 const addExpenseFromVoice = async (req, res) => {
-  const { transcript } = req.body;
+  const {
+    transcript,
+    forceSave = false,
+    draft = null,
+  } = req.body;
   const userId = req.user.userId;
 
   if (!transcript) {
@@ -69,7 +98,39 @@ const addExpenseFromVoice = async (req, res) => {
     const parseMeta = parseResult?.meta || {};
     console.log('🤖 [API] Sarvam Parsed Data:', JSON.stringify(parsedData, null, 2));
 
-    const expensesToCreate = Array.isArray(parsedData) ? parsedData : [parsedData];
+    const parsedPrimary = Array.isArray(parsedData) && parsedData.length > 0 ? parsedData[0] : null;
+    const resolvedDisplayTranscript = parseMeta.displayTranscript || transcript;
+    const reviewedDraft = normalizeDraftExpense(draft, resolvedDisplayTranscript);
+
+    if (parseMeta.reviewRequired && forceSave && !reviewedDraft) {
+      return res.status(400).json({
+        error: 'Reviewed draft is required to save low-confidence expense.',
+        error_code: 'PARSER_LOW_CONFIDENCE',
+      });
+    }
+
+    if (parseMeta.reviewRequired && !forceSave && !reviewedDraft) {
+      return res.status(409).json({
+        error: 'Low confidence parse. Review and confirm before saving.',
+        error_code: 'PARSER_LOW_CONFIDENCE',
+        transcript: resolvedDisplayTranscript,
+        draft: normalizeDraftExpense(parsedPrimary, resolvedDisplayTranscript),
+        meta: {
+          provider: parseMeta.provider || 'sarvam',
+          model: parseMeta.model || 'sarvam-m',
+          fallbackUsed: Boolean(parseMeta.fallbackUsed),
+          normalizationApplied: Boolean(parseMeta.normalizationApplied),
+          languageStyle: parseMeta.languageStyle || 'english',
+          confidence: Number(parseMeta.confidence || 0),
+          reviewRequired: true,
+          subcategory: parseMeta.subcategory || parsedPrimary?.subcategory || 'Misc',
+        },
+      });
+    }
+
+    const expensesToCreate = reviewedDraft
+      ? [reviewedDraft]
+      : (Array.isArray(parsedData) ? parsedData : [parsedData]);
     const createdExpenses = [];
 
     for (const expense of expensesToCreate) {
@@ -95,12 +156,14 @@ const addExpenseFromVoice = async (req, res) => {
           userId: userId,
           amount: expense.amount,
           category: expense.category || 'Other',
-          description: expense.description || transcript.substring(0, 50),
+          description: expense.description || resolvedDisplayTranscript.substring(0, 50),
           location: expense.location || null,
           ...(expense.date && { date: new Date(expense.date) }),
           is_unclear: false,
           source: 'voice',
-          parsed_by: parseMeta.fallbackUsed ? 'regex-fallback' : (parseMeta.model || 'sarvam-m'),
+          parsed_by: reviewedDraft
+            ? 'manual-review'
+            : (parseMeta.fallbackUsed ? 'regex-fallback' : (parseMeta.model || 'sarvam-m')),
         }
       });
       console.log('✅ [API] Created expense:', newExpense.id);
@@ -118,6 +181,10 @@ const addExpenseFromVoice = async (req, res) => {
           model: parseMeta.model || 'sarvam-m',
           fallbackUsed: Boolean(parseMeta.fallbackUsed),
           normalizationApplied: Boolean(parseMeta.normalizationApplied),
+          languageStyle: parseMeta.languageStyle || 'english',
+          confidence: Number(parseMeta.confidence || 0),
+          reviewRequired: Boolean(parseMeta.reviewRequired),
+          subcategory: parseMeta.subcategory || parsedPrimary?.subcategory || 'Misc',
           error_code: 'PARSER_UNAVAILABLE',
         },
       });
@@ -132,6 +199,10 @@ const addExpenseFromVoice = async (req, res) => {
         model: parseMeta.model || 'sarvam-m',
         fallbackUsed: Boolean(parseMeta.fallbackUsed),
         normalizationApplied: Boolean(parseMeta.normalizationApplied),
+        languageStyle: parseMeta.languageStyle || 'english',
+        confidence: Number(parseMeta.confidence || 0),
+        reviewRequired: Boolean(parseMeta.reviewRequired),
+        subcategory: parseMeta.subcategory || parsedPrimary?.subcategory || 'Misc',
       },
     });
 
@@ -144,6 +215,43 @@ const addExpenseFromVoice = async (req, res) => {
         provider: 'sarvam',
         fallbackUsed: false,
       },
+    });
+  }
+};
+
+const previewVoiceExpense = async (req, res) => {
+  const { transcript } = req.body;
+
+  if (!transcript) {
+    return res.status(400).json({ error: 'Transcript is required.' });
+  }
+
+  try {
+    const parseResult = await parseExpenseWithSarvam(transcript);
+    const parseMeta = parseResult?.meta || {};
+    const parsedData = parseResult?.items || [];
+    const parsedPrimary = Array.isArray(parsedData) && parsedData.length > 0 ? parsedData[0] : null;
+    const draft = normalizeDraftExpense(parsedPrimary, parseMeta.displayTranscript || transcript);
+
+    return res.status(200).json({
+      transcript: parseMeta.displayTranscript || transcript,
+      draft,
+      parsed: parsedData,
+      meta: {
+        provider: parseMeta.provider || 'sarvam',
+        model: parseMeta.model || 'sarvam-m',
+        fallbackUsed: Boolean(parseMeta.fallbackUsed),
+        normalizationApplied: Boolean(parseMeta.normalizationApplied),
+        languageStyle: parseMeta.languageStyle || 'english',
+        confidence: Number(parseMeta.confidence || 0),
+        reviewRequired: Boolean(parseMeta.reviewRequired),
+        subcategory: parseMeta.subcategory || parsedPrimary?.subcategory || 'Misc',
+      },
+    });
+  } catch (error) {
+    return res.status(503).json({
+      error: 'Expense parser unavailable. Please try again.',
+      error_code: 'PARSER_UNAVAILABLE',
     });
   }
 };
@@ -221,6 +329,8 @@ const transcribeVoiceAudio = async (req, res) => {
         provider: 'sarvam-stt',
         model: result.model,
         fallbackUsed: false,
+        languageStyle: result.languageStyle || 'english',
+        normalizationApplied: Boolean(result.normalizationApplied),
       },
     });
   } catch (error) {
@@ -258,8 +368,64 @@ const getAllExpenses = async (req, res) => {
   }
 };
 
+const updateExpense = async (req, res) => {
+  const userId = req.user.userId;
+  const expenseId = Number(req.params.id);
+
+  if (!expenseId || !Number.isFinite(expenseId)) {
+    return res.status(400).json({ error: 'Valid expense ID is required.' });
+  }
+
+  try {
+    const existing = await prisma.expense.findUnique({ where: { id: expenseId } });
+    if (!existing) return res.status(404).json({ error: 'Expense not found.' });
+    if (existing.userId !== userId) return res.status(403).json({ error: 'Not authorized to update this expense.' });
+
+    const updates = {};
+    if (req.body.amount !== undefined) {
+      const amount = Number(req.body.amount);
+      if (!Number.isFinite(amount) || amount <= 0) return res.status(400).json({ error: 'Amount must be a positive number.' });
+      updates.amount = amount;
+    }
+    if (req.body.category !== undefined) updates.category = sanitizeText(req.body.category).slice(0, 50) || 'Other';
+    if (req.body.description !== undefined) updates.description = sanitizeText(req.body.description).slice(0, 120) || 'Expense';
+    if (req.body.location !== undefined) updates.location = req.body.location ? sanitizeText(req.body.location).slice(0, 100) : null;
+    if (req.body.date !== undefined) updates.date = new Date(req.body.date);
+
+    const updated = await prisma.expense.update({ where: { id: expenseId }, data: updates });
+    res.status(200).json(updated);
+  } catch (error) {
+    console.error('Error updating expense:', error);
+    res.status(500).json({ error: 'Failed to update expense.' });
+  }
+};
+
+const deleteExpense = async (req, res) => {
+  const userId = req.user.userId;
+  const expenseId = Number(req.params.id);
+
+  if (!expenseId || !Number.isFinite(expenseId)) {
+    return res.status(400).json({ error: 'Valid expense ID is required.' });
+  }
+
+  try {
+    const existing = await prisma.expense.findUnique({ where: { id: expenseId } });
+    if (!existing) return res.status(404).json({ error: 'Expense not found.' });
+    if (existing.userId !== userId) return res.status(403).json({ error: 'Not authorized to delete this expense.' });
+
+    await prisma.expense.delete({ where: { id: expenseId } });
+    res.status(200).json({ message: 'Expense deleted.' });
+  } catch (error) {
+    console.error('Error deleting expense:', error);
+    res.status(500).json({ error: 'Failed to delete expense.' });
+  }
+};
+
 module.exports = {
   addExpenseFromVoice,
+  previewVoiceExpense,
   getAllExpenses,
   transcribeVoiceAudio,
+  updateExpense,
+  deleteExpense,
 };

@@ -17,7 +17,7 @@ export function AIInputWithLoading({
 }) {
   const [inputValue, setInputValue] = useState("");
   const [submitted, setSubmitted] = useState(autoAnimate);
-  const [isAnimating, setIsAnimating] = useState(autoAnimate);
+  const [isAnimating] = useState(autoAnimate);
   
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({
     minHeight,
@@ -67,9 +67,9 @@ export function AIInputWithLoading({
               "max-w-xl bg-black/5 dark:bg-white/5 w-full rounded-3xl pl-6 pr-10 py-4",
               "placeholder:text-black/70 dark:placeholder:text-white/70",
               "border-none ring-black/30 dark:ring-white/30",
-              "text-black dark:text-white resize-none text-wrap leading-[1.2]",
-              `min-h-[${minHeight}px]`
+              "text-black dark:text-white resize-none text-wrap leading-tight"
             )}
+            style={{ minHeight: `${minHeight}px` }}
             ref={textareaRef}
             value={inputValue}
             onChange={(e) => {
@@ -86,8 +86,9 @@ export function AIInputWithLoading({
           />
           <button
             onClick={handleSubmit}
+            aria-label={submitted ? "Processing input" : "Submit input"}
             className={cn(
-              "absolute right-3 top-1/2 -translate-y-1/2 rounded-xl py-1 px-1",
+              "focus-ring absolute right-3 top-1/2 -translate-y-1/2 rounded-xl py-1 px-1",
               submitted ? "bg-none" : "bg-black/5 dark:bg-white/5"
             )}
             type="button"

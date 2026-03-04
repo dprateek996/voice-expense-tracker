@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Logo = ({ size = "md", showText = true, textClassName = "text-xl font-bold" }) => {
+const Logo = ({ size = "md", showText = true }) => {
   const sizeClasses = {
     sm: "w-6 h-6",
     md: "w-8 h-8",

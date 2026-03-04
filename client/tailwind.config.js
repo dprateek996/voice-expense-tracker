@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: ["class"],
+  darkMode: ['class'],
   content: [
     './pages/**/*.{js,jsx}',
     './components/**/*.{js,jsx}',
@@ -8,114 +8,106 @@ module.exports = {
     './src/**/*.{js,jsx}',
     './index.html',
   ],
-  prefix: "",
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: 'var(--space-4)',
       screens: {
-        "2xl": "1400px",
+        '2xl': '80rem',
       },
     },
     extend: {
       fontFamily: {
-        sans: ['Manrope', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        heading: ['Manrope', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        sans: ['var(--font-body)'],
+        heading: ['var(--font-heading)'],
+        mono: ['var(--font-meta)'],
+      },
+      spacing: {
+        1: 'var(--space-1)',
+        2: 'var(--space-2)',
+        3: 'var(--space-3)',
+        4: 'var(--space-4)',
+        10: '2.5rem',
+        11: '2.75rem',
+        12: '3rem',
       },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: 'hsl(var(--line))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        chart: {
+          1: 'hsl(var(--chart-1))',
+          2: 'hsl(var(--chart-2))',
+          3: 'hsl(var(--chart-3))',
+          4: 'hsl(var(--chart-4))',
+          5: 'hsl(var(--chart-5))',
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        sm: 'var(--radius-sm)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+      },
+      boxShadow: {
+        sm: 'var(--shadow-sm)',
+        md: 'var(--shadow-md)',
+      },
+      transitionDuration: {
+        fast: 'var(--motion-fast)',
+        base: 'var(--motion-base)',
+        slow: 'var(--motion-slow)',
       },
       keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
         },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
         },
-        "scroll": {
+        scroll: {
           to: {
-            transform: "translate(calc(-50% - 0.5rem))",
-          },
-        },
-        "float": {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-10px)" },
-        },
-        "shimmer": {
-          "0%": { backgroundPosition: "200% 0" },
-          "100%": { backgroundPosition: "-200% 0" },
-        },
-        "gradient-text": {
-          "0%, 100%": {
-            "background-size": "200% 200%",
-            "background-position": "left center",
-          },
-          "50%": {
-            "background-size": "200% 200%",
-            "background-position": "right center",
-          },
-        },
-        "spotlight": {
-          "0%": {
-            opacity: "0",
-            transform: "translate(-72%, -62%) scale(0.5)",
-          },
-          "100%": {
-            opacity: "1",
-            transform: "translate(-50%,-40%) scale(1)",
+            transform: 'translate(calc(-50% - 0.5rem))',
           },
         },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "scroll": "scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite",
-        "float": "float 6s ease-in-out infinite",
-        "shimmer": "shimmer 8s linear infinite",
-        "gradient-text": "gradient-text 8s ease infinite",
-        "gradient-text-slow": "gradient-text 15s ease infinite",
-        "spotlight": "spotlight 2s ease .75s 1 forwards",
+        'accordion-down': 'accordion-down var(--motion-base) ease-out',
+        'accordion-up': 'accordion-up var(--motion-base) ease-out',
+        scroll: 'scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite',
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
-}
+  plugins: [require('tailwindcss-animate')],
+};

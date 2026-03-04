@@ -236,6 +236,69 @@ const resetPassword = async (req, res) => {
   }
 };
 
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: 'Not authorized' });
+
+    const { name, email } = req.body;
+    const updates = {};
+
+    if (name !== undefined) {
+      const trimmed = String(name).trim();
+      if (trimmed.length < 2 || trimmed.length > 50) {
+        return res.status(400).json({ error: 'Name must be between 2 and 50 characters' });
+      }
+      updates.name = trimmed;
+    }
+
+    if (email !== undefined) {
+      const trimmed = String(email).trim().toLowerCase();
+      if (!trimmed.includes('@')) {
+        return res.status(400).json({ error: 'Please provide a valid email' });
+      }
+      const existing = await prisma.user.findUnique({ where: { email: trimmed } });
+      if (existing && existing.id !== userId) {
+        return res.status(400).json({ error: 'Email already in use' });
+      }
+      updates.email = trimmed;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: updates,
+    });
+
+    return res.json({ user: { id: user.id, email: user.email, name: user.name } });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    if (isDbUnavailableError(err)) return sendDbUnavailable(res);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) return res.status(401).json({ error: 'Not authorized' });
+
+    await prisma.user.delete({ where: { id: userId } });
+
+    res.clearCookie('accessToken', COOKIE_OPTIONS);
+    res.clearCookie('refreshToken', COOKIE_OPTIONS);
+
+    return res.json({ message: 'Account deleted successfully' });
+  } catch (err) {
+    console.error('Delete account error:', err);
+    if (isDbUnavailableError(err)) return sendDbUnavailable(res);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -244,4 +307,6 @@ module.exports = {
   getMe,
   forgotPassword,
   resetPassword,
+  updateProfile,
+  deleteAccount,
 };

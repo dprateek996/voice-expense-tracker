@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { getExpenses, deleteExpense } from '@/api/expense.api';
 
 const CATEGORY_COLORS = {
@@ -18,21 +18,21 @@ const ExpenseList = ({ token }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchExpenses = async () => {
+  const fetchExpenses = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const data = await getExpenses(token);
       setExpenses(data);
-    } catch (err) {
+    } catch {
       setError('Failed to load expenses');
     }
     setLoading(false);
-  };
+  }, [token]);
 
   useEffect(() => {
     fetchExpenses();
-  }, [token]);
+  }, [fetchExpenses]);
 
   const handleDelete = async (id) => {
     try {

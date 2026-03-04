@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import useConversationStore from '@/store/conversationStore';
 import useSpeechRecognition from '@/hooks/useSpeechRecognition';
 import VoiceResponsePanel from './VoiceResponsePanel';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { playClickSound } from '@/lib/playClickSound';
 
 const VoiceOrb = ({ onVoiceExpense }) => {
@@ -21,29 +21,30 @@ const VoiceOrb = ({ onVoiceExpense }) => {
       startListening();
     }
   };
-  const handleVoiceResult = async (transcript) => {
+  const handleVoiceResult = useCallback(async (transcript) => {
     if (!transcript) return;
     setVoiceResponseType('info');
     setVoiceResponse('Processing your request...');
     try {
       if (onVoiceExpense) {
-        const result = await onVoiceExpense(transcript);
+        await onVoiceExpense(transcript);
         setVoiceResponseType('success');
         setVoiceResponse('Expense added successfully!');
       } else {
         setVoiceResponseType('info');
         setVoiceResponse('Voice command processed.');
       }
-    } catch (err) {
+    } catch {
       setVoiceResponseType('error');
       setVoiceResponse('Failed to process voice input.');
     }
-  };
+  }, [onVoiceExpense]);
+
   useEffect(() => {
     if (!isListening && currentTranscript) {
       handleVoiceResult(currentTranscript);
     }
-  }, [isListening, currentTranscript]);
+  }, [isListening, currentTranscript, handleVoiceResult]);
 
   const getOrbState = () => {
     if (isProcessing) return 'processing';

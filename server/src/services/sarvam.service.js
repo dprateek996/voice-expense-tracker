@@ -1,111 +1,23 @@
+const {
+  CANONICAL_EXPENSE_CATEGORIES,
+} = require('../constants/indian-expense-lexicon');
+const {
+  normalizeTranscriptStyle,
+  sanitizeTranscript,
+} = require('./transcript-normalization.service');
+const {
+  normalizeModelExpenseObject,
+  parseDeterministicExpense,
+  reconcileExpenseCandidates,
+} = require('./expense-parser-india.service');
+
 const SARVAM_API_KEY = process.env.SARVAM_API_KEY;
 const SARVAM_BASE_URL = process.env.SARVAM_BASE_URL || 'https://api.sarvam.ai';
 const SARVAM_CHAT_MODEL = process.env.SARVAM_CHAT_MODEL || 'sarvam-m';
 const SARVAM_STT_MODEL = process.env.SARVAM_STT_MODEL || 'saarika:v2.5';
 const SARVAM_STT_LANGUAGE_CODE = process.env.SARVAM_STT_LANGUAGE_CODE || 'unknown';
 
-const DEVANAGARI_DIGIT_MAP = {
-  '०': '0',
-  '१': '1',
-  '२': '2',
-  '३': '3',
-  '४': '4',
-  '५': '5',
-  '६': '6',
-  '७': '7',
-  '८': '8',
-  '९': '9',
-};
-
-const DEFAULT_EXPENSE_CATEGORY = 'Other';
-const VALID_EXPENSE_CATEGORIES = new Set([
-  'Groceries',
-  'Dining',
-  'Transport',
-  'Shopping',
-  'Utilities',
-  'Health',
-  'Entertainment',
-  'Travel',
-  'Education',
-  'Work',
-  'Personal Care',
-  'Fuel',
-  'Other',
-]);
-
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const normalizeDevanagariDigits = (value) => value
-  .split('')
-  .map((char) => DEVANAGARI_DIGIT_MAP[char] ?? char)
-  .join('');
-
-const normalizeTranscript = (transcript) => {
-  const original = String(transcript || '');
-  const normalized = normalizeDevanagariDigits(original)
-    .replace(/[{}$`]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-
-  return {
-    original,
-    normalized,
-    normalizationApplied: original !== normalized,
-  };
-};
-
-const classifyCategory = (text) => {
-  const lower = text.toLowerCase();
-  if (/(food|lunch|dinner|breakfast|restaurant|burger|pizza|cafe|coffee|chai|meal)/i.test(lower)) return 'Dining';
-  if (/(grocer|vegetable|fruit|ration|kiryana)/i.test(lower)) return 'Groceries';
-  if (/(uber|cab|taxi|auto|metro|bus|transport|petrol|fuel|diesel|gpay to driver)/i.test(lower)) return 'Transport';
-  if (/(shop|mall|amazon|flipkart|clothes|dress|shoe|shopping)/i.test(lower)) return 'Shopping';
-  if (/(movie|netflix|spotify|game|entertainment)/i.test(lower)) return 'Entertainment';
-  if (/(medicine|hospital|doctor|health|clinic)/i.test(lower)) return 'Health';
-  if (/(electricity|water bill|internet|wifi|mobile recharge|gas bill)/i.test(lower)) return 'Utilities';
-  if (/(flight|hotel|trip|travel|train)/i.test(lower)) return 'Travel';
-  if (/(course|book|tuition|class|exam)/i.test(lower)) return 'Education';
-  if (/(office|workspace|software|subscription)/i.test(lower)) return 'Work';
-  if (/(salon|grooming|cosmetic|personal care)/i.test(lower)) return 'Personal Care';
-  if (/(fuel|petrol|diesel|cng)/i.test(lower)) return 'Fuel';
-  return DEFAULT_EXPENSE_CATEGORY;
-};
-
-const fallbackExtraction = (transcript) => {
-  const { normalized, normalizationApplied } = normalizeTranscript(transcript);
-  const amountMatch = normalized.match(/(?:₹|rs\.?|rupees?|rupaye)?\s*(\d+(?:,\d{3})*(?:\.\d{1,2})?)/i);
-  const amount = amountMatch ? Number.parseFloat(amountMatch[1].replace(/,/g, '')) : 0;
-
-  if (!amount || Number.isNaN(amount) || amount <= 0) {
-    return {
-      items: [{ is_unclear: true }],
-      meta: {
-        provider: 'local-regex',
-        model: 'regex-fallback',
-        fallbackUsed: true,
-        normalizationApplied,
-      },
-    };
-  }
-
-  return {
-    items: [{
-      amount,
-      category: classifyCategory(normalized),
-      description: normalized.slice(0, 120),
-      location: null,
-      date: null,
-      is_unclear: false,
-    }],
-    meta: {
-      provider: 'local-regex',
-      model: 'regex-fallback',
-      fallbackUsed: true,
-      normalizationApplied,
-    },
-  };
-};
 
 const safeJsonParse = (text) => {
   if (!text) return null;
@@ -130,6 +42,21 @@ const assertSarvamKey = () => {
     const err = new Error('SARVAM_API_KEY is missing');
     err.code = 'MISSING_SARVAM_API_KEY';
     throw err;
+  }
+};
+
+const truncateForLog = (text) => String(text || '').slice(0, 100);
+
+const logParserEvent = (payload) => {
+  try {
+    console.info(
+      `[PARSER] ${JSON.stringify({
+        provider: 'sarvam',
+        ...payload,
+      })}`
+    );
+  } catch (_) {
+    // no-op on logging serialization issues
   }
 };
 
@@ -217,61 +144,52 @@ const chatCompletion = async (messages, options = {}) => {
   };
 };
 
-const normalizeExpenseObject = (obj, fallbackDescription) => {
-  if (!obj || typeof obj !== 'object') return null;
-
-  const amount = Number(obj.amount);
-  if (!Number.isFinite(amount) || amount <= 0) return null;
-
-  const category = VALID_EXPENSE_CATEGORIES.has(obj.category)
-    ? obj.category
-    : classifyCategory(obj.description || fallbackDescription || '');
-
-  return {
-    amount,
-    category: category || DEFAULT_EXPENSE_CATEGORY,
-    description: String(obj.description || fallbackDescription || 'Expense').slice(0, 120),
-    location: obj.location ? String(obj.location).slice(0, 100) : null,
-    date: obj.date || null,
-    is_unclear: Boolean(obj.is_unclear),
-  };
-};
+const buildPromptForExpenseParser = (parseTranscript) => [
+  {
+    role: 'system',
+    content:
+      'You are an Indian expense parser for Hindi/Hinglish/English user input. Return only strict JSON. Keep description in user phrasing style. Do not output markdown.',
+  },
+  {
+    role: 'user',
+    content:
+      `Transcript: "${parseTranscript}"\n\n` +
+      'Return ONLY JSON in one shape:\n' +
+      '{"amount": number, "category": string, "description": string, "location": string|null, "date": string|null, "is_unclear": boolean}\n' +
+      'OR array of the same objects.\n' +
+      `Allowed categories: ${CANONICAL_EXPENSE_CATEGORIES.join(', ')}\n` +
+      'Rules:\n' +
+      '- Amount must be rupees numeric.\n' +
+      '- If unsure, set is_unclear true.\n' +
+      '- Keep description short and useful.',
+  },
+];
 
 const parseExpenseWithSarvam = async (transcript) => {
-  const { normalized, normalizationApplied } = normalizeTranscript(transcript);
-  if (!normalized) {
+  const style = normalizeTranscriptStyle(transcript);
+  const parseText = style.parseTranscript;
+
+  if (!parseText) {
     return {
       items: [{ is_unclear: true }],
       meta: {
         provider: 'sarvam',
         model: SARVAM_CHAT_MODEL,
         fallbackUsed: true,
-        normalizationApplied,
+        normalizationApplied: style.normalizationApplied,
+        languageStyle: style.languageStyle,
+        confidence: 0.1,
+        reviewRequired: true,
+        subcategory: 'Misc',
+        displayTranscript: style.displayTranscript,
       },
     };
   }
 
-  const prompt = [
-    {
-      role: 'system',
-      content: 'You are an Indian expense parsing engine. Parse Hindi, Hinglish, and English input. Return ONLY strict JSON.',
-    },
-    {
-      role: 'user',
-      content:
-        `Extract one or more expenses from this transcript:\n"${normalized}"\n\n` +
-        'Return ONLY JSON in one of these shapes:\n' +
-        '{"amount": number, "category": string, "description": string, "location": string|null, "date": string|null, "is_unclear": boolean}\n' +
-        'OR\n' +
-        '[{...}, {...}]\n' +
-        'Rules:\n' +
-        '- Amount must be numeric rupees.\n' +
-        '- Category must be one of: Groceries, Dining, Transport, Shopping, Utilities, Health, Entertainment, Travel, Education, Work, Personal Care, Fuel, Other.\n' +
-        '- If unclear, set is_unclear true.',
-    },
-  ];
-
+  const deterministic = parseDeterministicExpense(parseText);
+  const prompt = buildPromptForExpenseParser(parseText);
   const maxRetries = 2;
+
   for (let attempt = 1; attempt <= maxRetries; attempt += 1) {
     try {
       const completion = await chatCompletion(prompt, {
@@ -282,40 +200,103 @@ const parseExpenseWithSarvam = async (transcript) => {
 
       const parsed = safeJsonParse(completion.text);
       const parsedItems = Array.isArray(parsed) ? parsed : [parsed];
-      const normalizedItems = parsedItems
-        .map((item) => normalizeExpenseObject(item, normalized))
-        .filter(Boolean);
+      const modelItem = parsedItems
+        .map((item) => normalizeModelExpenseObject(item, style.displayTranscript))
+        .find(Boolean) || null;
 
-      if (normalizedItems.length > 0) {
-        return {
-          items: normalizedItems,
-          meta: {
-            provider: 'sarvam',
-            model: completion.model,
-            fallbackUsed: false,
-            normalizationApplied,
-          },
-        };
-      }
-      throw new Error('No valid expense objects in model output');
+      const reconciled = reconcileExpenseCandidates({
+        deterministic,
+        modelItem,
+        fallbackDescription: style.displayTranscript,
+      });
+
+      const item = {
+        ...reconciled.item,
+        subcategory: reconciled.subcategory,
+      };
+
+      logParserEvent({
+        endpoint: 'chat-completions',
+        model: completion.model,
+        latency_ms: completion.latencyMs,
+        fallback_used: reconciled.fallbackUsed,
+        review_required: reconciled.reviewRequired,
+        confidence: Number(reconciled.confidence.toFixed(3)),
+        language_style: style.languageStyle,
+        transcript_preview: truncateForLog(style.displayTranscript),
+      });
+
+      return {
+        items: [item],
+        meta: {
+          provider: 'sarvam',
+          model: completion.model,
+          fallbackUsed: reconciled.fallbackUsed,
+          normalizationApplied: style.normalizationApplied,
+          languageStyle: style.languageStyle,
+          confidence: Number(reconciled.confidence.toFixed(3)),
+          reviewRequired: reconciled.reviewRequired,
+          subcategory: reconciled.subcategory,
+          displayTranscript: style.displayTranscript,
+        },
+      };
     } catch (error) {
       if (attempt < maxRetries) {
         await wait(250 * attempt);
         continue;
       }
-      const fallback = fallbackExtraction(normalized);
+
+      const reconciled = reconcileExpenseCandidates({
+        deterministic,
+        modelItem: null,
+        fallbackDescription: style.displayTranscript,
+      });
+
+      logParserEvent({
+        endpoint: 'chat-completions',
+        model: SARVAM_CHAT_MODEL,
+        latency_ms: error?.latencyMs || 0,
+        fallback_used: true,
+        review_required: reconciled.reviewRequired,
+        confidence: Number(reconciled.confidence.toFixed(3)),
+        language_style: style.languageStyle,
+        error_code: error?.code || error?.status || 'PARSER_UNAVAILABLE',
+      });
+
       return {
-        ...fallback,
+        items: [{
+          ...reconciled.item,
+          subcategory: reconciled.subcategory,
+        }],
         meta: {
-          ...fallback.meta,
           provider: 'sarvam',
           model: SARVAM_CHAT_MODEL,
+          fallbackUsed: true,
+          normalizationApplied: style.normalizationApplied,
+          languageStyle: style.languageStyle,
+          confidence: Number(reconciled.confidence.toFixed(3)),
+          reviewRequired: reconciled.reviewRequired,
+          subcategory: reconciled.subcategory,
+          displayTranscript: style.displayTranscript,
         },
       };
     }
   }
 
-  return fallbackExtraction(normalized);
+  return {
+    items: [{ is_unclear: true }],
+    meta: {
+      provider: 'sarvam',
+      model: SARVAM_CHAT_MODEL,
+      fallbackUsed: true,
+      normalizationApplied: style.normalizationApplied,
+      languageStyle: style.languageStyle,
+      confidence: 0.2,
+      reviewRequired: true,
+      subcategory: 'Misc',
+      displayTranscript: style.displayTranscript,
+    },
+  };
 };
 
 const transcribeAudioWithSarvam = async ({
@@ -349,8 +330,25 @@ const transcribeAudioWithSarvam = async ({
     || data?.output?.transcript
     || '';
 
+  const style = normalizeTranscriptStyle(transcript);
+
+  logParserEvent({
+    endpoint: 'speech-to-text',
+    model: SARVAM_STT_MODEL,
+    latency_ms: latencyMs,
+    fallback_used: false,
+    review_required: false,
+    confidence: 1,
+    language_style: style.languageStyle,
+    transcript_preview: truncateForLog(style.displayTranscript),
+  });
+
   return {
-    transcript: String(transcript || '').trim(),
+    transcript: style.displayTranscript,
+    rawTranscript: style.rawTranscript,
+    parseTranscript: style.parseTranscript,
+    languageStyle: style.languageStyle,
+    normalizationApplied: style.normalizationApplied,
     raw: data,
     model: SARVAM_STT_MODEL,
     latencyMs,
@@ -358,7 +356,9 @@ const transcribeAudioWithSarvam = async ({
 };
 
 const refineTranscriptWithSarvam = async (transcript) => {
-  const { normalized } = normalizeTranscript(transcript);
+  const style = normalizeTranscriptStyle(transcript);
+  const normalized = style.parseTranscript;
+
   if (!normalized) {
     return {
       corrected: '',
@@ -392,14 +392,14 @@ const refineTranscriptWithSarvam = async (transcript) => {
     }
 
     return {
-      corrected: String(parsed.corrected || normalized),
+      corrected: String(parsed.corrected || style.displayTranscript),
       confidence: Number.isFinite(Number(parsed.confidence)) ? Number(parsed.confidence) : 0.5,
       alternatives: Array.isArray(parsed.alternatives) ? parsed.alternatives.slice(0, 3).map(String) : [],
       ambiguous_words: Array.isArray(parsed.ambiguous_words) ? parsed.ambiguous_words.slice(0, 5).map(String) : [],
     };
   } catch (error) {
     return {
-      corrected: normalized,
+      corrected: style.displayTranscript,
       confidence: 0.5,
       alternatives: [],
       ambiguous_words: [],
@@ -467,7 +467,7 @@ const extractExpenseFromConversationWithSarvam = async (conversationHistory = []
       {
         role: 'user',
         content:
-          `Conversation:\n${transcript}\n\n` +
+          `Conversation:\n${sanitizeTranscript(transcript)}\n\n` +
           'Return JSON schema: {"amount": number, "category": string, "description": string, "location": string|null, "date": string|null, "is_unclear": boolean}',
       },
     ], {
@@ -476,7 +476,7 @@ const extractExpenseFromConversationWithSarvam = async (conversationHistory = []
     });
 
     const parsed = safeJsonParse(completion.text);
-    const normalized = normalizeExpenseObject(parsed, transcript);
+    const normalized = normalizeModelExpenseObject(parsed, transcript);
     return normalized || null;
   } catch (error) {
     return null;
@@ -491,3 +491,4 @@ module.exports = {
   sendMessageToAIWithSarvam,
   extractExpenseFromConversationWithSarvam,
 };
+

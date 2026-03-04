@@ -1,12 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion as Motion } from 'framer-motion';
-import { Lock, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { Lock, Eye, EyeOff } from 'lucide-react';
 import api from '@/api/axios.config';
-import ThemeToggle from '@/components/ThemeToggle';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import AuthShell from '@/components/layout/AuthShell';
 
-function ResetPassword() {
+const ResetPassword = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  const token = searchParams.get('token');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -14,8 +20,6 @@ function ResetPassword() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const token = searchParams.get('token');
 
   useEffect(() => {
     if (!token) {
@@ -23,8 +27,8 @@ function ResetPassword() {
     }
   }, [token]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setMessage('');
     setError('');
 
@@ -42,156 +46,94 @@ function ResetPassword() {
     try {
       const response = await api.post('/auth/reset-password', {
         token,
-        newPassword: password
+        newPassword: password,
       });
-      setMessage(response.data.message || 'Password reset successful!');
-      setTimeout(() => navigate('/login'), 2000);
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to reset password. The link may have expired.');
+      setMessage(response.data.message || 'Password reset successful');
+      setTimeout(() => navigate('/login'), 1600);
+    } catch (requestError) {
+      setError(requestError.response?.data?.error || 'Failed to reset password. The link may have expired.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col bg-background relative overflow-x-hidden font-sans text-foreground">
-      <div className="absolute top-4 right-4 z-20">
-        <ThemeToggle />
-      </div>
+    <AuthShell title="Reset password" subtitle="Set a strong new password to secure your account.">
+      <Motion.form
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.28, ease: 'easeInOut' }}
+        onSubmit={handleSubmit}
+        className="space-y-6"
+      >
+        {message ? <p className="rounded-md border border-border bg-muted p-3 text-sm text-foreground">{message}</p> : null}
+        {error ? <p className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">{error}</p> : null}
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12 relative z-10">
-        <Motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md relative"
-        >
-          <div className="relative w-full bg-card border border-border shadow-xl rounded-2xl overflow-hidden p-8">
-            <div className="space-y-1 text-center relative z-10 mb-8">
-              <Motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
-                className="mx-auto w-16 h-16 flex items-center justify-center mb-6 relative group"
-              >
-                <div className="relative w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/30 group-hover:border-primary/50 transition-all duration-300">
-                  <KeyRound className="w-8 h-8 text-primary" />
-                </div>
-              </Motion.div>
-              <Motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">
-                  Reset Password
-                </h1>
-                <p className="text-muted-foreground text-base leading-relaxed">
-                  Enter your new password below
-                </p>
-              </Motion.div>
-            </div>
-
-            {message && (
-              <Motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-green-500/10 border border-green-500/30 text-green-600 dark:text-green-400 px-4 py-3 rounded-xl mb-6 text-sm text-center font-medium"
-              >
-                {message}
-              </Motion.div>
-            )}
-
-            {error && (
-              <Motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 px-4 py-3 rounded-xl mb-6 text-sm text-center font-medium"
-              >
-                {error}
-              </Motion.div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-foreground">
-                  New Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={!token}
-                    placeholder="Enter new password"
-                    className="w-full pl-11 pr-11 py-3 bg-muted/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-foreground">
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <input
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    disabled={!token}
-                    placeholder="Confirm new password"
-                    className="w-full pl-11 pr-11 py-3 bg-muted/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200 disabled:opacity-50"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || !token}
-                className="w-full py-3 px-4 bg-primary hover:bg-primary/90 disabled:bg-muted text-primary-foreground font-semibold rounded-xl transition-all duration-200 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                    Resetting...
-                  </span>
-                ) : (
-                  'Reset Password'
-                )}
-              </button>
-
-              <div className="text-center pt-2">
-                <Link
-                  to="/login"
-                  className="text-primary hover:text-primary/80 font-semibold transition-colors inline-flex items-center gap-1"
-                >
-                  ← Back to Login
-                </Link>
-              </div>
-            </form>
+        <div className="space-y-2">
+          <Label htmlFor="password">New password</Label>
+          <div className="relative">
+            <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="••••••••"
+              className="pl-11 pr-11"
+              autoComplete="new-password"
+              disabled={!token}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="focus-ring absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
-        </Motion.div>
-      </div>
-    </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm new password</Label>
+          <div className="relative">
+            <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              id="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="••••••••"
+              className="pl-11 pr-11"
+              autoComplete="new-password"
+              disabled={!token}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+              aria-label={showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'}
+              className="focus-ring absolute right-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        </div>
+
+        <Button type="submit" loading={loading} disabled={loading || !token} className="w-full">
+          Reset password
+        </Button>
+
+        <p className="text-sm text-muted-foreground">
+          Back to{' '}
+          <Link to="/login" className="font-medium text-foreground underline-offset-4 hover:underline focus-ring rounded-sm">
+            Login
+          </Link>
+        </p>
+      </Motion.form>
+    </AuthShell>
   );
-}
+};
 
 export default ResetPassword;

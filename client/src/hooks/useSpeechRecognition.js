@@ -7,6 +7,14 @@ const PICKED_MIME_TYPES = [
   'audio/mpeg',
 ];
 
+const getPreferredRecognitionLanguage = () => {
+  if (typeof navigator === 'undefined') return 'en-IN';
+  const languages = [...(navigator.languages || []), navigator.language].filter(Boolean);
+  const hasIndianEnglish = languages.some((value) => /^en[-_]in$/i.test(value));
+  if (hasIndianEnglish) return 'en-IN';
+  return 'en-IN';
+};
+
 const getSupportedMimeType = () => {
   if (typeof window === 'undefined' || typeof window.MediaRecorder === 'undefined') return null;
   const match = PICKED_MIME_TYPES.find((type) => window.MediaRecorder.isTypeSupported(type));
@@ -63,7 +71,7 @@ const useSpeechRecognition = ({ onResult, onEnd, onError } = {}) => {
 
     recognition.continuous = false;
     recognition.interimResults = true;
-    recognition.lang = 'hi-IN';
+    recognition.lang = getPreferredRecognitionLanguage();
 
     recognition.onstart = () => {
       setIsListening(true);

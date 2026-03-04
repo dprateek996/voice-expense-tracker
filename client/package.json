@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
+    "lint:design:no-important": "node scripts/lint-design.mjs no-important",
+    "lint:design:no-hex": "node scripts/lint-design.mjs no-hex",
+    "lint:design:no-arbitrary": "node scripts/lint-design.mjs no-arbitrary",
     "preview": "vite preview"
   },
   "dependencies": {

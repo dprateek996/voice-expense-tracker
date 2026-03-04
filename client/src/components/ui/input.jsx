@@ -1,19 +1,37 @@
-import * as React from "react"
+import * as React from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
 
-import { cn } from "@/lib/utils"
+const inputVariants = cva(
+  'w-full rounded-md border bg-background px-4 text-sm text-foreground transition-all duration-fast ease-out placeholder:text-muted-foreground focus-ring disabled:cursor-not-allowed disabled:opacity-50',
+  {
+    variants: {
+      size: {
+        default: 'h-12',
+        compact: 'h-11',
+      },
+      state: {
+        default: 'border-input',
+        error: 'border-destructive ring-1 ring-destructive/30',
+      },
+    },
+    defaultVariants: {
+      size: 'default',
+      state: 'default',
+    },
+  }
+);
 
-const Input = React.forwardRef(({ className, type, ...props }, ref) => {
-  return (
-    <input
-      type={type}
-      className={cn(
-        "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-        className
-      )}
-      ref={ref}
-      {...props} />
-  );
-})
-Input.displayName = "Input"
+const Input = React.forwardRef(({ className, type = 'text', size, state, ...props }, ref) => (
+  <input
+    type={type}
+    className={cn(inputVariants({ size, state }), className)}
+    ref={ref}
+    aria-invalid={state === 'error' ? 'true' : undefined}
+    {...props}
+  />
+));
 
-export { Input }
+Input.displayName = 'Input';
+
+export { Input, inputVariants };

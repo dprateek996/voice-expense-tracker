@@ -1,72 +1,75 @@
-import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import useAuthStore from "@/store/authStore";
+import { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import useAuthStore from '@/store/authStore';
 import {
-  LayoutDashboard, BarChart3, History, Tags, Settings, LogOut, PanelLeft, PanelLeftClose, PanelLeftOpen, Mic
-} from "lucide-react";
+  LayoutDashboard,
+  BarChart3,
+  History,
+  Tags,
+  Settings,
+  LogOut,
+  PanelLeft,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Mic,
+} from 'lucide-react';
 
 const navLinks = [
-  { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="w-5 h-5" /> },
-  { label: "Analytics", href: "/dashboard/analytics", icon: <BarChart3 className="w-5 h-5" /> },
-  { label: "History", href: "/dashboard/history", icon: <History className="w-5 h-5" /> },
-  {
-    label: "Categories",
-    href: "/dashboard/categories",
-    icon: <Tags className="w-5 h-5" />
-  },
+  { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+  { label: 'Analytics', href: '/dashboard/analytics', icon: <BarChart3 className="h-5 w-5" /> },
+  { label: 'History', href: '/dashboard/history', icon: <History className="h-5 w-5" /> },
+  { label: 'Categories', href: '/dashboard/categories', icon: <Tags className="h-5 w-5" /> },
 ];
 
-const SidebarLink = ({ link, open, isActive, onClick }) => {
-  const linkClasses = `
-    relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer
-    ${isActive
-      ? "bg-foreground text-background font-medium"
-      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-    }
-  `;
-
+const SidebarLink = ({ link, open, onClick }) => {
   const content = (
     <>
-      <div className="flex-shrink-0">
-        {link.icon}
-      </div>
+      <span className="flex h-5 w-5 items-center justify-center">{link.icon}</span>
       <AnimatePresence>
-        {open && (
+        {open ? (
           <motion.span
             initial={{ opacity: 0, width: 0 }}
-            animate={{ opacity: 1, width: "auto" }}
+            animate={{ opacity: 1, width: 'auto' }}
             exit={{ opacity: 0, width: 0 }}
             className="whitespace-nowrap text-sm"
           >
             {link.label}
           </motion.span>
-        )}
+        ) : null}
       </AnimatePresence>
     </>
   );
 
   if (onClick) {
     return (
-      <div className={linkClasses} onClick={onClick}>
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={link.label}
+        title={link.label}
+        className="flex h-11 w-full items-center gap-3 rounded-md px-3 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      >
         {content}
-      </div>
+      </button>
     );
   }
 
   return (
     <NavLink
       to={link.href}
-      end={link.href === "/dashboard"}
-      className={({ isActive }) => `
-        relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 cursor-pointer
-        ${isActive
-          ? "bg-foreground text-background font-medium"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
-        }
-      `}
+      end={link.href === '/dashboard'}
+      aria-label={link.label}
+      title={link.label}
+      className={({ isActive }) =>
+        `flex h-11 items-center gap-3 rounded-md px-3 transition-colors ${
+          isActive
+            ? 'bg-foreground text-background'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+        }`
+      }
     >
       {content}
     </NavLink>
@@ -79,39 +82,34 @@ const NavContent = ({ open, onLinkClick }) => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate('/login');
   };
 
-  const bottomLinks = [
-    { label: "Settings", href: "/dashboard/settings", icon: <Settings className="w-5 h-5" /> },
-    { label: "Logout", onClick: handleLogout, icon: <LogOut className="w-5 h-5" /> },
-  ];
-
   return (
-    <nav className="flex-1 flex flex-col justify-between pt-6">
-      <div className="space-y-1 px-3">
+    <nav className="flex flex-1 flex-col justify-between pt-6">
+      <div className="space-y-2 px-3">
         {navLinks.map((link) => (
-          <SidebarLink
-            key={link.label}
-            link={link}
-            open={open}
-            onClick={onLinkClick}
-          />
+          <SidebarLink key={link.label} link={link} open={open} onClick={onLinkClick} />
         ))}
       </div>
 
-      <div className="px-3 pb-4 space-y-1 border-t border-border pt-4 mt-4">
-        {bottomLinks.map((link) => (
-          <SidebarLink
-            key={link.label}
-            link={link}
-            open={open}
-            onClick={link.onClick ? () => {
-              link.onClick();
-              if (onLinkClick) onLinkClick();
-            } : undefined}
-          />
-        ))}
+      <div className="mt-6 space-y-2 border-t border-border px-3 pb-4 pt-4">
+        <SidebarLink
+          open={open}
+          link={{ label: 'Settings', icon: <Settings className="h-5 w-5" /> }}
+          onClick={() => {
+            navigate('/dashboard/settings');
+            onLinkClick?.();
+          }}
+        />
+        <SidebarLink
+          open={open}
+          link={{ label: 'Logout', icon: <LogOut className="h-5 w-5" /> }}
+          onClick={() => {
+            handleLogout();
+            onLinkClick?.();
+          }}
+        />
       </div>
     </nav>
   );
@@ -123,46 +121,35 @@ const Sidebar = () => {
 
   return (
     <motion.aside
-      animate={{ width: open ? 240 : 72 }}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
-      className="sticky top-0 hidden md:flex flex-col h-screen bg-card border-r border-border z-50"
+      animate={{ width: open ? 248 : 80 }}
+      transition={{ duration: 0.2, ease: 'easeInOut' }}
+      className="sticky top-0 hidden h-screen flex-col border-r border-border bg-card md:flex"
     >
-      <div className="flex items-center justify-between px-4 h-16 border-b border-border">
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => navigate('/dashboard')}
-            >
-              <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center">
-                <Mic className="w-4 h-4 text-background" />
-              </div>
-              <span className="text-lg font-semibold text-foreground">VoEx</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        {!open && (
-          <div
-            className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center cursor-pointer mx-auto"
-            onClick={() => navigate('/dashboard')}
-          >
-            <Mic className="w-4 h-4 text-background" />
-          </div>
-        )}
+      <div className="flex h-16 items-center justify-between border-b border-border px-4">
+        <button
+          type="button"
+          onClick={() => navigate('/dashboard')}
+          className="focus-ring flex items-center gap-3"
+          aria-label="Go to dashboard home"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-foreground text-background">
+            <Mic className="h-5 w-5" />
+          </span>
+          {open ? <span className="text-heading text-lg font-semibold">VoEx</span> : null}
+        </button>
       </div>
 
       <div className="px-3 pt-3">
         <Button
-          onClick={() => setOpen(!open)}
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
           variant="ghost"
-          size="sm"
-          className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl"
+          size="compact"
+          className="w-full justify-start"
+          aria-label={open ? 'Collapse sidebar' : 'Expand sidebar'}
         >
-          {open ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
-          {open && <span className="text-sm">Collapse</span>}
+          {open ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+          {open ? <span>Collapse</span> : null}
         </Button>
       </div>
 
@@ -173,23 +160,23 @@ const Sidebar = () => {
 
 export const MobileNav = () => {
   const [isOpen, setIsOpen] = useState(false);
+
   return (
     <div className="md:hidden">
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="compact" aria-label="Toggle navigation">
             <PanelLeft className="h-5 w-5" />
-            <span className="sr-only">Toggle Navigation</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-[280px] p-0 flex flex-col bg-card">
-          <div className="flex items-center gap-3 px-4 py-4 border-b border-border">
-            <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center">
-              <Mic className="w-4 h-4 text-background" />
-            </div>
-            <span className="text-lg font-semibold">VoEx</span>
+        <SheetContent side="left" className="w-72 p-0">
+          <div className="flex h-16 items-center gap-3 border-b border-border px-4">
+            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-foreground text-background">
+              <Mic className="h-5 w-5" />
+            </span>
+            <span className="text-heading text-lg font-semibold">VoEx</span>
           </div>
-          <NavContent open={true} onLinkClick={() => setIsOpen(false)} />
+          <NavContent open onLinkClick={() => setIsOpen(false)} />
         </SheetContent>
       </Sheet>
     </div>

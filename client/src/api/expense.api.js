@@ -6,16 +6,31 @@ const buildApiError = (error, fallbackMessage) => {
   apiError.status = error?.response?.status || 500;
   apiError.code = error?.response?.data?.error_code || 'REQUEST_FAILED';
   apiError.details = error?.response?.data?.details || null;
+  apiError.responseData = error?.response?.data || null;
   return apiError;
 };
 
 const expenseApi = {
-  addFromVoice: async (transcript) => {
+  addFromVoice: async (transcript, options = {}) => {
     try {
-      const { data } = await apiClient.post('/expense/voice', { transcript });
+      const payload = {
+        transcript,
+        ...(options.forceSave ? { forceSave: true } : {}),
+        ...(options.draft ? { draft: options.draft } : {}),
+      };
+      const { data } = await apiClient.post('/expense/voice', payload);
       return data;
     } catch (error) {
       throw buildApiError(error, 'Failed to add expense');
+    }
+  },
+
+  previewFromVoice: async (transcript) => {
+    try {
+      const { data } = await apiClient.post('/expense/voice/preview', { transcript });
+      return data;
+    } catch (error) {
+      throw buildApiError(error, 'Failed to preview expense parse');
     }
   },
 
@@ -42,7 +57,25 @@ const expenseApi = {
     } catch (error) {
       throw buildApiError(error, 'Failed to fetch expenses');
     }
-  }
+  },
+
+  deleteExpense: async (id) => {
+    try {
+      const { data } = await apiClient.delete(`/expense/${id}`);
+      return data;
+    } catch (error) {
+      throw buildApiError(error, 'Failed to delete expense');
+    }
+  },
+
+  updateExpense: async (id, updates) => {
+    try {
+      const { data } = await apiClient.put(`/expense/${id}`, updates);
+      return data;
+    } catch (error) {
+      throw buildApiError(error, 'Failed to update expense');
+    }
+  },
 };
 
 export { expenseApi };

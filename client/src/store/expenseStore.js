@@ -16,6 +16,17 @@ const useExpenseStore = create(
           console.error('Failed to fetch expenses:', error);
         }
       },
+      deleteExpense: async (id) => {
+        await expenseApi.deleteExpense(id);
+        set({ expenses: get().expenses.filter((e) => e.id !== id) });
+      },
+      updateExpense: async (id, updates) => {
+        const updated = await expenseApi.updateExpense(id, updates);
+        set({
+          expenses: get().expenses.map((e) => (e.id === id ? updated : e)),
+        });
+        return updated;
+      },
     }),
     {
       name: 'expense-storage',

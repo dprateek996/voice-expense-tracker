@@ -14,7 +14,7 @@ const ExpenseInput = ({ token, onExpenseAdded }) => {
       const expense = await addExpense(text, token);
       setText('');
       if (onExpenseAdded) onExpenseAdded(expense);
-    } catch (err) {
+    } catch {
       setError('Failed to add expense');
     }
     setLoading(false);

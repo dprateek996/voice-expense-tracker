@@ -107,7 +107,8 @@ const CommandInterface = ({
                   </div>
                   <button
                     onClick={close}
-                    className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                    className="focus-ring flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    aria-label="Close command interface"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -116,22 +117,16 @@ const CommandInterface = ({
                   <div className="px-4 py-3 bg-primary/5 border-b border-border">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1">
-                        <span className="w-1 h-3 bg-primary rounded-full animate-[wave_0.5s_ease-in-out_infinite]" style={{ animationDelay: '0ms' }} />
-                        <span className="w-1 h-4 bg-primary rounded-full animate-[wave_0.5s_ease-in-out_infinite]" style={{ animationDelay: '100ms' }} />
-                        <span className="w-1 h-5 bg-primary rounded-full animate-[wave_0.5s_ease-in-out_infinite]" style={{ animationDelay: '200ms' }} />
-                        <span className="w-1 h-4 bg-primary rounded-full animate-[wave_0.5s_ease-in-out_infinite]" style={{ animationDelay: '300ms' }} />
-                        <span className="w-1 h-3 bg-primary rounded-full animate-[wave_0.5s_ease-in-out_infinite]" style={{ animationDelay: '400ms' }} />
+                        <span className="wave-bar h-3 w-1 rounded-full bg-primary" style={{ animationDelay: '0ms' }} />
+                        <span className="wave-bar h-4 w-1 rounded-full bg-primary" style={{ animationDelay: '100ms' }} />
+                        <span className="wave-bar h-5 w-1 rounded-full bg-primary" style={{ animationDelay: '200ms' }} />
+                        <span className="wave-bar h-4 w-1 rounded-full bg-primary" style={{ animationDelay: '300ms' }} />
+                        <span className="wave-bar h-3 w-1 rounded-full bg-primary" style={{ animationDelay: '400ms' }} />
                       </div>
                       <p className="text-sm text-foreground">
                         {transcript || 'Speak your expense...'}
                       </p>
                     </div>
-                    <style>{`
-                      @keyframes wave {
-                        0%, 100% { transform: scaleY(1); }
-                        50% { transform: scaleY(1.8); }
-                      }
-                    `}</style>
                   </div>
                 )}
                 <div className="flex items-end gap-2 p-3">
@@ -151,10 +146,11 @@ const CommandInterface = ({
                   <button
                     onClick={handleMicClick}
                     disabled={isProcessing}
+                    aria-label={isListening ? 'Stop listening' : 'Start listening'}
                     className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${isListening
                       ? 'bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600'
                       : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                      } focus-ring disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {isListening ? (
                       <MicOff className="w-5 h-5" />
@@ -165,7 +161,8 @@ const CommandInterface = ({
                   <button
                     onClick={handleSubmit}
                     disabled={!text.trim() || isProcessing}
-                    className="w-12 h-12 rounded-xl bg-primary text-primary-foreground flex items-center justify-center transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    aria-label="Submit expense text"
+                    className="focus-ring flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {isProcessing ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -176,7 +173,7 @@ const CommandInterface = ({
                 </div>
                 <div className="px-4 pb-3">
                   <p className="text-xs text-muted-foreground text-center">
-                    Type or speak your expense • Press <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px]">Enter</kbd> to submit • <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono text-[10px]">Esc</kbd> to close
+                    Type or speak your expense • Press <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">Enter</kbd> to submit • <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground">Esc</kbd> to close
                   </p>
                 </div>
               </div>

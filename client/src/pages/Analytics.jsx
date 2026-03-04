@@ -1,25 +1,29 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  AreaChart, Area, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
 } from 'recharts';
-import { Download, Wallet, Receipt, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { Calendar, Download, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import EmptyState from '@/components/ui/EmptyState';
 import useExpenseStore from '@/store/expenseStore';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
-// Trust & Authority Palette Colors for Charts
 const CATEGORY_COLORS = [
-  'hsl(199, 89%, 48%)', // Primary Blue
-  'hsl(40, 96%, 40%)',  // Accent Gold
-  'hsl(224, 64%, 33%)', // Secondary Navy
-  '#10b981',            // Emerald (Success)
-  '#f59e0b',            // Amber (Warning)
-  '#ef4444',            // Red (Danger)
-  '#8b5cf6',            // Violet
-  '#ec4899',            // Pink
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
 ];
 
 const Analytics = () => {
@@ -38,347 +42,188 @@ const Analytics = () => {
 
   const filteredExpenses = useMemo(() => {
     const now = new Date();
-    let startDate = new Date();
+    let startDate = new Date(now.getFullYear(), now.getMonth(), 1);
 
     if (dateRange === 'week') {
+      startDate = new Date();
       startDate.setDate(now.getDate() - 7);
-    } else if (dateRange === 'month') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     } else if (dateRange === 'year') {
       startDate = new Date(now.getFullYear(), 0, 1);
     }
 
-    return expenses.filter(exp => new Date(exp.date) >= startDate);
+    return expenses.filter((expense) => new Date(expense.date) >= startDate);
   }, [expenses, dateRange]);
 
   const analytics = useMemo(() => {
     if (filteredExpenses.length === 0) {
       return {
         totalSpent: 0,
-        avgExpense: 0,
         totalEntries: 0,
+        dailyAverage: 0,
         chartData: [],
         categoryData: [],
-        dailyAverage: 0,
-        trend: 0
       };
     }
 
-    const totalSpent = filteredExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-    const avgExpense = totalSpent / filteredExpenses.length;
+    const totalSpent = filteredExpenses.reduce((sum, expense) => sum + (expense.amount || 0), 0);
 
     const chartData = [];
     const now = new Date();
-
     if (dateRange === 'week') {
-      for (let i = 6; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(date.getDate() - i);
-        const dayExp = filteredExpenses.filter(exp =>
-          new Date(exp.date).toDateString() === date.toDateString()
-        );
-        chartData.push({
-          name: date.toLocaleDateString('en-US', { weekday: 'short' }),
-          amount: dayExp.reduce((sum, exp) => sum + (exp.amount || 0), 0)
-        });
+      for (let i = 6; i >= 0; i -= 1) {
+        const day = new Date(now);
+        day.setDate(day.getDate() - i);
+        const amount = filteredExpenses
+          .filter((expense) => new Date(expense.date).toDateString() === day.toDateString())
+          .reduce((sum, expense) => sum + (expense.amount || 0), 0);
+        chartData.push({ name: day.toLocaleDateString('en-US', { weekday: 'short' }), amount });
       }
-    } else if (dateRange === 'month') {
-      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-      for (let day = 1; day <= Math.min(daysInMonth, now.getDate()); day++) {
-        const date = new Date(now.getFullYear(), now.getMonth(), day);
-        const dayExp = filteredExpenses.filter(exp =>
-          new Date(exp.date).toDateString() === date.toDateString()
-        );
-        chartData.push({
-          name: day.toString(),
-          amount: dayExp.reduce((sum, exp) => sum + (exp.amount || 0), 0)
-        });
+    } else if (dateRange === 'year') {
+      for (let month = 0; month < 12; month += 1) {
+        const amount = filteredExpenses
+          .filter((expense) => {
+            const expenseDate = new Date(expense.date);
+            return expenseDate.getMonth() === month && expenseDate.getFullYear() === now.getFullYear();
+          })
+          .reduce((sum, expense) => sum + (expense.amount || 0), 0);
+        chartData.push({ name: new Date(now.getFullYear(), month, 1).toLocaleDateString('en-US', { month: 'short' }), amount });
       }
     } else {
-      for (let month = 0; month < 12; month++) {
-        const date = new Date(now.getFullYear(), month, 1);
-        const monthExp = filteredExpenses.filter(exp => {
-          const expDate = new Date(exp.date);
-          return expDate.getMonth() === month && expDate.getFullYear() === now.getFullYear();
-        });
-        chartData.push({
-          name: date.toLocaleDateString('en-US', { month: 'short' }),
-          amount: monthExp.reduce((sum, exp) => sum + (exp.amount || 0), 0)
-        });
+      const currentDay = now.getDate();
+      for (let day = 1; day <= currentDay; day += 1) {
+        const amount = filteredExpenses
+          .filter((expense) => new Date(expense.date).getDate() === day)
+          .reduce((sum, expense) => sum + (expense.amount || 0), 0);
+        chartData.push({ name: `${day}`, amount });
       }
     }
 
-    const categoryTotals = {};
-    filteredExpenses.forEach(exp => {
-      const cat = exp.category || 'other';
-      categoryTotals[cat] = (categoryTotals[cat] || 0) + (exp.amount || 0);
+    const grouped = {};
+    filteredExpenses.forEach((expense) => {
+      const key = expense.category || 'other';
+      grouped[key] = (grouped[key] || 0) + (expense.amount || 0);
     });
-    const categoryData = Object.entries(categoryTotals)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
 
-    const mid = Math.floor(filteredExpenses.length / 2);
-    const firstHalf = filteredExpenses.slice(0, mid).reduce((sum, e) => sum + (e.amount || 0), 0);
-    const secondHalf = filteredExpenses.slice(mid).reduce((sum, e) => sum + (e.amount || 0), 0);
-    const trend = firstHalf > 0 ? ((secondHalf - firstHalf) / firstHalf) * 100 : 0;
-
-    const days = dateRange === 'week' ? 7 : dateRange === 'month' ? 30 : 365;
-    const dailyAverage = totalSpent / days;
+    const categoryData = Object.entries(grouped).map(([name, value]) => ({ name, value }));
 
     return {
       totalSpent,
-      avgExpense,
       totalEntries: filteredExpenses.length,
+      dailyAverage: totalSpent / Math.max(chartData.length, 1),
       chartData,
       categoryData,
-      dailyAverage,
-      trend
     };
   }, [filteredExpenses, dateRange]);
 
   const exportToCSV = () => {
     const headers = ['Date', 'Category', 'Description', 'Amount'];
-    const rows = filteredExpenses.map(exp => [
-      new Date(exp.date).toLocaleDateString(),
-      exp.category,
-      exp.description,
-      exp.amount
+    const rows = filteredExpenses.map((expense) => [
+      new Date(expense.date).toLocaleDateString(),
+      expense.category,
+      expense.description,
+      expense.amount,
     ]);
-    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `voex-analytics-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-    toast.success('Exported to CSV');
+    toast.success('CSV exported');
   };
 
   if (loading) {
-    return (
-      <div className="max-w-6xl mx-auto w-full py-8 px-6 space-y-6 animate-pulse">
-        <div className="h-10 w-48 bg-muted rounded-lg" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="h-28 bg-muted rounded-2xl" />)}
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="h-80 bg-muted rounded-2xl" />
-          <div className="h-80 bg-muted rounded-2xl" />
-        </div>
-      </div>
-    );
+    return <div className="container py-12 text-muted-foreground">Loading analytics...</div>;
   }
 
   return (
-    <div className="max-w-6xl mx-auto w-full py-8 px-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <p className="text-muted-foreground text-sm mb-1 font-medium">Insights into your spending</p>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-3xl md:text-4xl font-bold font-heading text-foreground tracking-tight">Analytics</h1>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-full border border-border/50">
-              {[
-                { key: 'week', label: '7 Days' },
-                { key: 'month', label: 'Month' },
-                { key: 'year', label: 'Year' },
-              ].map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setDateRange(tab.key)}
-                  className={cn(
-                    "px-4 py-2 text-sm font-medium rounded-full transition-all",
-                    dateRange === tab.key
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
+    <div className="container py-12">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+        <p className="text-meta text-muted-foreground">Spend intelligence</p>
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+          <h1 className="text-heading text-4xl font-semibold">Analytics</h1>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 rounded-md border border-border bg-muted p-1">
+              {['week', 'month', 'year'].map((period) => (
+                <Button
+                  key={period}
+                  type="button"
+                  size="dense"
+                  variant={dateRange === period ? 'primary' : 'ghost'}
+                  onClick={() => setDateRange(period)}
                 >
-                  {tab.label}
-                </button>
+                  {period}
+                </Button>
               ))}
             </div>
-
-            <Button variant="outline" size="icon" onClick={exportToCSV} title="Export CSV" className="rounded-full w-10 h-10 border-border/50">
-              <Download className="w-4 h-4" />
+            <Button type="button" variant="secondary" size="compact" onClick={exportToCSV}>
+              <Download className="h-4 w-4" /> Export
             </Button>
           </div>
         </div>
       </motion.div>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
-      >
-        <div className="bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-              <Wallet className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <span className="text-sm text-muted-foreground">Total Spent</span>
-          </div>
-          <div className="text-2xl font-semibold text-foreground">
-            ₹{analytics.totalSpent.toLocaleString('en-IN')}
-          </div>
-        </div>
 
-        <div className="bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-              <Receipt className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <span className="text-sm text-muted-foreground">Transactions</span>
-          </div>
-          <div className="text-2xl font-semibold text-foreground">
-            {analytics.totalEntries}
-          </div>
-        </div>
-
-        <div className="bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-muted-foreground" />
-            </div>
-            <span className="text-sm text-muted-foreground">Daily Avg</span>
-          </div>
-          <div className="text-2xl font-semibold text-foreground">
-            ₹{analytics.dailyAverage.toFixed(0)}
-          </div>
-        </div>
-
-        <div className="bg-card border border-border rounded-2xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-              {analytics.trend > 0 ? (
-                <TrendingUp className="w-5 h-5 text-red-500" />
-              ) : (
-                <TrendingDown className="w-5 h-5 text-emerald-500" />
-              )}
-            </div>
-            <span className="text-sm text-muted-foreground">Trend</span>
-          </div>
-          <div className={cn(
-            "text-2xl font-semibold",
-            analytics.trend > 0 ? "text-red-500" : "text-emerald-500"
-          )}>
-            {analytics.trend > 0 ? '+' : ''}{analytics.trend.toFixed(0)}%
-          </div>
-        </div>
-      </motion.div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-card border border-border rounded-2xl p-6"
-        >
-          <h2 className="text-lg font-semibold text-foreground mb-4">Spending Over Time</h2>
-          <div className="h-64">
-            {analytics.chartData.length > 0 ? (
+      {analytics.totalEntries === 0 ? (
+        <EmptyState
+          icon={Calendar}
+          title="No analytics yet"
+          description="Add expenses to unlock monthly trends and category splits."
+          ctaLabel="Open dashboard"
+          onCtaClick={() => {
+            window.location.href = '/dashboard';
+          }}
+        />
+      ) : (
+        <div className="grid gap-8 lg:grid-cols-3">
+          <div className="surface-2 rounded-lg border border-border card-pad-default shadow-sm lg:col-span-2">
+            <h2 className="text-heading text-xl font-semibold">Spend Trend</h2>
+            <div className="mt-6 h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={analytics.chartData}>
-                  <defs>
-                    <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                    tickFormatter={(v) => `₹${v}`}
-                    width={60}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '12px'
-                    }}
-                    formatter={(value) => [`₹${value.toLocaleString('en-IN')}`, 'Spent']}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="amount"
-                    stroke="hsl(var(--foreground))"
-                    strokeWidth={2}
-                    fill="url(#colorAmount)"
-                  />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--line))" />
+                  <XAxis dataKey="name" stroke="hsl(var(--text-3))" />
+                  <YAxis stroke="hsl(var(--text-3))" />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="amount" stroke="hsl(var(--chart-1))" fill="hsl(var(--chart-1))" fillOpacity={0.2} />
                 </AreaChart>
               </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                No data available
-              </div>
-            )}
+            </div>
           </div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card border border-border rounded-2xl p-6"
-        >
-          <h2 className="text-lg font-semibold text-foreground mb-4">Category Breakdown</h2>
-          <div className="h-48">
-            {analytics.categoryData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={analytics.categoryData}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={3}
-                  >
-                    {analytics.categoryData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
-                      borderRadius: '12px'
-                    }}
-                    formatter={(value) => [`₹${value.toLocaleString('en-IN')}`, '']}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                No data available
+
+          <div className="space-y-6">
+            <div className="surface-2 rounded-lg border border-border card-pad-default shadow-sm">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-md bg-muted">
+                  <Wallet className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total spent</p>
+                  <p className="text-heading text-2xl font-semibold">₹{analytics.totalSpent.toLocaleString('en-IN')}</p>
+                </div>
               </div>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-3 mt-4 justify-center">
-            {analytics.categoryData.slice(0, 5).map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: CATEGORY_COLORS[i % CATEGORY_COLORS.length] }}
-                />
-                <span className="capitalize text-muted-foreground">{item.name}</span>
+              <p className="mt-4 text-sm text-muted-foreground">{analytics.totalEntries} entries in selected range</p>
+            </div>
+
+            <div className="surface-2 rounded-lg border border-border card-pad-default shadow-sm">
+              <h2 className="text-heading text-xl font-semibold">Category share</h2>
+              <div className="mt-6 h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={analytics.categoryData} dataKey="value" nameKey="name" innerRadius={52} outerRadius={84}>
+                      {analytics.categoryData.map((entry, index) => (
+                        <Cell key={entry.name} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            ))}
+            </div>
           </div>
-        </motion.div>
-      </div>
+        </div>
+      )}
     </div>
   );
 };

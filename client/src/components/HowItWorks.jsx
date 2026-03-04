@@ -59,9 +59,9 @@ const HowItWorks = () => {
                         <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1000 400">
                             <defs>
                                 <linearGradient id="beamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                    <stop offset="0%" stopColor="#22d3ee" stopOpacity="0" />
-                                    <stop offset="50%" stopColor="#22d3ee" stopOpacity="1" />
-                                    <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+                                    <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity="0" />
+                                    <stop offset="50%" stopColor="hsl(var(--chart-1))" stopOpacity="1" />
+                                    <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity="0" />
                                 </linearGradient>
                             </defs>
                             <path
@@ -108,7 +108,7 @@ const HowItWorks = () => {
                                 transition={{ delay: index * 0.6, duration: 0.5, type: "spring" }}
                                 className="relative z-10 mb-4 group"
                             >
-                                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-neutral-900 border border-white/10 flex items-center justify-center shadow-[0_0_20px_rgba(0,0,0,0.5)] group-hover:border-primary/50 group-hover:shadow-[0_0_20px_rgba(34,211,238,0.2)] transition-all duration-300">
+                                <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-neutral-900 border border-white/10 flex items-center justify-center shadow-sm group-hover:border-primary/50 group-hover:shadow-md transition-all duration-300">
                                     <step.icon className="w-6 h-6 md:w-7 md:h-7 text-white group-hover:text-primary transition-colors" />
                                 </div>
                                 <div className="absolute -top-3 -right-3 w-6 h-6 rounded-full bg-primary text-black text-xs font-bold flex items-center justify-center border-2 border-black z-20">

@@ -37,7 +37,8 @@ export default function VoiceResponsePanel({ response, type = 'info', onClose })
       {onClose && (
         <button
           onClick={onClose}
-          className="ml-2 text-primary-400 hover:text-primary-600 transition"
+          aria-label="Close response panel"
+          className="focus-ring ml-2 text-primary-400 hover:text-primary-600 transition"
         >
           <XCircle className="w-5 h-5" />
         </button>

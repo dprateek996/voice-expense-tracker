@@ -2,7 +2,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useEffect } from 'react';
 
 const ExpenseConfirmation = ({ expenses, onDismiss }) => {
@@ -31,7 +30,13 @@ const ExpenseConfirmation = ({ expenses, onDismiss }) => {
                             </div>
                             Expense Added!
                         </CardTitle>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" onClick={onDismiss}>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-foreground"
+                            onClick={onDismiss}
+                            aria-label="Dismiss confirmation"
+                        >
                             <X className="h-4 w-4" />
                         </Button>
                     </CardHeader>

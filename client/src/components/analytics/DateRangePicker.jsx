@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,7 +29,7 @@ const DateRangePicker = ({ onRangeChange, currentRange }) => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
+                <Button variant="secondary" size="compact" className="gap-2">
                     <Calendar className="w-4 h-4" />
                     {getLabel()}
                 </Button>

@@ -1,206 +1,122 @@
-import { useMemo } from "react";
-import { motion } from "framer-motion";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import useExpenseStore from "@/store/expenseStore";
-import { Utensils, Car, ShoppingCart, Home, Music, Coffee, Landmark, Pill } from "lucide-react";
+import { useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { Landmark, PieChartIcon } from 'lucide-react';
+import useExpenseStore from '@/store/expenseStore';
+import EmptyState from '@/components/ui/EmptyState';
 
-const CATEGORY_COLORS = {
-  food: "#ef4444",
-  travel: "#f97316",
-  bills: "#eab308",
-  shopping: "#22c55e",
-  entertainment: "#06b6d4",
-  medicine: "#3b82f6",
-  other: "#6b7280"
-};
-
-const CATEGORY_ICONS = {
-  food: Utensils,
-  travel: Car,
-  bills: Home,
-  shopping: ShoppingCart,
-  entertainment: Music,
-  medicine: Pill,
-  other: Landmark
-};
+const CATEGORY_COLORS = [
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+];
 
 const Categories = () => {
   const { expenses, budget } = useExpenseStore();
 
   const categoryData = useMemo(() => {
-    const categories = {};
+    const grouped = {};
     let total = 0;
 
     expenses.forEach((expense) => {
-      const cat = expense.category || "other";
+      const key = expense.category || 'other';
       const amount = expense.amount || 0;
-      if (!categories[cat]) {
-        categories[cat] = { name: cat, value: 0, count: 0 };
-      }
-      categories[cat].value += amount;
-      categories[cat].count += 1;
+      grouped[key] = (grouped[key] || 0) + amount;
       total += amount;
     });
 
-    return Object.entries(categories)
-      .map(([key, data]) => ({
-        ...data,
-        category: key,
-        percentage: total > 0 ? Math.round((data.value / total) * 100) : 0,
-        color: CATEGORY_COLORS[key] || CATEGORY_COLORS.other
+    return Object.entries(grouped)
+      .map(([name, value], index) => ({
+        name,
+        value,
+        color: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
+        percentage: total > 0 ? Math.round((value / total) * 100) : 0,
       }))
       .sort((a, b) => b.value - a.value);
   }, [expenses]);
 
-  const totalSpent = categoryData.reduce((sum, cat) => sum + (cat.value || 0), 0);
+  const totalSpent = categoryData.reduce((sum, item) => sum + item.value, 0);
   const budgetUsagePercent = budget > 0 ? Math.round((totalSpent / budget) * 100) : 0;
 
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-card border border-border rounded-xl shadow-lg p-3">
-          <p className="font-semibold capitalize">{data.name}</p>
-          <p className="text-sm text-muted-foreground">
-            ₹{data.value.toLocaleString("en-IN")} ({data.percentage}%)
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
+  if (categoryData.length === 0) {
+    return (
+      <div className="container py-12">
+        <EmptyState
+          icon={PieChartIcon}
+          title="No category data"
+          description="Add expenses to see category distribution and budget usage."
+          ctaLabel="Go to dashboard"
+          onCtaClick={() => {
+            window.location.href = '/dashboard';
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-6xl mx-auto w-full py-8 px-6">
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <p className="text-muted-foreground text-sm mb-1">
-          Track spending by category
-        </p>
-        <h1 className="text-3xl font-semibold text-foreground">Categories</h1>
+    <div className="container py-12">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+        <p className="text-meta text-muted-foreground">Categorized insights</p>
+        <h1 className="text-heading mt-4 text-4xl font-semibold">Categories</h1>
       </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-card border border-border rounded-2xl p-6"
-        >
-          <h2 className="text-lg font-semibold text-foreground mb-4">Spending Distribution</h2>
-
-          {categoryData.length === 0 ? (
-            <div className="h-64 flex items-center justify-center text-muted-foreground">
-              No expense data available
-            </div>
-          ) : (
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-          <div className="flex flex-wrap gap-3 mt-4 justify-center">
-            {categoryData.map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="capitalize text-muted-foreground">{item.name}</span>
+      <div className="grid gap-8 lg:grid-cols-2">
+        <div className="surface-2 rounded-lg border border-border card-pad-default shadow-sm">
+          <h2 className="text-heading text-xl font-semibold">Distribution</h2>
+          <div className="mt-6 h-72">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={categoryData} dataKey="value" nameKey="name" innerRadius={62} outerRadius={100}>
+                  {categoryData.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-4">
+            {categoryData.map((item) => (
+              <div key={item.name} className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="h-3 w-3 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="capitalize">{item.name}</span>
               </div>
             ))}
           </div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="space-y-4"
-        >
-          <div className="bg-card border border-border rounded-2xl p-5">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-foreground">Budget Usage</h3>
-              <span className="text-2xl font-bold text-foreground">
-                {budgetUsagePercent}%
-              </span>
+        </div>
+
+        <div className="space-y-6">
+          <div className="surface-2 rounded-lg border border-border card-pad-default shadow-sm">
+            <h2 className="text-heading text-xl font-semibold">Budget usage</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              ₹{totalSpent.toLocaleString('en-IN')} of ₹{budget.toLocaleString('en-IN')} used
+            </p>
+            <div className="mt-4 h-2 overflow-hidden rounded bg-muted">
+              <div className="h-full bg-primary" style={{ width: `${Math.min(budgetUsagePercent, 100)}%` }} />
             </div>
-            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-              <motion.div
-                className="h-full rounded-full"
-                style={{
-                  backgroundColor: budgetUsagePercent > 80 ? "#ef4444" : budgetUsagePercent > 50 ? "#f59e0b" : "#22c55e"
-                }}
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(budgetUsagePercent, 100)}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
-            </div>
-            <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-              <span>₹{totalSpent.toLocaleString("en-IN")}</span>
-              <span>₹{budget.toLocaleString("en-IN")}</span>
-            </div>
+            <p className="mt-2 text-sm text-muted-foreground">{budgetUsagePercent}% of monthly budget</p>
           </div>
-          <div className="bg-card border border-border rounded-2xl overflow-hidden">
-            {categoryData.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                No categories yet
+
+          <div className="surface-2 overflow-hidden rounded-lg border border-border shadow-sm">
+            {categoryData.map((category) => (
+              <div key={category.name} className="flex h-12 items-center justify-between border-b border-border px-6 last:border-none">
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                    <Landmark className="h-4 w-4" />
+                  </span>
+                  <span className="capitalize text-foreground">{category.name}</span>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-foreground">₹{category.value.toLocaleString('en-IN')}</p>
+                  <p className="text-xs text-muted-foreground">{category.percentage}%</p>
+                </div>
               </div>
-            ) : (
-              <div className="divide-y divide-border">
-                {categoryData.map((category, index) => {
-                  const IconComponent = CATEGORY_ICONS[category.category] || Landmark;
-                  return (
-                    <motion.div
-                      key={category.category}
-                      initial={{ opacity: 0, x: 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 + index * 0.05 }}
-                      className="flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors"
-                    >
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center"
-                        style={{ backgroundColor: `${category.color}20` }}
-                      >
-                        <IconComponent className="w-5 h-5" style={{ color: category.color }} />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-foreground capitalize">{category.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {category.count} transaction{category.count !== 1 ? "s" : ""}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">
-                          ₹{category.value.toLocaleString("en-IN")}
-                        </p>
-                        <p className="text-sm text-muted-foreground">{category.percentage}%</p>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            )}
+            ))}
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const fs = require('fs');
 
@@ -92,7 +93,18 @@ app.use((req, res, next) => {
   return next();
 });
 
+// Rate limit auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Mount routers with stable API namespaces
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 app.use('/api/auth', authRoutes);      // <-- was '/api' before — matches frontend /api/auth/login
 app.use('/api/expense', expenseRoutes); // keep expense route
 app.use('/api/refine', refineRoutes);
@@ -150,12 +162,17 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5001;
+const HOST = process.env.HOST || '127.0.0.1';
 
 async function start() {
-  const server = app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
+  const server = app.listen(PORT, HOST, () => console.log(`Server listening on http://${HOST}:${PORT}`));
   server.on('error', (err) => {
     if (err.code === 'EADDRINUSE') {
       console.error(`Port ${PORT} already in use. Kill the process using it or set PORT env var.`);
+      process.exit(1);
+    }
+    if (err.code === 'EPERM') {
+      console.error(`Permission denied while binding ${HOST}:${PORT}. Try HOST=127.0.0.1 and a free PORT.`);
       process.exit(1);
     }
     console.error('Server error:', err);

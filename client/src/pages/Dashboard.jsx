@@ -9,7 +9,7 @@ import useExpenseStore from '@/store/expenseStore';
 import useVoiceStore from '@/store/voiceStore';
 import { useState, useEffect } from 'react';
 import { playOpenSound } from '@/lib/audioUtils';
-import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import ExpenseConfirmation from '@/components/ExpenseConfirmation';
 
 const Dashboard = () => {
@@ -18,11 +18,12 @@ const Dashboard = () => {
   const { open, close, setState } = voiceStore;
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [transcriptToConfirm, setTranscriptToConfirm] = useState("");
+  const [transcriptToConfirm, setTranscriptToConfirm] = useState('');
+  const [parsePreview, setParsePreview] = useState(null);
   const [confirmationData, setConfirmationData] = useState(null);
 
   const { isListening, transcript, startListening, stopListening } = useSpeechRecognition({
-    onResult: () => { },
+    onResult: () => {},
     onError: ({ message }) => {
       toast.error(message || 'Voice capture failed. Please try again.');
       close();
@@ -48,32 +49,38 @@ const Dashboard = () => {
         }
       }
 
-      if (finalTranscript) handleVoiceCommand(finalTranscript);
+      if (finalTranscript) {
+        let previewData = null;
+        try {
+          previewData = await expenseApi.previewFromVoice(finalTranscript);
+          if (previewData?.transcript?.trim()) {
+            finalTranscript = previewData.transcript.trim();
+          }
+        } catch {
+          previewData = null;
+        }
+
+        close();
+        setTranscriptToConfirm(finalTranscript);
+        setParsePreview(previewData);
+        setState('confirming');
+        setDialogOpen(true);
+      }
     },
   });
 
-  const handleVoiceCommand = (spokenTranscript) => {
-    close();
-    setTranscriptToConfirm(spokenTranscript);
-    setState('confirming');
-    setDialogOpen(true);
-  };
-
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
+    const handleKeyDown = (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
+        event.preventDefault();
         if (!voiceStore.isOpen) {
           playOpenSound();
           open();
-          toast.info('Add Expense opened - Press Esc to close', {
-            duration: 2000,
-            icon: '⌨️',
-          });
+          toast.info('Add Expense opened. Press Esc to close.', { duration: 1800 });
         }
       }
 
-      if (e.key === 'Escape') {
+      if (event.key === 'Escape') {
         if (voiceStore.isOpen) {
           close();
           if (isListening) stopListening();
@@ -87,89 +94,45 @@ const Dashboard = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [voiceStore.isOpen, open, close, dialogOpen, confirmationData, isListening, stopListening]);
 
-  const parseAndSaveExpense = async (finalTranscript) => {
+  const parseAndSaveExpense = async (payload) => {
+    const input = typeof payload === 'string' ? { transcript: payload } : payload;
+    const {
+      transcript: finalTranscript,
+      forceSave = false,
+      draft = null,
+    } = input || {};
+
+    if (!finalTranscript) {
+      toast.error('Transcript is required to save expense.');
+      return;
+    }
+
     setDialogOpen(false);
     setState('processing');
+
     try {
-      const result = await expenseApi.addFromVoice(finalTranscript);
-      const count = result.expenses ? result.expenses.length : 1;
-      const firstDesc = result.expenses ? result.expenses[0].description : result.expense.description;
-      const totalAmount = result.expenses
-        ? result.expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0)
-        : (result.expense.amount || 0);
+      const result = await expenseApi.addFromVoice(finalTranscript, { forceSave, draft });
+      const entries = result.expenses || [result.expense];
+      const total = entries.reduce((sum, entry) => sum + (entry.amount || 0), 0);
+      setConfirmationData(entries);
+      setParsePreview(null);
 
-      setConfirmationData(result.expenses || [result.expense]);
-
-      toast.success(
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
-            <svg
-              viewBox="0 0 24 24"
-              className="w-6 h-6 text-white animate-[scale-in_0.3s_ease-out]"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-bold text-white text-base">Expense Added! ✨</p>
-            <p className="text-sm text-white/90 mt-0.5">
-              ₹{totalAmount.toFixed(2)} • {count > 1 ? `${count} items` : firstDesc}
-            </p>
-          </div>
-        </div>,
-        {
-          duration: 4000,
-          style: {
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            border: '2px solid rgba(255,255,255,0.2)',
-            padding: '16px 20px',
-            borderRadius: '16px',
-            boxShadow: '0 10px 40px rgba(16, 185, 129, 0.5), 0 0 0 1px rgba(255,255,255,0.1)',
-          },
-          className: 'animate-[slide-in-right_0.3s_ease-out]',
-        }
-      );
-
+      toast.success(`Expense saved: ₹${total.toLocaleString('en-IN')}`);
       fetchExpenses();
     } catch (error) {
-      toast.error(
-        <div className="flex items-center gap-3">
-          <div className="flex-shrink-0 w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
-            <svg
-              viewBox="0 0 24 24"
-              className="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-bold text-white text-base">Failed to Add Expense</p>
-            <p className="text-sm text-white/90 mt-0.5">{error.message || "Please try again"}</p>
-          </div>
-        </div>,
-        {
-          duration: 4000,
-          style: {
-            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-            border: '2px solid rgba(255,255,255,0.2)',
-            padding: '16px 20px',
-            borderRadius: '16px',
-            boxShadow: '0 10px 40px rgba(239, 68, 68, 0.5)',
-          },
-        }
-      );
+      if (error.code === 'PARSER_LOW_CONFIDENCE' && error.responseData) {
+        const responseData = error.responseData;
+        setTranscriptToConfirm(responseData.transcript || finalTranscript);
+        setParsePreview({
+          transcript: responseData.transcript || finalTranscript,
+          draft: responseData.draft || null,
+          meta: responseData.meta || { reviewRequired: true },
+        });
+        setDialogOpen(true);
+        setState('confirming');
+        return;
+      }
+      toast.error(error.message || 'Failed to add expense.');
     } finally {
       close();
     }
@@ -178,17 +141,16 @@ const Dashboard = () => {
   return (
     <div className="flex min-h-screen w-full bg-background">
       <Sidebar />
-
-      <div className="flex flex-col flex-1">
+      <div className="flex min-w-0 flex-1 flex-col">
         <TopNav />
-
         <main className="flex-1 overflow-auto">
           <Outlet />
         </main>
       </div>
+
       <CommandInterface
         isListening={isListening}
-        transcript={isListening ? transcript : ""}
+        transcript={isListening ? transcript : ''}
         startListening={startListening}
         stopListening={stopListening}
         onTextSubmit={parseAndSaveExpense}
@@ -196,18 +158,22 @@ const Dashboard = () => {
 
       <ConfirmationDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(nextOpen) => {
+          setDialogOpen(nextOpen);
+          if (!nextOpen) setParsePreview(null);
+        }}
         transcript={transcriptToConfirm}
+        parsePreview={parsePreview}
         onConfirm={parseAndSaveExpense}
-        onCancel={() => close()}
+        onCancel={() => {
+          setParsePreview(null);
+          close();
+        }}
       />
 
-      {confirmationData && (
-        <ExpenseConfirmation
-          expenses={confirmationData}
-          onDismiss={() => setConfirmationData(null)}
-        />
-      )}
+      {confirmationData ? (
+        <ExpenseConfirmation expenses={confirmationData} onDismiss={() => setConfirmationData(null)} />
+      ) : null}
     </div>
   );
 };

@@ -18,6 +18,7 @@ export function playClickSound() {
     osc1.stop(ctx.currentTime + 0.22);
     osc2.stop(ctx.currentTime + 0.22);
     osc2.onended = () => ctx.close();
-  } catch (e) {
+  } catch {
+    return;
   }
 }

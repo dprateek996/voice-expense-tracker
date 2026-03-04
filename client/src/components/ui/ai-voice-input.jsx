@@ -81,11 +81,12 @@ export function AIVoiceInput({
     <div className={cn("w-full py-4", className)}>
       <div className="relative max-w-xl w-full mx-auto flex items-center flex-col gap-2">
         <button
+          aria-label={submitted ? "Stop voice recording" : "Start voice recording"}
           className={cn(
             "group w-16 h-16 rounded-xl flex items-center justify-center transition-colors",
             submitted
               ? "bg-red-500/10 hover:bg-red-500/20"
-              : "bg-[#3EA6FF]/10 hover:bg-[#3EA6FF]/20"
+              : "bg-primary/10 hover:bg-primary/20"
           )}
           type="button"
           onClick={handleClick}
@@ -95,7 +96,7 @@ export function AIVoiceInput({
               className="w-6 h-6 rounded-sm bg-red-500 cursor-pointer pointer-events-auto"
             />
           ) : (
-            <Mic className="w-6 h-6 text-[#3EA6FF]" />
+            <Mic className="w-6 h-6 text-primary" />
           )}
         </button>
 
@@ -117,7 +118,7 @@ export function AIVoiceInput({
               className={cn(
                 "w-0.5 rounded-full transition-all duration-300",
                 submitted
-                  ? "bg-[#3EA6FF]/70 animate-pulse"
+                  ? "bg-primary/70 animate-pulse"
                   : "bg-white/10 h-1"
               )}
               style={
