@@ -80,7 +80,7 @@ export const InfiniteMovingCards = ({
       >
         {items.map((item, idx) => (
           <li
-            className="imc-card w-72 md:w-80 max-w-full relative rounded-2xl border border-border flex-shrink-0 bg-card/80 backdrop-blur-xl px-6 py-5 md:px-8 md:py-6 shadow-lg hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:scale-105 hover:z-10"
+            className="imc-card w-72 md:w-80 max-w-full relative rounded-xl border border-border flex-shrink-0 bg-card/80 backdrop-blur-xl px-6 py-5 md:px-8 md:py-6 shadow-sm hover:shadow-md hover:border-foreground/20 transition-all duration-300 hover:scale-[1.02] hover:z-10"
             key={item.title + idx}
           >
             <div className="imc-content relative z-20 flex flex-row items-center justify-between gap-4">
@@ -98,7 +98,7 @@ export const InfiniteMovingCards = ({
                   {item.title}
                 </span>
               </span>
-              <span className="imc-amount text-lg leading-relaxed text-foreground font-bold tracking-tight">
+              <span className="imc-amount text-lg leading-relaxed text-foreground font-bold tracking-tight font-mono">
                 {item.amount}
               </span>
             </div>

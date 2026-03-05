@@ -6,14 +6,18 @@ const useExpenseStore = create(
   persist(
     (set, get) => ({
       expenses: [],
+      loading: false,
       budget: 5000, // Default demo budget
       setBudget: (newBudget) => set({ budget: newBudget }),
       fetchExpenses: async () => {
+        set({ loading: true });
         try {
           const data = await expenseApi.getAll();
           set({ expenses: data });
         } catch (error) {
           console.error('Failed to fetch expenses:', error);
+        } finally {
+          set({ loading: false });
         }
       },
       deleteExpense: async (id) => {
